@@ -1,0 +1,29 @@
+{
+  "database": "Zotero",
+  "noteImportFolder": "docs/notes/",
+  "pdfExportImageDPI": 120,
+  "pdfExportImageFormat": "jpg",
+  "pdfExportImageQuality": 90,
+  "citeFormats": [
+    {
+      "name": "Bibliography",
+      "format": "formatted-bibliography",
+      "cslStyle": "apa"
+    }
+  ],
+  "exportFormats": [
+    {
+      "name": "Import Zotero Note",
+      "outputPathTemplate": "docs/Annotations/{{citekey}}.md",
+      "imageOutputPathTemplate": "docs/Annotations/Assets/{{citekey}}/",
+      "imageBaseNameTemplate": "image",
+      "cslStyle": "apa",
+      "templatePath": "docs/template.md"
+    }
+  ],
+  "citeSuggestTemplate": "[[{{citekey}}]]",
+  "openNoteAfterImport": true,
+  "whichNotesToOpenAfterImport": "first-imported-note",
+  "shouldConcat": true,
+  "pdfExportImageOCR": true
+}
