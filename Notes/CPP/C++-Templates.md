@@ -507,3 +507,113 @@ void foo(T x{}) {}// False
 template<typename T>
 void foo(T x = T{}) {} // Correct
 ```
+
+#### .template成员函数调用
+
+```cpp
+template <unsigned long N>
+void printBitset(std::bitset<N> const& Bs) {
+  std::cout << Bs.template to_string<char, std::char_traits<char>, std::allocator<char>>();
+}
+```
+
+对于 bitset bs，使用 to_string() 的成员函数模板，同时显式指定字符串类型的信息。如果没有使
+用.template，编译器就不知道后面的小于标记 (<) 是模板参数列表的开头。注意，只有在句点之前的
+构造依赖于模板参数时才会出现问题。在例子中，参数 bs 依赖于模板参数 N。
+
+#### 变量模板
+
+我们有非常相似的术语来描述非常不同的事情: 变量模板是一个变量，它是一个模板 (变
+量在这里是一个名词)。可变参数模板是用于可变数量模板参数的模板 (可变参数在这里是形
+容词)。
+
+```cpp
+template<typename T>
+constexpr T pi = T(3.1415926535897932385);
+
+std::cout << pi<double> << '\n'; // 3.14159
+std::cout << pi<int> << '\n'; // 3
+```
+
+变量模板可以有默认模板参数
+
+```cpp
+template<typename T=long double>
+constexpr T pi = T{3.1415926535897932385};
+pi<> // pi <long double>
+pi<int> //
+pi // Error 必须要有<>
+```
+
+变量模板可以用非类型参数进行参数化
+
+```cpp
+template<int N>
+std::array<int,N> arr{};
+
+template<auto N>
+constexpr decltype(N) dval=N;
+```
+
+第二行有一种等价写法
+
+```cpp
+template<auto N>
+constexpr decltype(N) dval = N;
+
+template <typename T, T N>
+constexpr T dval2 = N;
+
+std::cout << dval<1> << std::endl;
+std::cout << dval2<int, 2> << std::endl;
+```
+
+#### 数据成员的变量模板
+
+如果有某一个模板类中特化不同的静态成员，可以用变量模板取到其中的成员
+
+```cpp
+template<typename T>
+class MyClass {
+  public:
+    static constexpr int max=1000;
+};
+template<>
+class Myclass<float> {
+  public:
+  static constexpr int max = 10;
+};
+template<typename T>
+int myMax = MyClass<T>::max;
+auto i = myMax<int>;
+auto f = myMax<float>;
+```
+
+#### 双重模板参数
+
+允许模板参数本身是类模板
+
+```cpp
+stack<int, vector<int>> stk1;
+stack<int, vector> stk2;
+```
+
+可以省略第二个模板参数，无需重新指定容器元素的
+类型
+
+```cpp
+template<typename T,
+      template<class E> class Container = std::deque>
+class Stack{}; // OK
+template<typename T,
+      template<typename E> typename Conainer = std::deque>
+class Stack{}; // OK;
+template<typename T,
+      template<typename E> class Conainer = std::deque>
+class Stack{}; // OK;
+template<typename T,
+      template<typename> class Conainer = std::deque>
+class Stack{}; // OK;
+```
+
+### 移动语义与enable_if<>
