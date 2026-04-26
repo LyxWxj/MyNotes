@@ -14,3 +14,11 @@
 .idea/
 *.swp
 *.swo
+
+# Project-specific
+.obsidian
+.obsidian.zip
+cpp
+Notes/.claude
+Notes/.python-version
+Notes/.venv
