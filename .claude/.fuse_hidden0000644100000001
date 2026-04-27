@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:docs.vllm.ai)",
+      "WebFetch(domain:arxiv.org)"
+    ]
+  }
+}

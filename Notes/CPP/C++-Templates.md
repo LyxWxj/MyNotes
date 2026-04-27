@@ -616,4 +616,45 @@ template<typename T,
 class Stack{}; // OK;
 ```
 
-### 移动语义与enable_if<>
+### 移动语义与`enable_if<>`
+
+以下代码表示完美转发：
+
+```cpp
+template<typename T>
+void foo(T&& t) {
+  g(std::forward<T>(t));
+}
+```
+
+`std::enable_if<cond, T=void>`,在编译时条件下忽略函数模板
+
+```cpp
+template<typename T>
+typename std::enable_if<(sizeof (T) > 4)>::type foo(T t) {
+  // ...
+}
+```
+
+如果sizeof(T)>4生成false，则忽略foo<>的定义
+如果结果为true，函数模板实例展开为
+
+```cpp
+void foo(T t) {};
+```
+
+或者`std::enable_if<>::type`被实例化为第二个模板参数
+
+简便写法：
+
+```cpp
+template<typename T, typename = std::enable_if_t<(sizeof(T) > 4)>>
+void foo(){}
+// OR
+template<typename T>
+using EnableIfSizeGreater4 = std::enable_if_t<(sizeof(T) > 4)>;
+template<typename T, typename = EnableIfSizeGreater4>
+void foo(){};
+```
+
+#### 用概念简化`enable_if<>`
