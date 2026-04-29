@@ -197,35 +197,3 @@
 
 2. 图2：适配stage分离的分层启动缓存机制结构示意图  
    展示三级缓存（模型权重缓存、中间特征缓存、推理参数缓存）的组成结构，AI处理器（例如昇腾NPU）高速缓存的预加载流程，缓存更新与淘汰逻辑，标注冷启动时间缩短60%以上、缓存命中率≥92%的核心效果，体现分层启动缓存模块与其他模块的协同交互。
-
-```mermaid
-graph LR
-    subgraph Pipeline[跨硬件流水线调度架构]
-        direction LR
-        A[数据输入] --> B[VAE-Encoder<br/>Stage 1]
-        B -->|特征传递| C[LLM特征编码<br/>Stage 2]
-        C --> D[Diffusion生成<br/>Stage 3]
-        D --> E[VAE-Decoder<br/>Stage 4]
-        E --> F[最终输出]
-    end
-
-    subgraph Stage1[Stage 1 - CPU]
-        B1[参数规模: 128MB<br/>耗时占比: 20%]
-    end
-    subgraph Stage2[Stage 2 - 昇腾NPU-310P]
-        C1[参数规模: 512MB<br/>耗时占比: 30%]
-    end
-    subgraph Stage3[Stage 3 - 昇腾NPU-910C]
-        D1[参数规模: 1024MB<br/>耗时占比: 40%]
-    end
-    subgraph Stage4[Stage 4 - 昇腾NPU-910B]
-        E1[参数规模: 256MB<br/>耗时占比: 10%]
-    end
-
-    B -.- Stage1
-    C -.- Stage2
-    D -.- Stage3
-    E -.- Stage4
-
-    Stage1 -->|流水线调度| Stage2 -->|流水线调度| Stage3 -->|流水线调度| Stage4
-```

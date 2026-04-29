@@ -1,0 +1,211 @@
+% !TEX program = xelatex
+\documentclass{ctexart}
+\usepackage{xeCJK}
+\usepackage{fontspec}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath} % Required for some math elements
+\usepackage{pdfpages}
+\usepackage{fancyhdr}
+\usepackage{tocloft}
+\usepackage{setspace}
+\usepackage[backend=biber,style=gb7714-2015, url=false]{biblatex}  
+\usepackage{etoolbox} % 提供 \patchcmd 命令
+\usepackage[colorlinks=true, linkcolor=black, citecolor=black]{hyperref}
+
+\newcommand{\simsun}{\CJKfamily{SimSun}}
+\newcommand{\simhei}{\CJKfamily{SimHei}}
+\newcommand{\simkai}{\CJKfamily{KaiTi}}
+\newcommand{\STSimsun}{\CJKfamily{STZhongsong}}
+
+\setCJKmainfont{SimSun}
+\setmainfont{Times New Roman}
+\addbibresource{ref.bib}
+
+% ===== 一级标题左对齐 =====
+\ctexset{
+  section/format = \raggedright\bfseries\zihao{3},
+}
+
+
+
+\pagestyle{empty}
+\fancyhf{}
+
+% ===== 目录专用设置 =====
+% 1. 行距设置 (仅作用于目录)
+\let\oldtoc\tableofcontents % 保存原目录命令
+\renewcommand{\tableofcontents}{% 重新定义目录命令
+  \begin{spacing}{1.5} % 1.5倍行距
+    \oldtoc% 调用原目录命令
+  \end{spacing}
+}
+
+% 2. 字体设置 (小四号宋体)
+\renewcommand{\cfttoctitlefont}{\normalfont\CJKfamily{SimSun}\huge} % 目录标题字体
+\renewcommand{\cftsecfont}{\normalfont\CJKfamily{SimSun}} % 节条目字体
+\renewcommand{\cftsubsecfont}{\normalfont\CJKfamily{SimSun}} % 子节条目字体
+
+% 3. 调整缩进
+\setlength{\cftsecindent}{0em} % 节标题缩进
+\setlength{\cftsubsecindent}{2em} % 子节缩进
+
+\begin{document}
+
+\setmainfont{Times New Roman}
+% \setCJKmainfont{SimSun}
+
+% 封面 Covers/cover.pdf
+
+% ===== 重定义标题格式 =====
+\newfontfamily\titlelatinfont[Scale=MatchUppercase]{Times New Roman}
+\makeatletter
+\renewcommand\@maketitle{
+    \begin{center}
+        {\zihao{2}\STSimsun\titlelatinfont
+        \@title\par}
+        \vskip 1em
+        {\large\@author}
+    \end{center}
+}
+\makeatother
+
+
+\newenvironment{zhabstract}{%
+  \par\noindent
+  {\zihao{-4}\normalfont\simkai\textbf{【摘要】}} % 标题：小四号楷体加粗
+  \par\vspace{0.5em}
+}
+{\par\vspace{0.5em}}
+
+
+% ===== 关键词环境定义 =====
+\newenvironment{zhkeywords}{%
+  \par\noindent
+  {\zihao{-4}\normalfont\simkai\textbf{【关键词】}} % 标题：小四号楷体加粗
+  \par\vspace{0.5em}
+}
+{\par\par\vspace{0.5em}}
+
+
+\newenvironment{acknowledgements}{%
+  \vspace{0.5\baselineskip} % 段前 0.5 行
+  \par\noindent
+  {\zihao{-4}\normalfont\heiti\textbf{致谢}} % 标题：小四号黑体加粗
+  \par\vspace{0.5\baselineskip} % 段后 0.5 行
+}
+
+\newpage
+\tableofcontents
+
+
+\newpage
+\setcounter{page}{1}
+% Title
+\title{一种基于STAGE分离和异构部署的多模态推理优化系统}
+\author{高忠山、凌超凡、黎恩彤、曾立}
+\maketitle
+\begin{zhabstract}
+-
+\end{zhabstract}
+\begin{zhkeywords}
+-
+\end{zhkeywords}
+
+% ===== 1. 引言 =====
+\section{引言}
+
+多模态大模型在文生图（Text-to-Image, T2I）领域的规模化应用对推理系统提出了高并发、低延迟的严峻挑战。当前主流的多模态文生图模型如Qwen-Image~\cite{QwenImageTechnicalReportWu2025}采用VAE编码器-大语言模型特征编码-MMDiT扩散去噪-VAE解码器的复合架构，推理流程涉及参数规模、计算特征迥异的多个环节。然而，现有推理服务系统如vLLM-Omni~\cite{VLLMOmniFullyDisaggregatedYin2026}虽已实现对自回归多模态模型的stage分离推理，
+但普遍未实现stage深度分离与异构硬件精准匹配，存在显著技术缺陷，无法满足高并发、低延迟的规模化推理需求。由此导致三大核心问题：（1）异构硬件资源利用率低，不同算力等级的AI处理器与CPU间协同效率低下；（2）推理各阶段耦合度高，资源争抢严重，端到端延迟难以控制；（3）大模型权重加载耗时过长，冷启动延迟无法满足高频次推理服务需求。
+
+针对上述问题，本文提出一种基于stage分离和异构部署的多模态推理优化系统。主要贡献如下：
+\begin{enumerate}
+    \item 首次将DiT文生图推理pipeline拆分为VAE Encoder、LLM特征编码、MMDiT Diffusion生成、VAE Decoder四个功能独立、边界清晰的stage，并针对昇腾NPU多型号（310P/910C/910B 等）+ CPU的异构硬件环境，建立基于算力特征、参数规模、耗时占比的硬件亲和性匹配规则，实现各stage与异构硬件的精准适配。
+    \item 设计跨硬件异步流水线调度机制，为每个stage维护专属任务队列并结合动态批处理策略，消除阶段间同步等待，显著提升异构硬件并行效率与推理吞吐量。
+    \item 构建适配stage分离架构的三级分层缓存（模型权重缓存、中间特征缓存、推理参数缓存），实现阶段级缓存预加载与淘汰更新，大幅缩短模型冷启动时间。
+\end{enumerate}
+
+% ===== 2. 相关工作 =====
+\section{相关工作}
+
+\subsection{大模型与多模态推理服务}
+
+以大语言模型（LLM）高效推理服务为核心，vLLM~\cite{EfficientMemoryManagementKwon2023}提出PagedAttention机制实现KV-cache内存近零浪费管理，
+显著提升LLM推理吞吐量。
+SARATHI~\cite{SARATHIEfficientLLMAgrawal2023}通过chunked-prefill与decode-maximal batching策略，将计算密集的prefill与内存密集的decode阶段统一调度，有效消除流水线气泡。
+在多模态服务方向，
+vLLM-Omni~\cite{VLLMOmniFullyDisaggregatedYin2026}提出面向Any-to-Any多模态模型的完全分离式服务架构。
+对Thinker-Talker（如Qwen2.5-Omni,Qwen3-Omni等）、AR+DiT（如GLM-Image等），AR+专用生成器（如BAGEL等），通过stage级别抽象实现跨模态组件的独立调度与资源分配。
+
+\subsection{分离式推理}
+
+分离式推理（Disaggregated Inference）将LLM推理的prefill（计算密集）与decode（内存密集）两阶段拆分至不同硬件，实现独立资源分配与并行度优化。Splitwise~\cite{SplitwiseEfficientGenerativePatel2024}率先论证了prefill/decode阶段分离的经济性与可行性，通过将两个阶段部署至不同GPU集群实现1.4倍吞吐提升与20\%成本降低。DistServe~\cite{DistServeDisaggregatingPrefillZhong2024}进一步将分离策略与SLO约束协同优化，消除prefill-decode干扰。
+TetriInfer~\cite{InferenceInterferenceDisaggregateHu2024}提出两级调度+资源预测的分离式架构，降低混合负载下的推理干扰。
+现有分离式推理工作对DiT文生图流水线（VAE→文本编码→扩散去噪→VAE解码）多阶段分离的异构推理部署涉及较少。本工作将异构分离式推理范式拓展至扩散模型领域，提出面向文生图流水线的四阶段深度分离方案。
+
+\subsection{扩散模型并行推理}
+
+扩散模型的高分辨率图像生成面临巨大计算开销。DistriFusion~\cite{DistriFusionDistributedParallelLi2024}提出displaced patch parallelism，利用相邻扩散步骤特征图的高相似性，通过复用前序步骤的stale feature map实现通信与计算异步重叠，在8张A100上实现最高6.1倍加速。PipeFusion~\cite{PipeFusionPatchlevelPipelineFang2025}设计patch级流水线并行策略，将DiT模型层与图像patch分配至多GPU，复用一步stale特征降低通信开销，配合参数分布存储提升内存效率。xDiT~\cite{XDiTInferenceEngineFang2024}整合序列并行、PipeFusion流水线并行与CFG并行，构建可灵活组合的混合并行推理引擎，首次在以太网互联GPU集群上展示DiT可扩展性。上述工作聚焦于同构GPU环境下的DiT模型内部并行加速，未覆盖完整文生图pipeline（含VAE、文本编码器）的跨阶段异构部署。本工作将并行优化的视野从单一DiT模型扩展至端到端文生图全流程。
+
+\subsection{异构部署}
+
+异构计算环境下CPU与GPU/加速器的协同部署是降低推理成本的重要路径。HeteGen~\cite{HeteGenHeterogeneousParallelZhao2024}提出CPU+GPU异构张量并行框架，通过异步重叠通信与计算缓解I/O瓶颈，实现资源受限设备上的高效LLM推理。SiPipe~\cite{SiPipeBridgingCPUGPUHe2025}利用未充分利用的CPU资源卸载辅助计算与通信任务，通过CPU sampling、token-safe执行模型与结构感知传输三项技术缓解流水线气泡，在多GPU流水线并行部署中提升GPU利用率达23\%。Hybrid SD~\cite{HybridSDEdgeCloudYan2024}将Stable Diffusion的早期扩散步骤部署于云端大模型实现语义规划，后期步骤部署于边缘端小模型完成视觉细节精炼，实现边缘-云协同扩散推理。现有异构部署方案止于CPU-GPU/云端-边缘的二元划分，尚未针对昇腾NPU多型号（310P/910C/910B 等）的算力梯度差异做逐stage的硬件亲和性精准匹配。本工作首次提出面向四级异构硬件的stage-硬件亲和性匹配方法。
+
+\subsection{推理缓存技术}
+
+缓存技术是缩短模型启动延迟、提升推理效率的关键手段。LMCache~\cite{LMCacheEfficientKVLiu2025}提出层次化KV缓存方案，支持GPU显存↔CPU内存↔磁盘↔远程存储的多层级缓存迁移与跨引擎复用，在prefix caching场景实现最高15倍吞吐提升。IMPRESS~\cite{IMPRESSImportanceInformedMultiTierChen2025}构建基于重要性的多级前缀KV存储系统，根据访问频率动态调整缓存层级，实现高命中率下的存储成本优化。PRESERVE通过模型权重与KV Cache的预取实现通信与计算重叠，缩短冷启动延迟。现有缓存方案几乎全部聚焦于KV-cache的层次化管理与跨请求复用，尚未出现适配stage分离架构的模型权重+中间特征+推理参数三级缓存设计。本工作提出了与四阶段分离推理深度耦合的三级分层缓存机制，填补了这一空白。
+
+% ===== 3. 系统设计 =====
+\section{系统设计}
+
+\subsection{系统整体架构}
+
+本系统由四个核心模块组成：stage异构部署模块、跨硬件流水线调度模块、分层启动缓存模块、结果聚合模块。各模块数据互通、协同工作，形成闭环式推理优化架构。
+\subsection{Stage分离与异构部署}
+
+\subsubsection{Stage分离设计}
+
+\subsubsection{异构硬件亲和性匹配}
+
+\subsubsection{设备拓扑}
+
+\subsection{跨硬件流水线调度}
+
+\subsubsection{任务队列管理}
+
+\subsubsection{动态批处理策略}
+
+\subsubsection{异步流水线调度}
+
+\subsection{分层启动缓存}
+
+\subsubsection{三级缓存结构}
+
+构建与stage分离架构深度适配的三级分层缓存：
+\begin{enumerate}
+    \item \textbf{模型权重缓存}：缓存各stage对应的模型主干权重（例如MMDiT约20GB），按stage粒度独立管理，支持stage级精准加载与卸载。
+    \item \textbf{中间特征缓存}：缓存常用风格的中间层特征表示（例如500+种风格特征），支持跨请求复用，减少重复编码开销。
+    \item \textbf{推理参数缓存}：缓存推理运行时参数（采样参数、CFG scale、随机种子等），加速推理任务快速启停。
+\end{enumerate}
+
+\subsubsection{缓存预加载与淘汰策略}
+-
+\subsection{结果聚合模块}
+-
+\section{实验评估}
+
+\subsection{实验设置}
+
+\paragraph{硬件环境} 
+CPU：Kunpeng-920；昇腾NPU-310P（显存24GB）；昇腾NPU-910C（显存64GB）；昇腾NPU-910B（显存32GB）。
+
+% ===== 5. 结论 =====
+\section{结论}
+-
+
+% 参考文献左对齐
+\printbibliography[
+  heading=bibliography,
+  title={\zihao{5}\simkai\textbf{参考文献}}
+]
+
+\end{document}
