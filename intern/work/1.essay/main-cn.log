@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2025.3.13)  28 APR 2026 17:39
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2025.3.13)  29 APR 2026 15:58
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1029,7 +1029,7 @@ LaTeX Font Warning: Font shape `TU/SimSun(0)/b/n' undefined
 [1]
 
 [2]
-Overfull \hbox (3.95357pt too wide) in paragraph at lines 155--156
+Overfull \hbox (3.95357pt too wide) in paragraph at lines 158--159
 []\TU/SimSun(0)/m/n/10.53937 缓 存 技 术 是 缩 短 模 型 启 动 延 迟、|  提 升 推 理 效 率 的 关 键 手 段。| \TU/TimesNewRoman(0)/m/n/10.53937 LMCache$[]$\TU/SimSun(0)/m/n/10.53937 提
  []
 
@@ -1038,6 +1038,17 @@ Overfull \hbox (3.95357pt too wide) in paragraph at lines 155--156
 [3]
 
 [4]
+Overfull \hbox (32.52692pt too wide) in paragraph at lines 190--191
+\TU/SimSun(0)/b/n/10.53937 务 队 列 架 构：| \TU/TimesNewRoman(0)/m/n/10.53937 CPU(\TU/SimSun(0)/b/n/10.53937 文 本 预 处 理\TU/TimesNewRoman(0)/m/n/10.53937 )$\OMS/cmsy/m/n/10.53937 !$\TU/TimesNewRoman(0)/m/n/10.53937 310P(LLM \TU/SimSun(0)/b/n/10.53937 编 码\TU/TimesNewRoman(0)/m/n/10.53937 )$\OMS/cmsy/m/n/10.53937 !$\TU/TimesNewRoman(0)/m/n/10.53937 910C(MMDiT \TU/SimSun(0)/b/n/10.53937 去 噪\TU/TimesNewRoman(0)/m/n/10.53937 )$\OMS/cmsy/m/n/10.53937 !$\TU/TimesNewRoman(0)/m/n/10.53937 910B(VAE
+ []
+
+
+
+[5]
+
+[6]
+
+[7]
 
 Package fontspec Info: 
 (fontspec)             Script 'CJK' not explicitly supported within font
@@ -1059,11 +1070,13 @@ Package fontspec Info:
 
 
 
-[5]
+[8]
 
-[6]
+[9]
 
-[7] (./main-cn.aux)
+[10]
+
+[11] (./main-cn.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2022/07/14>
@@ -1083,12 +1096,12 @@ Package logreq Info: Writing requests to 'main-cn.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 25011 strings out of 473832
- 536887 string characters out of 5729481
- 1507759 words of memory out of 5000000
- 47762 multiletter control sequences out of 15000+600000
+ 25092 strings out of 473832
+ 542007 string characters out of 5729481
+ 1506365 words of memory out of 5000000
+ 47843 multiletter control sequences out of 15000+600000
  562761 words of font info for 86 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 93i,5n,113p,2090b,5113s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 93i,6n,113p,2090b,5176s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on main-cn.pdf (8 pages).
+Output written on main-cn.pdf (12 pages).

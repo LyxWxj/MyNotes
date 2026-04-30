@@ -18,6 +18,7 @@
 # Project-specific
 .obsidian
 .obsidian.zip
+.trash
 cpp
 Notes/.claude
 Notes/.python-version
@@ -26,3 +27,4 @@ Notes/Omni/.pdfs
 Notes/Omni/vllm
 Notes/Omni/vllm-omni
 Notes/Omni/ray
+intern/work/.pdfs

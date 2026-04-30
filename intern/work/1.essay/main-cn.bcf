@@ -2950,19 +2950,28 @@
     <bcf:citekey order="1" intorder="1">QwenImageTechnicalReportWu2025</bcf:citekey>
     <bcf:citekey order="2" intorder="1">VLLMOmniFullyDisaggregatedYin2026</bcf:citekey>
     <bcf:citekey order="3" intorder="1">EfficientMemoryManagementKwon2023</bcf:citekey>
-    <bcf:citekey order="4" intorder="1">SARATHIEfficientLLMAgrawal2023</bcf:citekey>
-    <bcf:citekey order="5" intorder="1">VLLMOmniFullyDisaggregatedYin2026</bcf:citekey>
-    <bcf:citekey order="6" intorder="1">SplitwiseEfficientGenerativePatel2024</bcf:citekey>
-    <bcf:citekey order="7" intorder="1">DistServeDisaggregatingPrefillZhong2024</bcf:citekey>
-    <bcf:citekey order="8" intorder="1">InferenceInterferenceDisaggregateHu2024</bcf:citekey>
-    <bcf:citekey order="9" intorder="1">DistriFusionDistributedParallelLi2024</bcf:citekey>
-    <bcf:citekey order="10" intorder="1">PipeFusionPatchlevelPipelineFang2025</bcf:citekey>
-    <bcf:citekey order="11" intorder="1">XDiTInferenceEngineFang2024</bcf:citekey>
-    <bcf:citekey order="12" intorder="1">HeteGenHeterogeneousParallelZhao2024</bcf:citekey>
-    <bcf:citekey order="13" intorder="1">SiPipeBridgingCPUGPUHe2025</bcf:citekey>
-    <bcf:citekey order="14" intorder="1">HybridSDEdgeCloudYan2024</bcf:citekey>
-    <bcf:citekey order="15" intorder="1">LMCacheEfficientKVLiu2025</bcf:citekey>
-    <bcf:citekey order="16" intorder="1">IMPRESSImportanceInformedMultiTierChen2025</bcf:citekey>
+    <bcf:citekey order="4" intorder="1">EfficientGenerativeLargeMiao2026</bcf:citekey>
+    <bcf:citekey order="5" intorder="1">SARATHIEfficientLLMAgrawal2023</bcf:citekey>
+    <bcf:citekey order="6" intorder="1">VLLMOmniFullyDisaggregatedYin2026</bcf:citekey>
+    <bcf:citekey order="7" intorder="1">SplitwiseEfficientGenerativePatel2024</bcf:citekey>
+    <bcf:citekey order="8" intorder="1">DistServeDisaggregatingPrefillZhong2024</bcf:citekey>
+    <bcf:citekey order="9" intorder="1">InferenceInterferenceDisaggregateHu2024</bcf:citekey>
+    <bcf:citekey order="10" intorder="1">DistriFusionDistributedParallelLi2024</bcf:citekey>
+    <bcf:citekey order="11" intorder="1">PipeFusionPatchlevelPipelineFang2025</bcf:citekey>
+    <bcf:citekey order="12" intorder="1">XDiTInferenceEngineFang2024</bcf:citekey>
+    <bcf:citekey order="13" intorder="1">DiTServeEfficientServingLuo2025</bcf:citekey>
+    <bcf:citekey order="14" intorder="1">TridentServeStagelevelServingXia2025</bcf:citekey>
+    <bcf:citekey order="15" intorder="1">HeteGenHeterogeneousParallelZhao2024</bcf:citekey>
+    <bcf:citekey order="16" intorder="1">SiPipeBridgingCPUGPUHe2025</bcf:citekey>
+    <bcf:citekey order="17" intorder="1">HybridSDEdgeCloudYan2024</bcf:citekey>
+    <bcf:citekey order="18" intorder="1">LMCacheEfficientKVLiu2025</bcf:citekey>
+    <bcf:citekey order="19" intorder="1">IMPRESSImportanceInformedMultiTierChen2025</bcf:citekey>
+    <bcf:citekey order="20" intorder="1">FlashPSEfficientGenerativeJiang2026</bcf:citekey>
+    <bcf:citekey order="21" intorder="1">OrcaDistributedServingYu2022</bcf:citekey>
+    <bcf:citekey order="22" intorder="1">DiTServeEfficientServingLuo2025</bcf:citekey>
+    <bcf:citekey order="23" intorder="1">CacheDiTTrainingfreeCache2025</bcf:citekey>
+    <bcf:citekey order="24" intorder="1">FlashPSEfficientGenerativeJiang2026</bcf:citekey>
+    <bcf:citekey order="25" intorder="1">LMCacheEfficientKVLiu2025</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="none">

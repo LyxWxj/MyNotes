@@ -11,6 +11,8 @@
 \@writefile{toc}{\contentsline {section}{\numberline {1}引言}{1}{section.1}\protected@file@percent }
 \abx@aux@cite{0}{EfficientMemoryManagementKwon2023}
 \abx@aux@segm{0}{0}{EfficientMemoryManagementKwon2023}
+\abx@aux@cite{0}{EfficientGenerativeLargeMiao2026}
+\abx@aux@segm{0}{0}{EfficientGenerativeLargeMiao2026}
 \abx@aux@cite{0}{SARATHIEfficientLLMAgrawal2023}
 \abx@aux@segm{0}{0}{SARATHIEfficientLLMAgrawal2023}
 \abx@aux@cite{0}{VLLMOmniFullyDisaggregatedYin2026}
@@ -27,6 +29,10 @@
 \abx@aux@segm{0}{0}{PipeFusionPatchlevelPipelineFang2025}
 \abx@aux@cite{0}{XDiTInferenceEngineFang2024}
 \abx@aux@segm{0}{0}{XDiTInferenceEngineFang2024}
+\abx@aux@cite{0}{DiTServeEfficientServingLuo2025}
+\abx@aux@segm{0}{0}{DiTServeEfficientServingLuo2025}
+\abx@aux@cite{0}{TridentServeStagelevelServingXia2025}
+\abx@aux@segm{0}{0}{TridentServeStagelevelServingXia2025}
 \@writefile{toc}{\contentsline {section}{\numberline {2}相关工作}{2}{section.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}大模型与多模态推理服务}{2}{subsection.2.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2}分离式推理}{2}{subsection.2.2}\protected@file@percent }
@@ -40,31 +46,44 @@
 \abx@aux@segm{0}{0}{LMCacheEfficientKVLiu2025}
 \abx@aux@cite{0}{IMPRESSImportanceInformedMultiTierChen2025}
 \abx@aux@segm{0}{0}{IMPRESSImportanceInformedMultiTierChen2025}
+\abx@aux@cite{0}{FlashPSEfficientGenerativeJiang2026}
+\abx@aux@segm{0}{0}{FlashPSEfficientGenerativeJiang2026}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.3}扩散模型并行推理}{3}{subsection.2.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4}异构部署}{3}{subsection.2.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}推理缓存技术}{3}{subsection.2.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}推理缓存技术}{4}{subsection.2.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {3}系统设计}{4}{section.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}系统整体架构}{4}{subsection.3.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Stage分离与异构部署}{4}{subsection.3.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Stage分离设计}{4}{subsubsection.3.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}异构硬件亲和性匹配}{4}{subsubsection.3.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.3}设备拓扑}{4}{subsubsection.3.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}跨硬件流水线调度}{4}{subsection.3.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.1}任务队列管理}{4}{subsubsection.3.3.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.2}动态批处理策略}{4}{subsubsection.3.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.3}异步流水线调度}{4}{subsubsection.3.3.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}分层启动缓存}{4}{subsection.3.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.1}三级缓存结构}{4}{subsubsection.3.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.2}缓存预加载与淘汰策略}{5}{subsubsection.3.4.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}结果聚合模块}{5}{subsection.3.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {4}实验评估}{5}{section.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}实验设置}{5}{subsection.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{硬件环境}{5}{paragraph*.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5}结论}{5}{section.5}\protected@file@percent }
-\abx@aux@read@bbl@mdfivesum{909CBC2DC9E9B50F9D290484C561D68D}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}异构硬件亲和性匹配}{5}{subsubsection.3.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.3}设备拓扑}{5}{subsubsection.3.2.3}\protected@file@percent }
+\abx@aux@cite{0}{OrcaDistributedServingYu2022}
+\abx@aux@segm{0}{0}{OrcaDistributedServingYu2022}
+\abx@aux@cite{0}{DiTServeEfficientServingLuo2025}
+\abx@aux@segm{0}{0}{DiTServeEfficientServingLuo2025}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}跨硬件流水线调度}{6}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.1}任务队列管理}{6}{subsubsection.3.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.2}动态批处理策略}{6}{subsubsection.3.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.3}异步流水线调度}{6}{subsubsection.3.3.3}\protected@file@percent }
+\abx@aux@cite{0}{CacheDiTTrainingfreeCache2025}
+\abx@aux@segm{0}{0}{CacheDiTTrainingfreeCache2025}
+\abx@aux@cite{0}{FlashPSEfficientGenerativeJiang2026}
+\abx@aux@segm{0}{0}{FlashPSEfficientGenerativeJiang2026}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}分层启动缓存}{7}{subsection.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.1}三级缓存结构}{7}{subsubsection.3.4.1}\protected@file@percent }
+\abx@aux@cite{0}{LMCacheEfficientKVLiu2025}
+\abx@aux@segm{0}{0}{LMCacheEfficientKVLiu2025}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.2}缓存预加载与淘汰策略}{8}{subsubsection.3.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}结果聚合模块}{8}{subsection.3.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}实验评估}{8}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}实验设置}{8}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{硬件环境}{8}{paragraph*.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}结论}{8}{section.5}\protected@file@percent }
+\abx@aux@read@bbl@mdfivesum{8DDE5E498A21C61E0908FD2D1C6DC780}
 \abx@aux@defaultrefcontext{0}{QwenImageTechnicalReportWu2025}{none/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{VLLMOmniFullyDisaggregatedYin2026}{none/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{EfficientMemoryManagementKwon2023}{none/global//global/global/global}
+\abx@aux@defaultrefcontext{0}{EfficientGenerativeLargeMiao2026}{none/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{SARATHIEfficientLLMAgrawal2023}{none/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{SplitwiseEfficientGenerativePatel2024}{none/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{DistServeDisaggregatingPrefillZhong2024}{none/global//global/global/global}
@@ -72,9 +91,14 @@
 \abx@aux@defaultrefcontext{0}{DistriFusionDistributedParallelLi2024}{none/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{PipeFusionPatchlevelPipelineFang2025}{none/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{XDiTInferenceEngineFang2024}{none/global//global/global/global}
+\abx@aux@defaultrefcontext{0}{DiTServeEfficientServingLuo2025}{none/global//global/global/global}
+\abx@aux@defaultrefcontext{0}{TridentServeStagelevelServingXia2025}{none/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{HeteGenHeterogeneousParallelZhao2024}{none/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{SiPipeBridgingCPUGPUHe2025}{none/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{HybridSDEdgeCloudYan2024}{none/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{LMCacheEfficientKVLiu2025}{none/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{IMPRESSImportanceInformedMultiTierChen2025}{none/global//global/global/global}
-\gdef \@abspage@last{8}
+\abx@aux@defaultrefcontext{0}{FlashPSEfficientGenerativeJiang2026}{none/global//global/global/global}
+\abx@aux@defaultrefcontext{0}{OrcaDistributedServingYu2022}{none/global//global/global/global}
+\abx@aux@defaultrefcontext{0}{CacheDiTTrainingfreeCache2025}{none/global//global/global/global}
+\gdef \@abspage@last{12}
