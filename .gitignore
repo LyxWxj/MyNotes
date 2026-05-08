@@ -17,14 +17,18 @@
 
 # Project-specific
 .obsidian
-.obsidian.zip
+.obsidian.zip 
 .trash
 cpp
 Notes/.claude
 Notes/.python-version
 Notes/.venv
-Notes/Omni/.pdfs
-Notes/Omni/vllm
-Notes/Omni/vllm-omni
-Notes/Omni/ray
+Omni/.pdfs
+Omni/vllm
+Omni/vllm-omni
+Omni/vllm-ascend
+Omni/vllm-omni-lingchaofan
+Omni/ray
 intern/work/.pdfs
+pdfs/
+Notes/Diffusion/papers

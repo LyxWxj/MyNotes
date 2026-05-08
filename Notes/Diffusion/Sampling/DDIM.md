@@ -1,3 +1,10 @@
+---
+type: Note
+related_to: "[[Diffusion]]"
+status: Active
+url: https://arxiv.org/abs/2006.11239
+code: https://github.com/hojonathanho/diffusion
+---
 # Denoising Diffusion Implicit Models (DDIM)
 
 ## Non‑Markovian Forward Process

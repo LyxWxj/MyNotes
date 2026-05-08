@@ -658,3 +658,150 @@ void foo(){};
 ```
 
 #### 用概念简化`enable_if<>`
+
+`requires`关键字
+
+```cpp
+template<typanem STR>
+requires std::is_convertible_v<STR,std::string>
+Person(STR&& n):name(std::forward<STR>(n)) {
+  ...
+}
+```
+
+`concept`关键字
+
+```cpp
+template<typanem T>
+concept ConvertibleToString = std::is_convertible_v<T,std::string>;
+
+template<typename STR>
+requires ConvertibleToString<STR> Person(STR&& n): name(std::forward<STR>(n)) {
+  ...
+}
+```
+
+### 模板元编程
+
+使用模板进行素数判断的例子
+
+```cpp
+template<unsigned p, unsigned d>
+struct DoIsPrime {
+  static constexpr bool value = (p$d != 0) && DoIsPrime<p, d-1>::value;
+}
+template<unsigned p>
+struct DoIsPrime<P,2>{
+  static constexpr bool value = (p%2 != 0);
+};
+template<typename p>
+struct IsPrime {
+  static constexpr bool value = DoIsPrime<p, p/2>::value;
+};
+
+template<>
+struct IsPrime<0> {static constepxr bool value = false;};
+template<>
+struct IsPrime<1> {static constexpr bool value = false;};
+template<>
+struct IsPrime<2>
+{static constexpr bool value = true;};
+template<>
+struct IsPrime<3> {static constexpr bool value = true;};
+```
+
+C++14 中，constexpr 函数可以使用通用 C++ 代码中的控制结构。因此，不用编写笨拙的模板
+代码或有些“奇怪的”单行程序，现在只使用普通的 for 循环:
+
+```cpp
+constexpr bool isPrime(unsigned int p) {
+  for(unsigned int d=2; d <=p/2; ++ d) {
+    if(p%d == 0) {
+      return false;
+    }
+  }
+  return p > 1;
+}
+```
+
+可以直接调用
+
+```cpp
+isPrime(9);
+```
+
+isPrime() 等编译时测试的一种应用是，在编译时使用偏特化
+在不同实现之间进行选择。
+
+```cpp
+template<int SZ, bool =isPrime(SZ)>
+struct Helper;
+template<int SZ>
+struct Helper<SZ, false>
+{
+  
+};
+template<int SZ>
+struct Helper<SZ,true>
+{
+
+};
+template <typename T, std::size_t SZ>
+long foo (std::array<T,SZ> cosnt& coll) {
+  Helper<SZ> h;
+}
+```
+
+#### SFINAE (替换失败不是错误)
+
+C++ 中，以各种参数类型重载的函数很常见。因此，当编译器看到对重载函数的调用时，必须
+考虑每个候选函数，评估调用参数，并选择最匹配的候选函数。
+候选集包括函数模板的情况下，编译器首先必须确定为该候选对象使用哪些模板参数，然后在
+函数参数列表及其返回类型中替换这些参数，然后评估匹配程度。但替换过程可能会遇到问题：可能产生毫无意义的构造。语言规则并不认为这种无意义的替换会导致错误，而具有这种问题的候选则会直接忽略。
+这就是所谓的 SFINAE（Substitution Failure Is Not An Error）原则。
+
+```cpp
+template<typename T, unsigned N>
+std::size_t len(T(&)[N]) {
+  return N;
+}
+```
+
+```cpp
+template<typename T>
+typename T::size_type len(T const& t) {
+  return t.size();
+}
+```
+
+1. 第一个函数模板将参数声明为 T[&](N)，从而参数必须是由 N 个 T 类型元素组成的数组。
+2. 第二个函数模板将参数声明为 T，没有对参数施加任何约束，而是返回类型 T::size_type，这
+要求传递的参数类型具有 size_type 成员变量。
+当传递数组或字符串字面量时，只有数组的函数模板匹配:
+
+```cpp
+int a[10];
+std::cout << len(a)； // OK : only len() for array matches
+std::cout << len("temp"); // OK : only len() for array matches
+std::cout << len(vector<int>{0}); // OK
+std::cout << len(allocator<int>{}); //ERROR: len() selected, but x has no size();
+```
+
+例如，想确保函数模板 len() 对于具有 size_type 成员，但没有 size() 成员函数的参数类型就会
+忽略。函数声明中没有对 size() 成员函数的要求，最终会在实例化时出错:
+
+有一种常见的模式或习语可以用来处理这种情况:
+
+- 用尾部返回类型语法指定返回类型 (前面使用 auto，在末尾返回类型之前使用->)。
+- 使用 decltype 和逗号操作符定义返回类型。
+- 给出以逗号操作符开头的表达式 (在重载逗号操作符时转换为 void)。
+- 在逗号操作符的末尾定义一个实际返回类型的对象。
+
+```cpp
+template<typename T>
+auto len( T const& t) -> decltpe((void)(t.size()), T::size_type()) {
+  return t.size();
+}
+```
+
+返回类型是`decltype( (void)(t.size()), T::size_type())`

@@ -3,7 +3,7 @@
 ## 今日工作
 
 1. **vllm-ascend 项目**：
-   - 理解 vllm-ascend 的 adapter 层设计，了解其如何将 vLLM 的 GPU-centric 抽象映射到 Ascend NPU 上。
+   - 理解 vllm-ascend 的 platform 层设计，了解其如何将 vLLM 的 GPU-centric 抽象映射到 Ascend NPU 上。
 
 2. **Ascend 卡量化知识学习**：
    - 了解了 Ascend NPU 上支持的低精度量化方案，包括 FP16、INT8、W8A16 等，以及各方案在精度与性能之间的权衡。
