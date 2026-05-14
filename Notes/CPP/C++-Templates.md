@@ -805,3 +805,215 @@ auto len( T const& t) -> decltpe((void)(t.size()), T::size_type()) {
 ```
 
 返回类型是`decltype( (void)(t.size()), T::size_type())`
+
+### 通用库
+`std::invoke()` 的一个常见应用是封装单个函数调用 (例如，记录调用，测量持续时间，或准备一
+些上下文，例如启动一个新线程)。现在，可以通过完美转发可调用参数和传递参数来支持移动语
+义:
+```cpp
+#include <utility>
+#include <functional>
+
+template<typename Callable, typename... Args>
+decltype(auto) call(Callable&& op, Args&&... args) {
+  return std::invoke(std::forawrd<Callable>(op), std::forward<Args>(args)...);
+}
+```
+以便将其“完美地”转发回调用者,为了支持返回引用 (比如 std::ostream&)，必须使用 decltype(auto) 而不是 auto:
+decltype(auto)(C++14) 是一个占位符类型，根据相关表达式的类型 (初始化器、返回值或模板参
+数) 确定变量、返回类型或模板参数的类型。详见 15.10.3 节。
+若将 std::invoke() 返回的值临时存储在变量中，以便在执行其他操作 (例如，处理返回值或记录
+调用结束) 后返回，还必须使用 decltype(auto) 声明临时变量:
+```cpp
+decltype(auto) ret{std::invoke(std::forward<Callable>(op),std::forward<Args>(args)...)};
+return ret;
+```
+
+注意，用 auto&& 声明 ret 并不正确。作为一个引用，auto&& 扩展返回值的生命周期直到作用
+域结束 (参见第 11.3 节)，但不超出函数调用者的返回语句。
+使用 decltype(auto) 也有一个问题: 若可调用对象的返回类型为 void，则不允许将 ret 初始化为
+decltype(auto)，因为 void 是一个不完整的类型。现在，有以下选择:
+- 在语句的前一行声明一个对象，其析构函数执行希望实现的可观察行为。例如:
+
+```cpp
+struct cleanip{
+  ~cleanup(){}
+} dummy;
+return std::invoke(std::forward<Callable>(op), std::forward<Args>(args)...);
+```
+- 以不同的方式实现 void 和非 void 的情况:
+```cpp
+#include <utility>
+#include <functional>
+#include <type_traits>
+
+template<typename Callable, typename... Args>
+decltype(auto) call(Callable&& op, Args&&... args) {
+  if constexpr(std::is_same_v<std::invoke_result_t<Callable, Args...>, void>) {
+    std::invoke(std::forward<Callable>(op), std::forward<Args>(args)...);
+    return;
+  }else {
+    decltype(auto) ret{std::invoke(std::forward<Callable>(op), std::forward<Args>(args)...)};
+    return ret;
+  }
+}
+```
+
+必须特别小心地使用类型特征: 其行为可能与 (菜鸟期) 开发者所期望有所不同。例如
+```cpp
+std::remove_const_t<int const&> 
+```
+这里因为引用不是const（尽管不能修改），因此删除引用和const的顺序很重要
+```cpp
+std::remove_const_t<std::remove_reference_t<int const&>> // int
+std::remove_reference_t<int const&> // int const
+std::decay_t<int const&> // yields int
+```
+
+std::addressof<>() 函数模板生成对象或函数的实际地址。即使对象类型有重载操作符 &，也能
+工作。尽管后者很少使用，但可能会发生 (例如，在智能指针中)。因此，如果需要任意类型对象的
+地址，建议使用 addressof():
+```cpp
+template<typename T>
+void f(T&& x) {
+  auto p = &x; // might fail with overloaded operator &
+  auto q = std::addressof(x); // works even with overloaded operator &
+}
+```
+
+std::declval<>() 函数模板可以用作特定类型的对象引用的占位符。该函数没有定义，因此不能
+调用 (也不创建对象)。因此，只能用于未求值的操作数 (decltype 和 sizeof 构造的操作数)。因此，与
+其尝试创建一个对象，可以假设有一个相应类型的对象。
+```cpp
+#include <utility>
+template<typename T1, typename T2, 
+      typename RT = std::decay_t<decltype(true ? std::declval<T1>() : std::declval<T2>())>
+>
+RT max(T1 a, T2 b) {
+  return b < a ? a : b;
+}
+
+```
+
+容易自动产生引用的地方：
+```cpp
+#include <iostream>
+
+template<typename T>
+void tmplParamIsReference(T) {
+  std:: cout << "T is referecne: " << std::is_reference_v<T> << '\n';
+}
+
+int main(){
+  std::cout << std::boolalpha;
+  int i;
+  int& r=i;
+  tmplParamIsReference(i); // false;
+  tmplParamIsReference(r); // false; pass by value
+  tmplParamIsReference<int&>(i); // true;
+  tmplParamIsReference<int&> (r); // true;
+  return 0;
+}
+```
+调用时指定模板参数可以解决问题，但是在模板设计的时候可能没有考虑过这种情况从而触发错误或意外行为
+
+```cpp
+template<typename T, T Z = T{}>
+class RefMem {
+  private: 
+    T zero;
+  public:
+    RefMem():zero(Z) {
+
+    }
+};
+```
+int null= 0;
+int main(){
+  RefMem<int> rm1, rm2;
+  rm1 = rm2; // OK;
+  RefMem<int&> rm3; // ERROR
+  RefMem<int&, 0> rm4; // ERROR: invalid default value for N
+
+  extern int null;
+  RefMem<int&, null> rm5,rm6;
+  rm5 = rm6;// ERROR: operator= is deleted due to reference member;
+}
+使用 decltype(auto) 可以很容易地产生引用类型，因此在上下文中最好不要使用 (默认使用 auto)。
+详见 15.10.3 节。
+出于这个原因，标准库有时会有奇怪的规范和约束。例如:
+• 为了在模板参数为引用实例化时仍然具有赋值操作符，std::pair<> 和 std::tuple<> 类实现了赋
+值操作符，而不是使用默认行为。例如:
+```cpp
+template<typename T1, typename T2>
+struct pair {
+  T1 first; T2 second;
+  pair(pair const&) = default;
+  pair(pair&& ) = default;
+
+  pair& operator=(pair const& p);
+  pair& operator=(pair&& p) noexcept(...);
+}
+```
+
+实现模板时，有时会出现这样的问题: 代码是否能够处理不完整的类型 (参见 10.3.1 节)。来看
+看下面的类模板:
+```cpp
+template<typename T>
+class Cont {
+  private:
+  T* elems;
+  public:
+  ...
+};
+struct Note {
+  std::string value;
+  Cont<Node> next;// only use Pointer
+}
+```
+
+然而，仅通过使用一些特性，就会失去处理不完整类型的能力。例如:
+```cpp
+template<typename T>
+class Cont {
+  private:
+    T* elems;
+  public:
+    typename std::conditional<std::is_move_constructible<T>::value, T&& T&>::type foo();
+}
+```
+这里，使用特征 std::conditional(参见 D.5 节) 来决定成员函数 foo() 的返回类型是 T&& 还是 T&。
+这取决于模板参数类型 T 是否支持移动语义。
+问题是特性 std::is_move_constructible 要求参数是一个完整的类型 (不是 void 或未知边界的数
+组; 参见的 D.3.2 节)。在 foo() 的这个声明中，struct Node 的声明失败了
+> 如果 std::is_move_constructible 是一个完整的类型，并不是所有的编译器都会产生错误。
+> 因为对于这种错误，不需要进行诊断。所以，在需要平台移植时需要考虑这个问题。
+可以将 foo() 替换为成员模板来解决这个问题，这样 std::is_move_constructible 的计算就会延迟
+到 foo() 的实例化点:
+```cpp
+template<typename T>
+class Cont {
+  private:
+    T* elems;
+  public:
+    template<typename D = T> std::conditional<std::is_move_constructible<T>::value, T&&, T&>::type foo();
+}
+```
+现在，特性依赖于模板参数 D(默认为 T，我们想要的值)，编译器必须等到 foo() 调，如 Node 之
+前，再评估特性 (那时 Node 是一个完整的类型，只是在定义时不完整)。
+
+#### 编写泛型库
+让我们列出一些在实现泛型库时需要记住的事情 (注意，其中一些可能会在后面会介绍到):
+• 模板中使用转发引用来转发值 (参见第 91 页 6.1 节)。如果值不依赖于模板参数，使用
+auto&&(参见 11.3 节)。
+• 当参数声明为转发引用时，模板参数在传递左值时要有引用类型 (参见 15.6.2 节)。
+• 当需要依赖于模板形参的对象地址时，使用 std::addressof()，以避免当对象绑定到带有重载操
+作符 & 的类型时出现意外 (11.2.2 节)
+• 对于成员函数模板，确保不会比预定义的复制/移动构造函数或赋值操作符更好地匹配 (6.4
+节)。
+• 模板参数可能是字符串字面值，且不通过值传递时 (7.4 节和 D.4 节)，请考虑使用 std::decay。
+• 如果模板参数有 out 或 inout，请准备好处理参数可能指定为 const 类型的情况 (参见 7.2.2 节)。
+• 准备好处理模板参数引用的副作用 (参见 11.4 节了解详细信息，19.6.1 节为示例)。特别是，要
+确保返回类型不能是引用 (参见 7.5 节)。
+• 准备好处理不完全类型，从而进行以支持，例如：递归数据结构 (参见 11.5 节)。
+• 重载所有数组类型，而不仅仅是 T[SZ](参见 5.4 节)。

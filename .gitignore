@@ -23,6 +23,11 @@ cpp
 Notes/.claude
 Notes/.python-version
 Notes/.venv
+Omni/.venv
+Omni/.python-version
+Omni/main.py
+Omni/pyproject.toml
+Omni/uv.lock
 Omni/.pdfs
 Omni/vllm
 Omni/vllm-omni
