@@ -3,6 +3,7 @@ type: Note
 related_to: "[[vLLM]]"
 status: Active
 url: https://github.com/vllm-project/vllm
+_organized: true
 ---
 
 # FusedMoEModularKernel
