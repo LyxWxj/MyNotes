@@ -1,36 +1,41 @@
 # 数据训练策略
 
+---
+
 ## 数据集
 
-- bert: Wikipedia, books
-- gpt2_webtext/OpenWebTextCorpus: pages based on Reddit links
-- CommonCrawl: web crawl
-- ccnet: Filter Common Crawl based on wikipedia
-- t5_c4: Filter using rules
-- gpt3: CommonCraw, Wikipedia, books
-- the_pile: Lots of sources: books3，stackoverflow, github
-- gopher_massivetext: Filter using rules (trained Gopher)
-- llama: CommonCrawl, CCNet, StackExchange, etc.
-- ReginedWeb: CommonCrawl
-- dolma: Lots of different sources
+> [!info] 常用数据集
+> - **BERT**: Wikipedia, books
+> - **GPT-2 WebText / OpenWebTextCorpus**: pages based on Reddit links
+> - **CommonCrawl**: web crawl
+> - **CCNet**: Filter Common Crawl based on wikipedia
+> - **T5 C4**: Filter using rules
+> - **GPT-3**: CommonCrawl, Wikipedia, books
+> - **The Pile**: Lots of sources: books3, stackoverflow, github
+> - **Gopher MassiveText**: Filter using rules (trained Gopher)
+> - **LLaMA**: CommonCrawl, CCNet, StackExchange, etc.
+> - **RefinedWeb**: CommonCrawl
+> - **Dolma**: Lots of different sources
+
+---
 
 ## Model-based filtering
 
---
+---
 
 ## Mid-training + post-training
 
 ### long context
 
-- longLoRA
- Extemds context length
- Uses shifted sparse attention positional interpolation
- Trained on long documents:PG-19 and Proof-Pile
+> [!note] LongLoRA
+> - Extends context length
+> - Uses shifted sparse attention positional interpolation
+> - Trained on long documents: PG-19 and Proof-Pile
 
 ### tasks
 
---
+---
 
 ### instruction_chat
 
---
+---

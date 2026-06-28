@@ -1,9 +1,17 @@
 ## 镜像选择
 
-vLLM,vLLM-ascend的安装需要gcc>=9，因此在选择镜像的过程中尽量选gcc版本高的镜像，然而镜像版本上并没有标注gcc/g++版本，不过我们可以选择尽可能高的pytorch版本（高pytorch版本也依赖高gcc版本）\
+```bash
+接远程`ssh://ma-user@dev-modelarts.cn-southwest-2.huaweicloud.com:31780`，密钥在`/home/lyxwxj/KeyPair-lyx0511.pem`，进入/home/ma-user/work/vllm-omni0.20.0/目录下,写一个8卡npu启动Wan2.2 T2V模型推理服务的python代码，使用8卡ulysses parallel,记得先激活虚拟环境，模型文件在/home/ma-user/work/Wan2.2-T2V-A14B下，但并不是diffuser格式的
+```
+
+```bash
+torchrun --nproc_per_node=8 generate.py --task ti2v-5B --size 1280*704 --ckpt_dir ../Wan2.2-TI2V-5B --dit_fsdp --t5_fsdp --ulysses_size 8 --image examples/i2v_input.JPG --prompt "Summer beach vacation style, a white cat wearing sunglasses sits on a surfboard. The fluffy-furred feline gazes directly at the camera with a relaxed expression. Blurred beach scenery forms the background featuring crystal-clear waters, distant green hills, and a blue sky dotted with white clouds. The cat assumes a naturally relaxed posture, as if savoring the sea breeze and warm sunlight. A close-up shot highlights the feline's intricate details and the refreshing atmosphere of the seaside."
+```
+
+vLLM,vLLM-ascend 的安装需要 gcc>=9，因此在选择镜像的过程中尽量选 gcc 版本高的镜像，然而镜像版本上并没有标注 gcc/g++ 版本，不过我们可以选择尽可能高的 pytorch 版本（高 pytorch 版本也依赖高 gcc 版本）\
 ![[Pasted image 20260515164654.png]]\
-最后我们选择西南-贵阳一区域$\rightarrow$ 环境配置$\rightarrow$Verl$\rightarrow$ `0.8.0-pytorch_2.9.0-cann_8.5.1-py_3.11-hce_2.0.2512-aarch64-snt9b`\
-硬件实例规格选择`4* ascend-snt9b3 | 96 vCPUs | 768 GiB (modelarts.bm.arm.d910b.kat2ne.48xlarge.4`，对应4块昇腾910B2 64GB
+最后我们选择西南 - 贵阳一区域 $\rightarrow$ 环境配置 $\rightarrow$Verl$\rightarrow$ `0.8.0-pytorch_2.9.0-cann_8.5.1-py_3.11-hce_2.0.2512-aarch64-snt9b`\
+硬件实例规格选择 `4* ascend-snt9b3 | 96 vCPUs | 768 GiB (modelarts.bm.arm.d910b.kat2ne.48xlarge.4`，对应 4 块昇腾 910B2 64GB
 
 ## 环境配置
 
@@ -20,8 +28,8 @@ pip list | grep vllm*
 0.16.0
 ```
 
-镜像已经预先安装好pytorch和vllm但是vllm并非是我们需要的版本(0.14.0)\
-然而不能通过`pip install vllm==0.14.0`来覆盖原来的`vllm 0.16.0`\
+镜像已经预先安装好 pytorch 和 vllm 但是 vllm 并非是我们需要的版本 (0.14.0)\
+然而不能通过 `pip install vllm==0.14.0` 来覆盖原来的 `vllm 0.16.0`\
 在此之前先克隆项目并下载模型
 
 ```bash
@@ -47,26 +55,26 @@ cd vllm-omni && git branch -a
 > remotes/origin/state_separation\
 > remotes/origin/v0.14.0
 
-切换到`stage_separation`分支
+切换到 `stage_separation` 分支
 
 ```bash
 git switch stage_separation
 ```
 
-需要开一个python虚拟环境
+需要开一个 python 虚拟环境
 
 ```bash
 pip install uv
 ```
 
-使用uv管理虚拟环境，在当前目录下初始化uv环境
+使用 uv 管理虚拟环境，在当前目录下初始化 uv 环境
 
 ```bash
 uv venv .venv
 source .venv/bin/activate
 ```
 
-在安装当前项目之前要将`pyproject.toml`中的`fa3-fwd==0.01`改为`fa3-fwd>=0.01`(华为云上找不到`fa3-fwd==0.01`版本)
+在安装当前项目之前要将 `pyproject.toml` 中的 `fa3-fwd==0.01` 改为 `fa3-fwd>=0.01`(华为云上找不到 `fa3-fwd==0.01` 版本)
 
 ```bash
 # 设置镜像源
@@ -75,7 +83,7 @@ export UV_INDEX_URL=https://mirrors.huaweicloud.com/repository/pypi/simple
 uv pip install -e .
 ```
 
-但是此时(.venv)虚拟环境下还没有安装vllm，需要手动安装vllm和vllm-ascend
+但是此时 (.venv) 虚拟环境下还没有安装 vllm，需要手动安装 vllm 和 vllm-ascend
 
 ```bash
 uv pip install vllm==0.14.0
@@ -86,7 +94,7 @@ uv pip install vllm-ascend==0.14.0rc1
 
 ## 启动服务
 
-在vllm-omni目录下启动服务：
+在 vllm-omni 目录下启动服务：
 
 ```bash
 bash scripts/start_multi_instance.sh start -m ./model -p 9000 -n 4
@@ -94,9 +102,9 @@ bash scripts/start_multi_instance.sh start -m ./model -p 9000 -n 4
 
 可能遇到的问题：
 
-### 找不到`multi_instance_laucher.py`
+### 找不到 `multi_instance_laucher.py`
 
-**解决方法**：修改`start_multi_instance.sh`脚本 line118`local source_base="/home/wa-user/work/vllm-omni"`line254`local launcher_script="/home/ma-user/work/vllm-omni/vllm_omni/diffusion/scheduler/multi_instance_launcher.py"`
+**解决方法**：修改 `start_multi_instance.sh` 脚本 line118`local source_base="/home/wa-user/work/vllm-omni"`line254`local launcher_script="/home/ma-user/work/vllm-omni/vllm_omni/diffusion/scheduler/multi_instance_launcher.py"`
 
 ### TypeError:
 
@@ -126,12 +134,12 @@ class OmniModelConfig(ModelConfig):
 
 **解决方案**（任选其一）：
 
-- 去掉 `@config`，保留 `@dataclass(config=ConfigDict(...))`
-- 去掉 `@dataclass(config=ConfigDict(...))`，将 `@config` 改为 `@config(config=ConfigDict(arbitrary_types_allowed=True))`
+- 去掉 `@config`，保留 `@dataclass(config=ConfigDict(…))`
+- 去掉 `@dataclass(config=ConfigDict(…))`，将 `@config` 改为 `@config(config=ConfigDict(arbitrary_types_allowed=True))`
 
 ### 模型加载时发生设备不匹配：
 
-发生在`rope_param`中的设备不匹配
+发生在 `rope_param` 中的设备不匹配
 
 ```bash
 RuntimeError: Expected all tensors to be on the same device. Expected NPU tensor,
@@ -140,7 +148,7 @@ please check whether the input tensor device is correct.
 
 **解决方法**\
 `multi_instance_schedular.py` line 426,438\
-修改`torch.arange`
+修改 `torch.arange`
 
 ```python
 # 修改前
@@ -167,7 +175,7 @@ curl -X POST http://localhost:9000/v1/images/generations \
   }' -o fbb.json
 ```
 
-返回的是json文件，需要解析成png图像
+返回的是 json 文件，需要解析成 png 图像
 
 ```bash
 # 提取 base64 并解码为 png

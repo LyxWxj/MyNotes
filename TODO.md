@@ -8,18 +8,18 @@
 - [x] [DPM-Solver] DPM-Solver: A Fast ODE Solver for Diffusion Probabilistic Model Sampling in Around 10 Steps — [Paper](https://arxiv.org/abs/2206.00927) | [Code](https://github.com/LuChengTHU/dpm-solver)
 - [x] [DPM-Solver++] DPM-SOLVER++: FAST SOLVER FOR GUIDED SAMPLING OF DIFFUSION PROBABILISTIC MODELS — [Paper](https://arxiv.org/abs/2211.01095) | [Code](https://github.com/LuChengTHU/dpm-solver)
 - [x] [DPM-Solver-v3] DPM-Solver-v3: Improved Diffusion ODE Solver with Empirical Model Statistics — [Paper](https://arxiv.org/abs/2310.13268) | [Code](https://github.com/thu-ml/DPM-Solver-v3)
-- [ ] [Parallel Sampling] Parallel Sampling of Diffusion Models — [Paper](https://papers.nips.cc/paper_files/paper/2023/file/0d1986a61e30e5fa408c81216a616e20-Paper-Conference.pdf) | [Code](https://github.com/AndyShih12/paradigms)
-- [ ] [SAMPLER SCHEDULER] SAMPLER SCHEDULER FOR DIFFUSION MODELS — [Paper](https://arxiv.org/abs/2311.06845) | Code: N/A
-- [ ] [Parallel Sampling] Accelerating Parallel Sampling of Diffusion Models — [Paper](https://arxiv.org/abs/2402.09970) | [Code](https://github.com/TZW1998/ParaTAA-Diffusion)
-- [ ] [YONOS] You Only Need One Step: Fast Super-Resolution with Stable Diffusion via Scale Distillation — [Paper](https://arxiv.org/abs/2401.17258) | Code: N/A
-- [ ] [S^2-DM] S^2-DMs: Skip-Step Diffusion Models — [Paper](https://arxiv.org/abs/2401.01520) | Code: N/A
-- [ ] [StepSaver] StepSaver: Predicting Minimum Denoising Steps for Diffusion Model Image Generation — [Paper](https://arxiv.org/abs/2408.02054) | Code: N/A
-- [ ] [DC-Solver] DC-Solver: Improving Predictor-Corrector Diffusion Sampler via Dynamic Compensation — [Paper](https://arxiv.org/abs/2409.03755v1) | [Code](https://github.com/wl-zhao/DC-Solver)
+- [x] [Parallel Sampling] Parallel Sampling of Diffusion Models — [Paper](https://papers.nips.cc/paper_files/paper/2023/file/0d1986a61e30e5fa408c81216a616e20-Paper-Conference.pdf) | [Code](https://github.com/AndyShih12/paradigms)
+- [x] [SAMPLER SCHEDULER] SAMPLER SCHEDULER FOR DIFFUSION MODELS — [Paper](https://arxiv.org/abs/2311.06845) | Code: N/A
+- [x] [Parallel Sampling] Accelerating Parallel Sampling of Diffusion Models — [Paper](https://arxiv.org/abs/2402.09970) | [Code](https://github.com/TZW1998/ParaTAA-Diffusion)
+- [x] [YONOS] You Only Need One Step: Fast Super-Resolution with Stable Diffusion via Scale Distillation — [Paper](https://arxiv.org/abs/2401.17258) | Code: N/A
+- [x] [S^2-DM] S^2-DMs: Skip-Step Diffusion Models — [Paper](https://arxiv.org/abs/2401.01520) | Code: N/A
+- [x] [StepSaver] StepSaver: Predicting Minimum Denoising Steps for Diffusion Model Image Generation — [Paper](https://arxiv.org/abs/2408.02054) | Code: N/A
+- [x] [DC-Solver] DC-Solver: Improving Predictor-Corrector Diffusion Sampler via Dynamic Compensation — [Paper](https://arxiv.org/abs/2409.03755v1) | [Code](https://github.com/wl-zhao/DC-Solver)
 
 ## 📙 Caching
 
-- [ ] [Cache-Enabled Sparse Diffusion] Accelerating Text-to-Image Editing via Cache-Enabled Sparse Diffusion Inference — [Paper](https://arxiv.org/abs/2305.17423) | Code: N/A
-- [ ] [DeepCache] DeepCache: Accelerating Diffusion Models for Free — [Paper](https://arxiv.org/abs/2312.00858) | [Code](https://github.com/horseee/DeepCache)
+- [x] [Cache-Enabled Sparse Diffusion] Accelerating Text-to-Image Editing via Cache-Enabled Sparse Diffusion Inference — [Paper](https://arxiv.org/abs/2305.17423) | Code: N/A
+- [x] [DeepCache] DeepCache: Accelerating Diffusion Models for Free — [Paper](https://arxiv.org/abs/2312.00858) | [Code](https://github.com/horseee/DeepCache)
 - [ ] [Block Caching] Cache Me if You Can: Accelerating Diffusion Models through Block Caching — [Paper](https://arxiv.org/abs/2312.03209) | Code: N/A
 - [ ] [Approximate Caching] Approximate Caching for Efficiently Serving Diffusion Models — [Paper](https://arxiv.org/abs/2312.04429) | Code: N/A
 - [ ] [Layer Caching] Learning-to-Cache: Accelerating Diffusion Transformer via Layer Caching — [Paper](https://arxiv.org/abs/2406.01733) | [Code](https://github.com/horseee/learning-to-cache/)
@@ -32,7 +32,7 @@
 - [ ] [∆-DiT] ∆-DiT: A Training-Free Acceleration Method Tailored for Diffusion Transformers — [Paper](https://arxiv.org/abs/2406.01125) | Code: N/A
 - [ ] [TokenCache] Token Caching for Diffusion Transformer Acceleration — [Paper](https://arxiv.org/abs/2409.18523) | Code: N/A
 - [ ] [AdaCache] Adaptive Caching for Faster Video Generation with Diffusion Transformers — [Paper](https://adacache-dit.github.io/clarity/adacache_meta.pdf) | [Code](https://github.com/AdaCache-DiT/AdaCache)
-- [ ] [TeaCache] Timestep Embedding Tells: It's Time to Cache for Video Diffusion Model — [Paper](https://arxiv.org/abs/2411.19108) | [Code](https://github.com/LiewFeng/TeaCache)
+- [x] [TeaCache] Timestep Embedding Tells: It's Time to Cache for Video Diffusion Model — [Paper](https://arxiv.org/abs/2411.19108) | [Code](https://github.com/LiewFeng/TeaCache)
 - [ ] [LazyDiT] LazyDiT: Lazy Learning for the Acceleration of Diffusion Transformers — [Paper](https://arxiv.org/abs/2412.12444) | Code: N/A
 - [ ] [Ca2-VDM] Ca2-VDM: Efficient Autoregressive Video Diffusion Model with Causal Generation and Cache Sharing — [Paper](https://arxiv.org/abs/2411.16375) | [Code](https://github.com/Dawn-LX/CausalCache-VDM/)
 - [ ] [SmoothCache] SmoothCache: A Universal Inference Acceleration Technique for Diffusion Transformers — [Paper](https://arxiv.org/abs/2411.10510) | [Code](https://github.com/Roblox/SmoothCache)
