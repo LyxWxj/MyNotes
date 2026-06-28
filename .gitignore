@@ -97,7 +97,13 @@ Notes/MathFoundationRL/Book-Mathmatical-Foundation-of-Reinforcement-Learning
 Notes/CPP/Cpp-Templates-2nd
 Notes/learn-world-model
 Omni/comparison_cfg_batch.png
-
+Notes/流式视频生成
+Notes/流式语音生成
+Notes/.python-version
+Notes/main.py
+Notes/Mark.md
+Notes/uv.lock
+Notes/pyproject.toml
 # Temporary files
 *.tmp
 *.temp
