@@ -10,6 +10,7 @@ url: https://arxiv.org/abs/2510.02838
 > 北京大学 Hetu 团队（Yifei Xia, Fangcheng Fu, Bin Cui 等）
 > arXiv:2510.02838
 > 实验环境：16 台服务器 × 8× NVIDIA L20 (48GB)，共 128 GPU
+> 论文：https://arxiv.org/abs/2510.02838
 
 ---
 
@@ -184,6 +185,7 @@ P = PackPerMachine({(t, N_t_prim, N_t_aux)}, G)
 ### 5.1 问题形式化
 
 对每个请求 r（有 SLO 截止时间 d_r），为每个阶段 s 选择：
+
 - 用哪些 GPU（G_r^s）
 - 用什么并行策略（φ_s）
 - 在什么时间执行
@@ -251,6 +253,7 @@ P = PackPerMachine({(t, N_t_prim, N_t_aux)}, G)
 #### 2. Stage Preparation（阶段准备）
 
 **模型副本管理：**
+
 - 每个节点维护一份 CPU 共享副本
 - GPU 只存放当前 Placement Plan 指定的阶段
 
@@ -377,7 +380,7 @@ Encode 计算 → Encode 通信（推送到 Diffuse 的 HB）
 | **调度单位** | 去噪步 | Encode/Diffuse/Decode 阶段 |
 | **并行策略** | Brick Attention（序列并行） | 动态选择 SP 度数 |
 | **模型部署** | 固定的 DP 副本 | 动态的 Placement Plan |
-| **互补性** | 解决"怎么批处理" | 解决"怎么分配资源" |
+| **互补性** | 解决 " 怎么批处理 " | 解决 " 怎么分配资源 " |
 
 **两者是互补的：** TridentServe 解决了 stage-level 的资源分配问题，但在每个 stage 内部的批处理和注意力优化上，可以用 DiT-Serve 的技术。
 

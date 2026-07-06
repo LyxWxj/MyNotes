@@ -7,7 +7,6 @@ url: https://openreview.net/pdf?id=NGNRc7rZBg
 
 # DiT-Serve: An Efficient Serving Engine for Diffusion Transformers
 
-> 匿名投稿，双盲评审中（OpenReview）
 > 实验环境：Google Cloud Platform，8× A100-SXM4-80GB GPU（NVLink 互联）
 
 ---

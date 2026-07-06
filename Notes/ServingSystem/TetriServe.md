@@ -12,6 +12,7 @@ url: https://arxiv.org/abs/2510.01565
 > arXiv:2510.01565
 > 实验环境：8× H100-80GB (NVLink 4.0) 和 4× A40-48GB
 > 代码：https://github.com/DiT-Serving/TetriServe
+> 论文：https://arxiv.org/abs/2510.01565
 
 ---
 
@@ -23,7 +24,7 @@ DiT 模型（如 FLUX.1-dev、SD3）在图像生成中表现出色，但**在线
 - 4096×4096 可能超过 10 分钟
 - 请求的分辨率和 deadline 高度异构
 
-### 核心矛盾：固定并行度的"一刀切"策略无法适应异构工作负载
+### 核心矛盾：固定并行度的 " 一刀切 " 策略无法适应异构工作负载
 
 ```
 SP=1（数据并行）：小分辨率请求按时完成，大分辨率请求超时
@@ -173,11 +174,12 @@ SP=8（高并行度）：大分辨率请求加速了，但小分辨率请求通�
 ```
 
 **轮次时长 τ 的选择：**
+
 - 短轮次：更细粒度的抢占，更敏捷的调度，但调度频率高
 - 长轮次：摊销调度开销，但排队延迟大，可能错过 deadline
 - 实践中根据步粒度确定，每轮执行多个去噪步
 
-**每轮调度的目标：** 最小化"definitely late"的请求数量——那些如果本轮不推进就**必定**超时的请求。
+**每轮调度的目标：** 最小化 "definitely late" 的请求数量——那些如果本轮不推进就**必定**超时的请求。
 
 **判断 definitely late：**
 
@@ -198,7 +200,7 @@ sv_i(o) = I[t_{r+1} + LB_i(o) ≤ D_i]  ← 是否能存活到下一轮
 | 组（Group） | 每个请求 |
 | 选项（Option） | 用不同 GPU 数执行不同步数，或不执行 |
 | 宽度（Width） | 消耗的 GPU 数 |
-| 价值（Value） | 二值"存活"（是否 definitely late） |
+| 价值（Value） | 二值 " 存活 "（是否 definitely late） |
 | 容量 | N 个 GPU |
 | 目标 | 最大化存活请求数 |
 
@@ -224,6 +226,7 @@ c* = argmax_c dp[c]
 ### 5.4 GPU Placement Preservation（放置保持）
 
 请求在连续轮次之间尽量保持在**相同的 GPU 上**执行：
+
 - 避免状态传输延迟
 - 避免通信组重建开销
 - 消除轮次之间的空闲气泡
@@ -272,6 +275,7 @@ c* = argmax_c dp[c]
 ### 6.5 与缓存加速（Nirvana）的兼容性
 
 TetriServe 与 Nirvana 正交兼容：
+
 - Nirvana 通过复用先前请求的中间潜空间，跳过前 k 步（N → N-k 步）
 - TetriServe 动态调整并行度以适应减少后的步数
 - 组合使用效果最佳
@@ -349,8 +353,8 @@ Skewed            0.04     0.19         0.53          0.75
 
 ### 三者的互补关系
 
-- **DiT-Serve**：解决"如何高效批处理异构请求"（Brick Attention + Step-Level Batching）
-- **TridentServe**：解决"如何在三个阶段间分配资源"（stage-level 动态部署）
-- **TetriServe**：解决"如何根据 deadline 动态调整并行度"（step-level SP 调整）
+- **DiT-Serve**：解决 " 如何高效批处理异构请求 "（Brick Attention + Step-Level Batching）
+- **TridentServe**：解决 " 如何在三个阶段间分配资源 "（stage-level 动态部署）
+- **TetriServe**：解决 " 如何根据 deadline 动态调整并行度 "（step-level SP 调整）
 
 三者从不同角度优化扩散模型服务，可以组合使用。
