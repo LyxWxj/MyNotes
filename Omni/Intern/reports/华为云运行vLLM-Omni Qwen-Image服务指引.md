@@ -37,7 +37,7 @@ pip list | grep vllm*
 mkdir model
 # 下载模型
 pip install modelcope
-modelscope download --model Qwen/Qwen-Image --local_dir ./model
+modelscope download --model Qwen/Qwen-Image --local_dir ./models/Qwen-Image
 
 # 下载项目
 git clone https://git.bookug.cc/lingchaofan/vllm-omni.git

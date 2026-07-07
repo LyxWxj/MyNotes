@@ -8,9 +8,8 @@ url: https://arxiv.org/abs/2510.01565
 # TetriServe: Efficiently Serving Mixed DiT Workloads
 
 > University of Michigan（Runyu Lu, Shiqi He, Mosharaf Chowdhury 等）
-> ASPLOS '26（顶会）
+> ASPLOS '26
 > arXiv:2510.01565
-> 实验环境：8× H100-80GB (NVLink 4.0) 和 4× A40-48GB
 > 代码：https://github.com/DiT-Serving/TetriServe
 > 论文：https://arxiv.org/abs/2510.01565
 

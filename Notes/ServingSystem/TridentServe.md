@@ -9,7 +9,6 @@ url: https://arxiv.org/abs/2510.02838
 
 > 北京大学 Hetu 团队（Yifei Xia, Fangcheng Fu, Bin Cui 等）
 > arXiv:2510.02838
-> 实验环境：16 台服务器 × 8× NVIDIA L20 (48GB)，共 128 GPU
 > 论文：https://arxiv.org/abs/2510.02838
 
 ---

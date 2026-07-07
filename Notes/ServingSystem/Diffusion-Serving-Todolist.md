@@ -61,10 +61,48 @@ status: Active
   - 14B 模型 58.28 FPS，1.3B 模型 64.52 FPS（4×H100）
 
 ### 1.6 DistriFusion（⭐ 必读）
-- [ ] **DistriFusion: Distributed Parallel Inference for High-Resolution Diffusion Models** (Li et al., 2024)
+- [x] **DistriFusion: Distributed Parallel Inference for High-Resolution Diffusion Models** (Li et al., 2024)
   - [CVPR 2024](https://arxiv.org/abs/2402.19481)
   - 核心贡献：displaced patch parallelism，利用相邻去噪步骤的相关性实现异步通信
   - 近线性多 GPU 加速，生成质量无损
+
+### 1.7 GF-DiT
+- [ ] **GF-DiT: Scheduling Parallelism for Diffusion Transformer Serving** (Qiang et al., 2026)
+  - [arXiv:2606.13501](https://arxiv.org/abs/2606.13501)
+  - 核心贡献：将 GPU 并行性作为一等可调度资源，弹性运行时重配置
+  - 解决问题：DiT serving 中并行策略静态分配导致资源浪费
+
+### 1.8 DDiT
+- [x] **DDiT: Dynamic Resource Allocation for Diffusion Transformer Model Serving** (Huang et al., 2025)
+  - [arXiv:2506.13497](https://arxiv.org/abs/2506.13497)
+  - 核心贡献：T2V 场景下 DiT/VAE 流水线的 inter-phase 和 intra-phase 优化
+  - 解决问题：DiT 和 VAE 阶段资源需求不同，静态分配效率低
+
+### 1.9 SlackServe
+- [ ] **SlackServe: Adaptive Resource Management and Quality Control for Streaming Video Generation** (Xia et al., 2026)
+  - [arXiv:2606.15319](https://arxiv.org/abs/2606.15319)
+  - 核心贡献：playout-slack 驱动的实时流式视频生成调度
+  - 关键技术：利用 AR-DiT 的播放松弛时间进行资源调度
+
+### 1.10 LegoDiffusion
+- [ ] **LegoDiffusion: Micro-Serving Text-to-Image Diffusion Workflows** (Yang et al., 2026)
+  - [arXiv:2604.08123](https://arxiv.org/abs/2604.08123)
+  - 核心贡献：将 T2I 工作流拆解为微服务化组件，独立调度和扩缩
+
+### 1.11 dLLM-Serve
+- [ ] **dLLM-Serve: Taming the Memory Footprint Crisis for Production Diffusion LLM Serving** (Fan et al., 2025)
+  - [arXiv:2512.17077](https://arxiv.org/abs/2512.17077)
+  - 核心贡献：解决 Diffusion LLM 生产部署中的显存危机
+
+### 1.12 MoDM
+- [ ] **MoDM: Efficient Serving for Image Generation via Mixture-of-Diffusion Models** (Xia et al., 2025)
+  - [arXiv:2503.11972](https://arxiv.org/abs/2503.11972) — ASPLOS 2026
+  - 核心贡献：Mixture-of-Diffusion 架构的高效 serving
+
+### 1.13 DiLaServe
+- [ ] **DiLaServe: High SLO Attainment Serving for Diffusion Language Models** (Chang et al., 2026)
+  - [arXiv:2606.29094](https://arxiv.org/abs/2606.29094)
+  - 核心贡献：面向 Diffusion Language Model 的高 SLO 达成率 serving
 
 ---
 
@@ -86,27 +124,58 @@ status: Active
 
 ---
 
-## 三、并行与分布式推理技术
+## 三、分离式 DiT 推理（Encoder–Denoise–Decoder 流水线分离）
+
+> [!note] 将 Diffusion 推理拆分为 Encoder、Denoising (DiT/UNet)、Decoder 三个阶段，分别在不同硬件/资源上运行，实现异构部署和弹性扩缩
+
+### 3.1 DisagFusion（⭐ 分离式推理必读）
+- [ ] **DisagFusion: Asynchronous Pipeline Parallelism and Elastic Scheduling for Disaggregated Diffusion Serving** (Zha et al., 2025)
+  - [arXiv:2605.25550](https://arxiv.org/abs/2605.25550)
+  - 核心贡献：将 Encoder、DiT、Decoder 三阶段解耦为独立服务，运行在异构 GPU 上
+  - 关键技术：异步流水线并行 + 弹性调度，吞吐提升 3.4×–20.5×
+  - 解决问题：三阶段计算/显存需求高度不平衡，单体部署效率低
+
+### 3.2 vLLM-Omni
+- [x] **vLLM-Omni: Fully Disaggregated Serving for Any-to-Any Multimodal Models** (Yin et al., 2026)
+  - [arXiv:2602.02204](https://arxiv.org/abs/2602.02204)
+  - 核心贡献：全分离式多模态模型 serving，将架构分解为互联阶段
+  - 关键技术：per-stage batching + 灵活 GPU 分配，Job Completion Time 降低 91.4%
+  - 集成 LLM 和 DiT 推理引擎
+
+### 3.3 SwiftFusion
+- [ ] **SwiftFusion: Scalable Sequence Parallelism for Distributed Inference of Diffusion Transformers on GPUs** (Yang et al., 2026)
+  - [arXiv:2601.20273](https://arxiv.org/abs/2601.20273)
+  - 核心贡献：可扩展的序列并行方案，支持 DiT 分布式推理
+
+### 3.4 Beyond Few-Step Inference（Inter-Request Caching）
+- [ ] **Beyond Few-Step Inference: Accelerating Video Diffusion Transformer Model Serving with Inter-Request Caching Reuse** (Liu et al., 2026)
+  - [arXiv:2604.04451](https://arxiv.org/abs/2604.04451)
+  - 核心贡献：跨请求的缓存复用，加速视频 DiT serving
+  - 关键思想：不同请求间的中间结果可复用，减少重复计算
+
+---
+
+## 四、并行与分布式推理技术
 
 > [!note] 多 GPU 场景下的并行策略
 
-### 3.1 USP
+### 4.1 USP
 - [ ] **USP: A Unified Sequence Parallelism Approach for Long Context Generative AI** (2024)
   - 核心贡献：统一序列并行框架，结合 Ring Attention 和 DeepSpeed-Ulysses
   - 适用于高分辨率图像和视频生成的长序列场景
 
-### 3.2 PipeFusion
+### 4.2 PipeFusion
 - [ ] **PipeFusion: Pipeline Parallelism for Diffusion Transformer Inference** (2024)
   - 核心贡献：利用相邻去噪步骤的相似性实现 pipeline parallelism
   - 不同 GPU 同时处理不同去噪步骤，减少通信开销
 
 ---
 
-## 四、推理优化技术
+## 五、推理优化技术
 
 > [!note] 不依赖分布式部署的单卡优化方法
 
-### 4.1 缓存优化
+### 5.1 缓存优化
 - [ ] **DeepCache: Accelerating Diffusion Models for Free** (Ma et al., CVPR 2024)
   - [arXiv:2312.00858](https://arxiv.org/abs/2312.00858) — [GitHub](https://github.com/horseee/DeepCache)
   - 核心贡献：利用 U-Net 时间冗余，缓存高层特征复用，~2× 加速
@@ -114,7 +183,56 @@ status: Active
 
 - [ ] **FasterDiT** — DiT 架构的特征缓存优化
 
-### 4.2 少步生成与蒸馏
+- [ ] **DPCache: Denoising as Path Planning** (Cui et al., 2026)
+  - [arXiv:2602.22654](https://arxiv.org/abs/2602.22654)
+  - 核心贡献：将去噪过程建模为路径规划，训练无关的缓存加速
+
+- [ ] **Adaptive Hybrid Caching for Efficient Text-to-Video** (Wei et al., 2025)
+  - [arXiv:2508.12691](https://arxiv.org/abs/2508.12691)
+  - 核心贡献：自适应混合缓存策略，针对 T2V 场景的特征复用
+
+- [ ] **QuantCache: Adaptive Importance-Guided Quantization with Hierarchical Caching** (Wu et al., 2025)
+  - [arXiv:2503.06545](https://arxiv.org/abs/2503.06545)
+  - 核心贡献：量化 + 层级缓存联合优化，视频生成加速
+
+- [ ] **LearniBridge: Learnable Calibration of Feature Caching for Diffusion Models** (Huang et al., 2026)
+  - [arXiv:2606.26778](https://arxiv.org/abs/2606.26778)
+  - 核心贡献：可学习的特征缓存校准，自适应缓存策略
+
+- [ ] **Transformer Layer Caching for DiT TTS** (Sakpiboonchit, 2025)
+  - [arXiv:2509.08696](https://arxiv.org/abs/2509.08696)
+  - 核心贡献：Transformer 层级缓存，加速 DiT-based TTS
+
+### 5.2 稀疏化与 Token 剪枝
+- [ ] **DiffSparse: Accelerating Diffusion Transformers with Learned Token Sparsity** (Zhu et al., 2026)
+  - [arXiv:2604.03674](https://arxiv.org/abs/2604.03674)
+  - 核心贡献：学习到的 token 稀疏性，跳过不重要的 token 计算
+
+- [ ] **SODA: Sensitivity-Oriented Dynamic Acceleration for Diffusion Transformer** (Shao et al., 2025)
+  - [arXiv:2603.07057](https://arxiv.org/abs/2603.07057)
+  - 核心贡献：基于敏感度的动态加速，自适应调整不同层的计算
+
+- [ ] **FIS-DiT: Breaking the Few-Step Video Inference Barrier via Training-Free Frame Interleaved Sparsity** (Tang et al., 2026)
+  - [arXiv:2605.11899](https://arxiv.org/abs/2605.11899)
+  - 核心贡献：训练无关的帧交错稀疏性，突破少步推理瓶颈
+
+- [ ] **Sparse-vDiT: Unleashing the Power of Sparse Attention to Accelerate Video Diffusion Transformers** (Chen et al., 2026)
+  - [arXiv:2506.03065](https://arxiv.org/abs/2506.03065)
+  - 核心贡献：视频 DiT 的稀疏注意力加速
+
+- [ ] **RT-Lynx: Putting the GEMM Sparsity In a Right Way for Diffusion Models** (Cong et al., 2026)
+  - [arXiv:2605.26632](https://arxiv.org/abs/2605.26632)
+  - 核心贡献：GEMM 稀疏性在扩散模型中的正确应用
+
+### 5.3 注意力优化
+- [ ] **FlashOmni: A Unified Sparse Attention Engine for Diffusion Transformers** (Qiao et al., 2025)
+  - [arXiv:2509.25401](https://arxiv.org/abs/2509.25401)
+  - 核心贡献：统一的稀疏注意力引擎，针对 DiT 架构优化
+
+- [ ] **DiTFastAttn** — DiT 的训练后稀疏注意力加速
+- [ ] **FlashAttention** (Dao et al., 2022) — [arXiv:2205.14135](https://arxiv.org/abs/2205.14135) — 高效注意力计算（基础技术）
+
+### 5.4 少步生成与蒸馏
 - [ ] **Consistency Models** (Song et al., ICML 2023)
   - [arXiv:2303.01469](https://arxiv.org/abs/2303.01469)
   - 核心贡献：单步/少步生成，从扩散轨迹直接映射到干净数据
@@ -127,33 +245,29 @@ status: Active
 
 - [ ] **LCM-LoRA** — Latent Consistency Models 的 LoRA adapter 版本
 
-### 4.3 量化
+### 5.5 量化
 - [ ] **Q-Diffusion** — Diffusion Model 的量化方法
 - [ ] **PTQ4DiT** — DiT 架构的训练后量化
 - [ ] **DiTAS** — Diffusion Transformer Architecture Search
 
-### 4.4 注意力优化
-- [ ] **DiTFastAttn** — DiT 的训练后稀疏注意力加速
-- [ ] **FlashAttention** (Dao et al., 2022) — [arXiv:2205.14135](https://arxiv.org/abs/2205.14135) — 高效注意力计算（基础技术）
-
 ---
 
-## 五、基础模型架构
+## 六、基础模型架构
 
 > [!note] 理解 Serving 系统所服务的模型架构
 
-### 5.1 Flux
+### 6.1 Flux
 - [ ] **Flow Matching for Generative Modeling** (Lipman et al., ICLR 2023)
   - [arXiv:2210.02747](https://arxiv.org/abs/2210.02747)
   - Flow Matching 的理论基础，Flux 模型的核心技术
 
 ---
 
-## 六、LLM Serving 参考论文
+## 七、LLM Serving 参考论文
 
 > [!tip] LLM Serving 领域的成熟系统设计，可借鉴其调度、批处理和资源管理思想
 
-### 6.1 经典系统
+### 7.1 经典系统
 - [ ] **vLLM: Efficient Memory Management for Large Language Model Serving with PagedAttention** (Kwon et al., SOSP 2023)
   - [arXiv:2309.06180](https://arxiv.org/abs/2309.06180)
   - PagedAttention、连续批处理、高效显存管理
@@ -165,7 +279,7 @@ status: Active
   - Microsoft Research，prefill/decode 阶段分离到不同硬件
   - 对 Diffusion Serving 中的 stage-level 分离有参考价值
 
-### 6.2 调度与批处理
+### 7.2 调度与批处理
 - [ ] **Sarathi: Efficient LLM Inference by Piggybacking Decodes with Chunked Prefills** (2023)
   - chunked prefill + decode 混合批处理
 
@@ -173,21 +287,21 @@ status: Active
   - 多 LoRA adapter 的高效共服务
   - 对多风格/多任务 Diffusion 服务有参考价值
 
-### 6.3 异构部署
+### 7.3 异构部署
 - [ ] **Helix: Serving Large Language Models over Heterogeneous GPUs and Network via Max-Flow** (Mei et al., ASPLOS 2025)
   - [ACM DL](https://dl.acm.org/doi/10.1145/3669940.3707215)（Zotero 报告中的论文）
   - Max-Flow 算法优化异构 GPU 网络上的 LLM 服务
 
 ---
 
-## 七、综合参考
+## 八、综合参考
 
-### 7.1 技术报告
+### 8.1 技术报告
 - [ ] **EECS-2025-46.pdf** — Berkeley 技术报告（Zotero 报告中的附件）
   - [PDF](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2025/Archive/EECS-2025-46.pdf)
   - 可能是 DiT-Serve 或相关系统的学位论文
 
-### 7.2 综述论文
+### 8.2 综述论文
 - [ ] **A Survey on Efficient Inference for Large Language Models** (2024)
   - 虽然聚焦 LLM，但量化、KV-cache、推测解码等技术可迁移到 DiT
 
@@ -204,12 +318,30 @@ status: Active
 | **Serving 系统** | TetriServe | 弹性序列并行 | 2026 |
 | **Serving 系统** | TridentServe | stage-level 资源分配 | 2025 |
 | **Serving 系统** | GENSERVE | T2I/T2V co-serving | 2026 |
+| **Serving 系统** | GF-DiT | 并行性调度 + 弹性重配置 | 2026 |
+| **Serving 系统** | DDiT | DiT/VAE 流水线动态资源分配 | 2025 |
+| **Serving 系统** | SlackServe | playout-slack 驱动流式调度 | 2026 |
+| **Serving 系统** | LegoDiffusion | 微服务化 T2I 工作流 | 2026 |
+| **Serving 系统** | dLLM-Serve | Diffusion LLM 显存优化 | 2025 |
+| **Serving 系统** | MoDM | Mixture-of-Diffusion serving | 2025 |
+| **Serving 系统** | DiLaServe | Diffusion LM SLO 达成 | 2026 |
+| **分离式推理** | DisagFusion | Encoder-DiT-Decoder 解耦 + 异步流水线 | 2025 |
+| **分离式推理** | vLLM-Omni | 全分离多模态 serving | 2026 |
+| **分离式推理** | SwiftFusion | 可扩展序列并行 DiT 推理 | 2026 |
 | **流式系统** | StreamDiffusionV2 | 流式 pipeline orchestration | 2026 |
 | **流式系统** | StreamDiffusion | pipeline-level 流式推理 | 2023 |
 | **分布式推理** | DistriFusion | displaced patch parallelism | 2024 |
 | **分布式推理** | USP | 统一序列并行 | 2024 |
 | **分布式推理** | PipeFusion | pipeline parallelism for DiT | 2024 |
 | **缓存优化** | DeepCache | U-Net 特征缓存 | 2024 |
+| **缓存优化** | DPCache | 去噪路径规划缓存 | 2026 |
+| **缓存优化** | QuantCache | 量化+层级缓存 | 2025 |
+| **缓存优化** | LearniBridge | 可学习缓存校准 | 2026 |
+| **稀疏化** | DiffSparse | 学习 token 稀疏性 | 2026 |
+| **稀疏化** | SODA | 敏感度动态加速 | 2025 |
+| **稀疏化** | FIS-DiT | 帧交错稀疏性 | 2026 |
+| **稀疏化** | Sparse-vDiT | 视频 DiT 稀疏注意力 | 2026 |
+| **注意力优化** | FlashOmni | 统一稀疏注意力引擎 | 2025 |
 | **少步生成** | Consistency Models | 单步生成 | 2023 |
 | **少步生成** | LCM | 潜空间少步生成 | 2023 |
 | **模型架构** | DiT | Transformer-based diffusion | 2023 |
@@ -234,8 +366,12 @@ status: Active
 | **Pipeline Parallelism** | 将模型/推理拆分到多个设备流水线执行 |
 | **Continuous Batching** | 请求级别而非批次级别的动态批处理 |
 | **Prefill/Decode** | LLM 的两个推理阶段，计算特性不同 |
+| **Disaggregated Serving** | 将推理流水线（Encoder/Denoiser/Decoder）解耦为独立服务，运行在不同硬件上 |
+| **Stage-level Scheduling** | 按推理阶段（而非整个请求）进行资源分配和调度 |
+| **Token Sparsity** | 跳过不重要的 token 计算以加速推理 |
+| **Feature Caching** | 缓存并复用相邻步骤的中间特征，减少重复计算 |
 
 ---
 
-*最后更新: 2026-06-18*
-*标签: #DiffusionServing #DiT #分布式推理 #系统优化*
+*最后更新: 2026-07-06*
+*标签: #DiffusionServing #DiT #分布式推理 #系统优化 #分离式推理*
