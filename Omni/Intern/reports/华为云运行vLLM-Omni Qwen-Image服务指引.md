@@ -4,10 +4,6 @@
 接远程`ssh://ma-user@dev-modelarts.cn-southwest-2.huaweicloud.com:31780`，密钥在`/home/lyxwxj/KeyPair-lyx0511.pem`，进入/home/ma-user/work/vllm-omni0.20.0/目录下,写一个8卡npu启动Wan2.2 T2V模型推理服务的python代码，使用8卡ulysses parallel,记得先激活虚拟环境，模型文件在/home/ma-user/work/Wan2.2-T2V-A14B下，但并不是diffuser格式的
 ```
 
-```bash
-torchrun --nproc_per_node=8 generate.py --task ti2v-5B --size 1280*704 --ckpt_dir ../Wan2.2-TI2V-5B --dit_fsdp --t5_fsdp --ulysses_size 8 --image examples/i2v_input.JPG --prompt "Summer beach vacation style, a white cat wearing sunglasses sits on a surfboard. The fluffy-furred feline gazes directly at the camera with a relaxed expression. Blurred beach scenery forms the background featuring crystal-clear waters, distant green hills, and a blue sky dotted with white clouds. The cat assumes a naturally relaxed posture, as if savoring the sea breeze and warm sunlight. A close-up shot highlights the feline's intricate details and the refreshing atmosphere of the seaside."
-```
-
 vLLM,vLLM-ascend 的安装需要 gcc>=9，因此在选择镜像的过程中尽量选 gcc 版本高的镜像，然而镜像版本上并没有标注 gcc/g++ 版本，不过我们可以选择尽可能高的 pytorch 版本（高 pytorch 版本也依赖高 gcc 版本）\
 ![[Pasted image 20260515164654.png]]\
 最后我们选择西南 - 贵阳一区域 $\rightarrow$ 环境配置 $\rightarrow$Verl$\rightarrow$ `0.8.0-pytorch_2.9.0-cann_8.5.1-py_3.11-hce_2.0.2512-aarch64-snt9b`\
