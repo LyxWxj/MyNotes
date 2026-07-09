@@ -32,7 +32,7 @@
 - [ ] [∆-DiT] ∆-DiT: A Training-Free Acceleration Method Tailored for Diffusion Transformers — [Paper](https://arxiv.org/abs/2406.01125) | Code: N/A
 - [ ] [TokenCache] Token Caching for Diffusion Transformer Acceleration — [Paper](https://arxiv.org/abs/2409.18523) | Code: N/A
 - [ ] [AdaCache] Adaptive Caching for Faster Video Generation with Diffusion Transformers — [Paper](https://adacache-dit.github.io/clarity/adacache_meta.pdf) | [Code](https://github.com/AdaCache-DiT/AdaCache)
-- [x] [TeaCache] Timestep Embedding Tells: It's Time to Cache for Video Diffusion Model — [Paper](https://arxiv.org/abs/2411.19108) | [Code](https://github.com/LiewFeng/TeaCache)
+- [ ] [TeaCache] Timestep Embedding Tells: It's Time to Cache for Video Diffusion Model — [Paper](https://arxiv.org/abs/2411.19108) | [Code](https://github.com/LiewFeng/TeaCache)
 - [ ] [LazyDiT] LazyDiT: Lazy Learning for the Acceleration of Diffusion Transformers — [Paper](https://arxiv.org/abs/2412.12444) | Code: N/A
 - [ ] [Ca2-VDM] Ca2-VDM: Efficient Autoregressive Video Diffusion Model with Causal Generation and Cache Sharing — [Paper](https://arxiv.org/abs/2411.16375) | [Code](https://github.com/Dawn-LX/CausalCache-VDM/)
 - [ ] [SmoothCache] SmoothCache: A Universal Inference Acceleration Technique for Diffusion Transformers — [Paper](https://arxiv.org/abs/2411.10510) | [Code](https://github.com/Roblox/SmoothCache)
