@@ -67,8 +67,6 @@ log/
 vllm_omni_test_results/
 vllm_omni_generated/
 generated_images_remote/
-Omni/benchmark_results*/
-
 # Project-specific
 .obsidian
 .obsidian.zip
@@ -77,27 +75,13 @@ cpp
 Notes/.claude
 Notes/.python-version
 Notes/.venv
-Omni/.venv
-Omni/.python-version
-Omni/main.py
-Omni/pyproject.toml
-Omni/uv.lock
-Omni/.pdfs
-Omni/vllm
-Omni/vllm-omni
-Omni/vllm-ascend
-Omni/vllm-omni-lingchaofan
-Omni/vllm-omni-m
-Omni/vllm-omni-batching
-Omni/ray
-Omni/Intern/
+Omni
 Notes/vLLM-omni/vllm-ascend
 skills
 Notes/Diffusion/papers
 Notes/MathFoundationRL/Book-Mathmatical-Foundation-of-Reinforcement-Learning
 Notes/CPP/Cpp-Templates-2nd
 Notes/learn-world-model
-Omni/comparison_cfg_batch.png
 Notes/流式视频生成
 Notes/流式语音生成
 Notes/.python-version

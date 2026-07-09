@@ -20,14 +20,9 @@ obsrepo/
 │   ├── vLLM-omni/                  # vLLM-Omni 多模态推理框架
 │   ├── CPP/                        # C++（模板元编程）
 │   ├── Tutorial/                   # 教程（卡尔曼滤波等）
-│   ├── 流式视频生成/               # 流式视频生成研究 & 方案设计
-│   ├── 流式语音生成/               # 流式语音生成（MiniCPM-o 等）
 │   ├── Awesome-DiT-Inference Papers Reading TODO.md
 │   ├── Awesome-LLM-Inference Papers Reading TODO.md
 │   └── Awesome-3D-Generative-Models-TODO.md
-├── Omni/                           # Omni 项目
-│   ├── vllm-omni-batching/         #   vllm-omni-batching 子模块
-│   └── Intern/                     #   实习相关（论文、报告）
 ├── DS Panorama/                    # 数据结构与算法（代码随想录、王道数据结构）
 ├── blog/                           # 博客草稿（Attention 优化、CMake 等）
 ├── skills/                         # 自定义技能（PDF 文本提取）
