@@ -197,9 +197,52 @@ noise_pred_uncond, noise_pred_cond = noise_pred.chunk(2)
 noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_cond - noise_pred_uncond)
 ```
 
-**负面提示（Negative Prompt）**：CFG 天然支持——将 $\varnothing$ 替换为负面提示的 embedding，模型会"远离"负面描述的方向生成。
+### 4.5 CFG 与 Negative Prompt 的关系
 
-### 4.5 引导强度的权衡
+Negative Prompt 不是独立于 CFG 的功能，而是 CFG 框架的自然延伸。
+
+**核心思想**：将 CFG 公式中的 $\varnothing$（空条件）替换为负面提示的 embedding。
+
+原始 CFG：
+
+$$
+\hat{\epsilon} = \epsilon_\theta(x_t, t, \varnothing) + w \cdot \big[\epsilon_\theta(x_t, t, c_{\text{pos}}) - \epsilon_\theta(x_t, t, \varnothing)\big]
+$$
+
+加入 Negative Prompt 后：
+
+$$
+\hat{\epsilon} = \epsilon_\theta(x_t, t, c_{\text{neg}}) + w \cdot \big[\epsilon_\theta(x_t, t, c_{\text{pos}}) - \epsilon_\theta(x_t, t, c_{\text{neg}})\big]
+$$
+
+**直觉理解**：
+- 无 Negative Prompt：从"任意图像"方向向"符合条件的图像"方向偏移
+- 有 Negative Prompt：从"符合负面描述的图像"方向向"符合条件的图像"方向偏移
+
+等于告诉模型：**往这个方向走，但离那个方向越远越好。**
+
+**实际例子**：
+```
+正面提示: "a photo of a cat"
+负面提示: "blurry, low quality"
+```
+- 基线 $\epsilon(x_t, t, c_{\text{neg}})$：预测"如果要生成模糊低质量的猫"的去噪方向
+- 条件 $\epsilon(x_t, t, c_{\text{pos}})$：预测"如果要生成猫"的去噪方向
+- CFG 组合后：沿着"生成猫但远离模糊低质量"的方向去噪
+
+**代码实现**：
+```python
+if negative_prompt:
+    c_neg = text_encoder(negative_prompt)   # 用户指定的负面条件
+else:
+    c_neg = text_encoder("")                # 空字符串 = 无条件
+
+eps_guided = eps_neg + w * (eps_pos - eps_neg)
+```
+
+**关键结论**：Negative Prompt 之所以能工作，完全是因为 CFG 的框架允许把"基线条件"从空字符串换成任意内容。没有 CFG，就没有 Negative Prompt。
+
+### 4.6 引导强度的权衡
 
 | guidance_scale $w$ | 效果 |
 |---|---|
@@ -233,6 +276,10 @@ Classifier Guidance          Classifier-Free Guidance
         ▼                            ▼
   仅适用于分类条件             适用于任意条件（文本、图像...）
                              已成为现代 T2I 的事实标准
+                                      │
+                                      ▼
+                             Negative Prompt：将 ∅ 替换为 c_neg
+                             ε̂ = ε(x,c_neg) + w·[ε(x,c_pos) - ε(x,c_neg)]
 ```
 
-**一句话总结**：CFG 的精髓在于——让模型同时学会"有条件"和"无条件"两种行为，采样时用两者的差值来放大条件的影响，从而在不引入额外模型的前提下实现高质量的条件引导生成。
+**一句话总结**：CFG 的精髓在于——让模型同时学会"有条件"和"无条件"两种行为，采样时用两者的差值来放大条件的影响，从而在不引入额外模型的前提下实现高质量的条件引导生成。Negative Prompt 是 CFG 的自然延伸——将"无条件"基线替换为"负面条件"，让模型远离不想要的方向。
