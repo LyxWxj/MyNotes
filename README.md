@@ -33,19 +33,23 @@ obsrepo/
 ## 主要内容
 
 ### 🧠 大模型推理与服务
+
 - **vLLM / vLLM-Omni**：LLM 和多模态模型的高性能推理框架笔记，包含架构设计、分布式部署、量化、投机解码等
 - **Diffusion Serving System**：扩散模型推理服务系统（DiT-Serve、GenServe、TetriServe、TridentServe）
 
 ### 🎨 扩散模型
+
 - **理论基础**：DDPM、DDIM、DPM-Solver、Flow Matching、SDE/ODE 统一视角
 - **视频生成**：CogVideoX、Wan、Diffusion Forcing、Self-Forcing 等
 - **缓存与加速**：推理阶段的缓存策略
 
 ### 🔊 流式生成
+
 - **流式视频生成**：分离式 DiT 推理方案设计、FlashDreams 架构分析
 - **流式语音生成**：MiniCPM-o 4.5 模型分析
 
 ### 📚 基础知识
+
 - **强化学习**：数学基础、RLHF、实验记录
 - **C++ 模板**：C++ Templates 第二版笔记
 - **数据结构与算法**：代码随想录、王道数据结构
