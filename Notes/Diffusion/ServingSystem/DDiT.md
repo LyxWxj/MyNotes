@@ -1,8 +1,11 @@
 # DDiT: Dynamic Resource Allocation for Diffusion Transformer Model Serving
 
 **arXiv:** 2506.13497
+
 **Date:** 2025-06-16
+
 **Authors:** Huang, Heyang; Hu, Cunchen; Zhu, Jiaqi; et al.
+
 **Affiliation:** University of Chinese Academy of Sciences, Institute of Computing Technology
 
 ---
@@ -12,6 +15,7 @@
 DDiT 是一个面向 Text-to-Video (T2V) 推理服务的高效资源调度系统。针对 DiT 和 VAE 的异构计算特性，提出阶段间解耦（Inter-phase Decoupling）和阶段内解耦（Intra-phase Decoupling）机制，结合步骤级贪心调度算法，实现 GPU 资源的动态分配。
 
 **核心贡献**：
+
 - 通过实证分析揭示 T2V 系统的四个关键 Insight
 - 设计 DiT-VAE 解耦部署机制，消除资源不均衡
 - 提出步骤级调度算法，支持运行时 DoP 动态调整
@@ -93,22 +97,22 @@ $$z = 1 - \frac{\text{DiT\_step\_time}(\text{DoP}=i, r)}{\text{DiT\_step\_time}(
 ### 4.1 架构概览
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                Centralized Control Plane             │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────┐│
+┌───────────────────────────────────────────────────────┐
+│                Centralized Control Plane              │
+│  ┌────────────────┐  ┌───────────────┐  ┌────────────┐│
 │  │Global Scheduler│  │Cluster Monitor│  │Resource    ││
-│  │              │  │              │  │Allocator   ││
-│  └──────────────┘  └──────────────┘  └────────────┘│
-└─────────────────────────────────────────────────────┘
+│  │                │  │               │  │Allocator   ││
+│  └────────────────┘  └───────────────┘  └────────────┘│
+└───────────────────────────────────────────────────────┘
          │                    │
          ▼                    ▼
-┌─────────────────────────────────────────────────────┐
-│               Engine Units (弹性单元)                 │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────┐│
-│  │Engine Controller│ │Model Engine │  │Worker      ││
-│  │(步骤级调度)    │  │(DiT/VAE)    │  │(GPU进程)   ││
-│  └──────────────┘  └──────────────┘  └────────────┘│
-└─────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────┐
+│               Engine Units (弹性单元)                   │
+│  ┌─────────────────┐  ┌──────────────┐  ┌────────────┐│
+│  │Engine Controller│  │Model Engine  │  │Worker      ││
+│  │(步骤级调度)       │  │(DiT/VAE)     │  │(GPU进程)   ││
+│  └─────────────────┘  └──────────────┘  └────────────┘│
+└───────────────────────────────────────────────────────┘
          │
          ▼
 ┌─────────────────────────────────────────────────────┐
@@ -126,6 +130,7 @@ $$z = 1 - \frac{\text{DiT\_step\_time}(\text{DoP}=i, r)}{\text{DiT\_step\_time}(
 $$O = \sum_{GPU_j \in \text{cluster}} \text{occupied\_time}(GPU_j)$$
 
 **约束条件**：
+
 - N 种分辨率类型，每种占比 $x_i$
 - M 个 GPU（m 个实例，每实例 n 个 GPU）
 - 每种分辨率有对应的最优 DoP
@@ -135,10 +140,11 @@ $$O = \sum_{GPU_j \in \text{cluster}} \text{occupied\_time}(GPU_j)$$
 在已知分辨率分布情况下的理论下界，采用动态规划求解。
 
 **问题输入**：
+
 - `M = m × n`：总 GPU 数量（m 个实例，每实例 n 个 GPU）
 - `N`：分辨率类型数量
 - `x_j`：第 j 种分辨率的请求占比
-- `ps = {1, 2, 4, ...}`：可选的 DoP 值列表
+- `ps = {1, 2, 4, …}`：可选的 DoP 值列表
 
 **算法伪代码**：
 
@@ -171,6 +177,7 @@ $$dp[i][j] = \text{前 } i \text{ 个 GPU 分配给前 } j \text{ 种分辨率�
 $$dp[i][j] = \min_{k=1}^{i} \min_{p \in ps} \left\{ dp[i-k][j-1] + k \times \text{Occupy}(x_j, d, \alpha) \right\}$$
 
 其中：
+
 - `k`：分配给第 j 种类型的 GPU 数量（从 1 到 i 枚举）
 - `p`：DoP 值（从 ps 列表中枚举）
 - `α`：BandwidthAwarePartition 函数计算的模型实例数
@@ -201,6 +208,7 @@ function FIND_OPTIMAL_TIME(G, dp, ps, i, j, xj):
 该函数考虑网络拓扑对并行效率的影响，计算给定 GPU 集合和 DoP 下能创建的模型实例数。
 
 **场景示例**：
+
 ```
 集群配置：2台机器，每台8 GPU
   机器内：NVLink（高带宽，400GB/s）
@@ -217,10 +225,10 @@ function FIND_OPTIMAL_TIME(G, dp, ps, i, j, xj):
 
 | DoP | 可创建实例数 | 原因 |
 |-----|-------------|------|
-| 1 | 15 | 每个GPU独立运行一个实例 |
-| 2 | 7 | 每2个GPU一组，需要高速互联 |
-| 4 | 3 | 每4个GPU一组，机器1可创建2个，机器2可创建1个 |
-| 8 | 1 | 需要8个高速互联GPU，只有机器1满足 |
+| 1 | 15 | 每个 GPU 独立运行一个实例 |
+| 2 | 7 | 每 2 个 GPU 一组，需要高速互联 |
+| 4 | 3 | 每 4 个 GPU 一组，机器 1 可创建 2 个，机器 2 可创建 1 个 |
+| 8 | 1 | 需要 8 个高速互联 GPU，只有机器 1 满足 |
 
 **关键约束**：Sequence Parallelism 要求参与并行的 GPU 之间有高速互联（NVLink），否则通信开销会抵消并行收益。
 
@@ -231,6 +239,7 @@ function FIND_OPTIMAL_TIME(G, dp, ps, i, j, xj):
 **Batch Model（离线批量处理）**：
 
 假设：
+
 - 系统中有 S 个待处理请求
 - 无新请求到达
 - 模型实例数 α ≥ 1
@@ -240,6 +249,7 @@ function FIND_OPTIMAL_TIME(G, dp, ps, i, j, xj):
 $$W_{\text{Batch}}(\text{type } j) = \left\lceil \frac{S \cdot x_j}{\alpha} \right\rceil \times d$$
 
 **示例**：
+
 ```
 S = 100 个请求，x_j = 0.3（30%是360p），α = 2 个实例，d = 10s
 
@@ -251,6 +261,7 @@ k个GPU总占用时间：k × 150s
 **Queue Model（在线稳态）**：
 
 假设：
+
 - 请求到达服从 Poisson 分布，到达率 λ
 - 服务时间固定为 d（M/D 排队模型）
 - 利用率 ρ < 1
@@ -268,6 +279,7 @@ $$W_{M/D/1}(\text{type } j) = \frac{1}{\mu} + \frac{\rho}{2\mu(1-\rho)}$$
 $$W_{M/D/c}(\text{type } j) \approx \frac{W_{M/M/c}}{2} = \frac{1}{2} \left[ \frac{1}{\mu} + \frac{r^\alpha}{\alpha!(\alpha\mu)(1-\rho)^2} p_0 \right]$$
 
 其中：
+
 - $\mu = 1/d$
 - $\rho = \lambda \cdot x_j / (\alpha \cdot \mu)$
 - $r = \lambda \cdot x_j / \mu$
@@ -308,6 +320,7 @@ $$W_{M/D/c}(\text{type } j) \approx \frac{W_{M/M/c}}{2} = \frac{1}{2} \left[ \fr
 ```
 
 **算法复杂度**：
+
 - 时间：O(M² × N × |ps|)
 - 空间：O(M × N)
 
@@ -322,6 +335,7 @@ $$W_{M/D/c}(\text{type } j) \approx \frac{W_{M/M/c}}{2} = \frac{1}{2} \left[ \fr
 **两阶段贪心策略**：
 
 **阶段一：请求到达时**
+
 ```
 新请求到达，需要 B 个 GPU
     │
@@ -331,6 +345,7 @@ $$W_{M/D/c}(\text{type } j) \approx \frac{W_{M/M/c}}{2} = \frac{1}{2} \left[ \fr
 ```
 
 **阶段二：执行过程中**
+
 ```
 其他请求完成，释放 GPU
     │
@@ -355,6 +370,7 @@ $$r^*_{v.} = (r_{\text{cur\_step}} - r_{\text{last\_step}}) \times (r_{\text{cur
 乘积含义：请求从最近一次 GPU 分配到当前时刻，因 GPU 不足而累积的额外执行时间。
 
 **举例**：
+
 ```
 请求 A：240p，B=2，当前 DoP=1，已执行 5 步
   每步时间差 = 0.15s - 0.08s = 0.07s
@@ -394,6 +410,7 @@ VAE 阶段：
 **为什么不能预定义分组**：
 
 传统方式：
+
 ```
 Group 1: GPU 0-3 → DiT
 Group 2: GPU 4-7 → VAE
@@ -401,6 +418,7 @@ Group 2: GPU 4-7 → VAE
 ```
 
 DDiT 方式：
+
 ```
 所有 GPU 都是"弹性单元"
 DiT 完成 → GPU 1,2,3 释放 → 可立即分配给其他请求的 DiT
@@ -496,6 +514,7 @@ DoP=4: 每 4 个 GPU 组成一个并行组
 ```
 
 **优点**：部署简单，无需动态调度
+
 **缺点**：无法适应不同分辨率的请求，低分辨率用高 DoP 浪费，高分辨率用低 DoP 延迟高
 
 #### Static Partition & Cluster Isolation (SPCI)
@@ -510,7 +529,9 @@ DoP=4: 每 4 个 GPU 组成一个并行组
 ```
 
 **优点**：每种分辨率有专门的资源保障
+
 **缺点**：
+
 - 集群隔离导致资源无法共享
 - 当某类请求过多时，对应集群过载，其他集群空闲
 - 静态划分无法适应请求分布的动态变化
@@ -528,6 +549,7 @@ DoP=4: 每 4 个 GPU 组成一个并行组
 ```
 
 **优点**：DoP 配置更合理
+
 **缺点**：仍然存在集群隔离问题，资源无法跨集群共享
 
 #### Dynamic Partition (DP)
@@ -541,6 +563,7 @@ DoP=4: 每 4 个 GPU 组成一个并行组
 ```
 
 **核心机制**：
+
 1. **降级执行**：当目标集群资源不足时，请求可以在更低 DoP 的集群执行
 2. **资源共享**：空闲 GPU 可以被任何类型的请求使用
 3. **灵活调度**：根据实时负载动态调整资源分配
