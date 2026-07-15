@@ -2405,6 +2405,123 @@ std::vector w2{v, v};     // vector<vector<int>>
 
 ---
 
+#### CTAD 深入：注入类名、转发引用与 explicit 指引
+
+##### 注入类名（Injected Class Name）
+
+> [!info] 什么是注入类名
+> 在类模板的定义内部，类模板的名字自动等价于「当前实例化」的简写。这是 C++ 的历史特性，与 CTAD 无关。
+
+```cpp
+template<typename T>
+struct X {
+    // 在类内部，"X" 就是 "X<T>" 的简写
+    X* ptr;           // 等价于 X<T>* ptr
+    X foo();          // 等价于 X<T> foo()
+};
+```
+
+**CTAD 引入的冲突：**
+
+```cpp
+template<typename T> struct X {
+    template<typename Iter> X(Iter b, Iter e);  // 构造函数模板
+    template<typename Iter> auto f(Iter b, Iter e) {
+        return X(b, e);  // 这里的 X 是什么？
+        // 注入类名 → X<T>（历史行为）
+        // CTAD 占位符 → 推导为 X<Iter>
+    }
+};
+```
+
+> [!warning] 解决方案
+> 当模板名是注入类名时（即在类模板内部使用自己的名字），**禁用 CTAD**，保持历史行为不变。
+
+---
+
+##### 转发引用在隐式推导指引中的特殊处理
+
+> [!danger] 核心问题
+> 类模板参数 `T` 的 `T&&` **不是**转发引用（转发引用要求 `T` 是当前正在推导的函数模板参数）。但编译器生成的**隐式推导指引**中，`T` 变成了指引自己的模板参数，此时 `T&&` **变成了转发引用**！
+
+```cpp
+template<typename T>
+struct Y {
+    Y(T const&);  // #1
+    Y(T&&);       // T 是类模板参数，T&& 不是转发引用
+};
+```
+
+隐式推导指引等价于：
+
+```cpp
+template<typename T> Y(T const&) -> Y<T>;  // 指引 #1
+template<typename T> Y(T&&) -> Y<T>;       // 指引 #2：T 是指引的参数，T&& 是转发引用！
+```
+
+**问题场景：**
+
+```cpp
+void g(std::string s) {
+    Y y = s;  // s 是左值，期望推导 T = string
+}
+```
+
+- 指引 #1：`Y(T const&)` 匹配 s，T = string，需要添加 const
+- 指引 #2：`Y(T&&)` 中 T 是转发引用参数，s 是左值 → T = string&（转发引用特殊规则），不需要调整 → **匹配更好！**
+
+结果 `Y<string&>` 被实例化，导致**悬空引用或其他严重错误**。
+
+> [!tip] 解决方案
+> 当 `T` 原本是**类模板参数**时，隐式推导指引**禁用转发引用的特殊推导规则**。`T&&` 按普通右值引用处理，s 是左值就不能匹配 `T&&`，只能匹配 `T const&`，正确推导出 `T = string`。
+>
+> 如果 `T` 是**构造函数模板自己的参数**，特殊规则仍然保留：
+
+```cpp
+template<typename T>
+struct Z {
+    template<typename U>
+    Z(U&& x);  // U 是构造函数模板参数，U&& 是真正的转发引用
+};
+```
+
+---
+
+##### `explicit` 推导指引
+
+> [!info] 控制初始化方式
+> 推导指引可以用 `explicit` 声明，限制该指引**只在直接初始化时使用**，复制初始化不可用。类比 `explicit` 构造函数。
+
+```cpp
+template<typename T, typename U> struct Z {
+    Z(T const&);
+    Z(T&&);
+};
+
+template<typename T> Z(T const&) -> Z<T, T&>;       // #1 普通指引
+template<typename T> explicit Z(T&&) -> Z<T, T>;     // #2 explicit 指引
+
+Z z1 = 1;   // 复制初始化 → 不能用 explicit 的 #2 → 只能用 #1 → Z<int, int&>
+Z z2{2};    // 直接初始化 → 可以用 #2 → Z<int, int>
+Z z3(3);    // 直接初始化 → 可以用 #2 → Z<int, int>
+```
+
+---
+
+##### `explicit` 指引 vs 转发引用禁用
+
+| 特性 | `explicit` 推导指引 | 转发引用禁用 |
+|------|---------------------|-------------|
+| **解决什么问题** | 控制哪些初始化方式可用 | 防止 `T` 被推导为引用类型 |
+| **机制** | 标记指引为 `explicit` | 禁用 `T&&` 的转发引用推导规则 |
+| **影响范围** | 只影响复制初始化 vs 直接初始化 | 影响类型推导结果 |
+| **例子** | `Z z1 = 1` 不能用 explicit 指引 | `Y y = s` 不会推导出 `Y<string&>` |
+
+> [!tip] 简记
+> **`explicit` 管的是「能不能用这个指引」，转发引用管的是「这个指引推导出什么类型」**。
+
+---
+
 #### auto 与 decltype
 
 **`auto` 使用与模板参数相同的推导机制（按值传递，会衰变）：**
@@ -3010,6 +3127,118 @@ std::is_reference_v<int&>            // true
 std::is_const_v<int const>           // true
 ```
 
+#### SFINAE 特征实例：IsConvertibleT
+
+> [!info] 目标
+> `IsConvertibleT<FROM, TO>` 判断类型 `FROM` 能否**隐式转换**为类型 `TO`。这是 `std::is_convertible` 的手写版本，展示了 SFINAE 特征的完整技巧。
+
+**基础实现：**
+
+```cpp
+#include <type_traits>
+#include <utility>
+
+template<typename FROM, typename TO>
+struct IsConvertibleHelper {
+private:
+    // 辅助函数：接受 TO 类型参数（只声明不定义，永远不会调用）
+    static void aux(TO);
+
+    // 成功路径：如果 FROM 能传给 TO，aux(std::declval<F>()) 合法
+    template<typename F, typename,
+             typename = decltype(aux(std::declval<F>()))>
+    static std::true_type test(void*);
+
+    // 回退路径：总是可用
+    template<typename, typename>
+    static std::false_type test(...);
+
+public:
+    using Type = decltype(test<FROM>(nullptr));
+};
+
+template<typename FROM, typename TO>
+struct IsConvertibleT : IsConvertibleHelper<FROM, TO>::Type {};
+```
+
+> [!tip] 核心机制拆解
+> - `aux(TO)`：只声明不定义，测试 `FROM` 类型的值能否传给 `TO` 类型的参数
+> - `std::declval<F>()`：不实际构造对象，生成一个 `F` 类型的"假"值
+> - `decltype(aux(std::declval<F>()))`：如果 `F`（即 `FROM`）能转换为 `TO`，表达式合法，第一个 `test` 有效；否则 SFINAE 丢弃，回退到第二个 `test`
+
+**关键细节：为什么需要模板参数 `F`？**
+
+```cpp
+// ❌ 错误写法
+template<typename = decltype(aux(std::declval<FROM>()))>
+static std::true_type test(void*);
+
+// ✅ 正确写法
+template<typename F, typename,
+         typename = decltype(aux(std::declval<F>()))>
+static std::true_type test(void*);
+```
+
+> [!danger] 延迟替换的必要性
+> 如果直接用 `FROM`，当编译器解析 `IsConvertibleHelper` 类模板时，`FROM` 和 `TO` 已经确定。如果 `FROM=double*`，`TO=int*`，`decltype(aux(std::declval<double*>()))` 会**立即触发错误**——这不在函数模板调用的 SFINAE 上下文中！
+>
+> 把 `FROM` 包装成模板参数 `F`，延迟到调用 `test<FROM>(nullptr)` 时才替换，此时属于 SFINAE 上下文，失败只是丢弃候选。
+
+**使用示例：**
+
+```cpp
+IsConvertibleT<int, int>::value                    // true（int → int）
+IsConvertibleT<int, std::string>::value            // false（int 不能→ string）
+IsConvertibleT<char const*, std::string>::value    // true（const char* 可隐式构造 string）
+IsConvertibleT<std::string, char const*>::value    // false（string 不能→ const char*）
+isConvertible<int, double>                         // true
+isConvertible<int*, double*>                       // false
+```
+
+**三个特殊情况的处理：**
+
+| 情况 | 期望 | 实际 | 原因 |
+|------|------|------|------|
+| 转换到**数组类型**（如 `int[5]`） | `false` | 可能 `true` | `TO` 在函数参数中衰变为指针 |
+| 转换到**函数类型**（如 `void(int)`） | `false` | 可能 `true` | 同样衰变为函数指针 |
+| 转换到 **void 类型** | `true` | 编译错误 | `void` 不能作为函数参数类型 |
+
+**解决方案：** 添加布尔模板参数，用偏特化分离特殊情况：
+
+```cpp
+// 主模板：处理 void、数组、函数等特殊情况
+template<typename FROM, typename TO,
+         bool = IsVoidT<TO>::value
+             || IsArrayT<TO>::value
+             || IsFunctionT<TO>::value>
+struct IsConvertibleHelper {
+    // 只有 void → void 才为 true
+    using Type = std::integral_constant<bool,
+        IsVoidT<TO>::value && IsVoidT<FROM>::value>;
+};
+
+// 偏特化：处理普通类型（第三个参数为 false）
+template<typename FROM, typename TO>
+struct IsConvertibleHelper<FROM, TO, false> {
+    // ... 之前的 SFINAE 实现放在这里
+};
+```
+
+**完整判断流程：**
+
+```
+IsConvertibleT<FROM, TO>
+    │
+    ├─ TO 是 void/数组/函数？（主模板）
+    │   ├─ void→void: true
+    │   ├─ void→非void / 数组 / 函数: false
+    │   │
+    │   └─ 否 → 偏特化（SFINAE）
+    │       ├─ aux(std::declval<FROM>()) 合法？
+    │       │   ├─ 是 → true_type（FROM 可转换为 TO）
+    │       │   └─ 否 → false_type（SFINAE 丢弃）
+```
+
 #### 标签调度（Tag Dispatch）
 
 > [!example] 标签调度模式
@@ -3148,6 +3377,200 @@ class MyClass : private Empty {
 
 > [!warning] 模板中的 EBCO
 > 当基类依赖于模板参数时，编译器不知道两个不同的模板实例化是否可能产生相同的基类。C++ 标准不允许对相同类型的基类进行空基类优化（即使它们在不同偏移上）。
+
+---
+
+### 桥接模式（Bridge Pattern）
+
+> [!info] 核心思想
+> 桥接模式的目标是**将抽象（接口）与实现分离**，使得两者可以独立变化。C++ 中有两种实现方式：传统动态多态（GoF 经典做法）和模板静态多态。
+
+#### 方式一：传统桥接模式（动态多态）
+
+> [!note] GoF 经典做法
+> 接口类持有一个**指向实现的指针**，所有调用通过指针委托。这就是"桥"——连接抽象和实现。
+
+```cpp
+// ========== 实现接口 ==========
+class DrawingImpl {
+public:
+    virtual ~DrawingImpl() = default;
+    virtual void drawRect(double x, double y, double w, double h) = 0;
+    virtual void drawCircle(double cx, double cy, double r) = 0;
+};
+
+// ========== 具体实现 A：OpenGL ==========
+class OpenGLImpl : public DrawingImpl {
+public:
+    void drawRect(double x, double y, double w, double h) override {
+        std::cout << "OpenGL: drawRect at (" << x << "," << y
+                  << ") size " << w << "x" << h << "\n";
+    }
+    void drawCircle(double cx, double cy, double r) override {
+        std::cout << "OpenGL: drawCircle at (" << cx << "," << cy
+                  << ") radius " << r << "\n";
+    }
+};
+
+// ========== 具体实现 B：Vulkan ==========
+class VulkanImpl : public DrawingImpl {
+public:
+    void drawRect(double x, double y, double w, double h) override {
+        std::cout << "Vulkan: drawRect at (" << x << "," << y
+                  << ") size " << w << "x" << h << "\n";
+    }
+    void drawCircle(double cx, double cy, double r) override {
+        std::cout << "Vulkan: drawCircle at (" << cx << "," << cy
+                  << ") radius " << r << "\n";
+    }
+};
+
+// ========== 抽象接口（桥接） ==========
+class Shape {
+protected:
+    DrawingImpl* impl;  // 指向实现的指针 —— 这就是"桥"
+public:
+    explicit Shape(DrawingImpl* p) : impl(p) {}
+    virtual ~Shape() = default;
+    virtual void draw() = 0;
+};
+
+class Circle : public Shape {
+    double cx, cy, r;
+public:
+    Circle(DrawingImpl* p, double cx, double cy, double r)
+        : Shape(p), cx(cx), cy(cy), r(r) {}
+    void draw() override { impl->drawCircle(cx, cy, r); }
+};
+
+class Rectangle : public Shape {
+    double x, y, w, h;
+public:
+    Rectangle(DrawingImpl* p, double x, double y, double w, double h)
+        : Shape(p), x(x), y(y), w(w), h(h) {}
+    void draw() override { impl->drawRect(x, y, w, h); }
+};
+
+// 使用
+int main() {
+    OpenGLImpl ogl;
+    VulkanImpl vk;
+    Circle c1(&ogl, 1.0, 2.0, 3.0);  // 运行时切换实现
+    Circle c2(&vk, 1.0, 2.0, 3.0);
+    c1.draw();  // OpenGL: drawCircle ...
+    c2.draw();  // Vulkan: drawCircle ...
+}
+```
+
+#### 方式二：模板桥接模式（静态多态）
+
+> [!tip] 编译时已知实现类型时的优化
+> 如果编译时就知道实现类型，可以用模板替代虚函数。实现类**无需继承公共接口**（鸭子类型），调用可内联优化。
+
+```cpp
+// ========== 具体实现（无需继承公共接口） ==========
+class OpenGLImpl {
+public:
+    void drawRect(double x, double y, double w, double h) const {
+        std::cout << "OpenGL: drawRect at (" << x << "," << y
+                  << ") size " << w << "x" << h << "\n";
+    }
+    void drawCircle(double cx, double cy, double r) const {
+        std::cout << "OpenGL: drawCircle at (" << cx << "," << cy
+                  << ") radius " << r << "\n";
+    }
+};
+
+class VulkanImpl {
+public:
+    void drawRect(double x, double y, double w, double h) const {
+        std::cout << "Vulkan: drawRect at (" << x << "," << y
+                  << ") size " << w << "x" << h << "\n";
+    }
+    void drawCircle(double cx, double cy, double r) const {
+        std::cout << "Vulkan: drawCircle at (" << cx << "," << cy
+                  << ") radius " << r << "\n";
+    }
+};
+
+// ========== 模板桥接 ==========
+template<typename Impl>
+class Shape {
+protected:
+    Impl& impl;  // 编译时类型已知，用引用而非指针
+public:
+    explicit Shape(Impl& p) : impl(p) {}
+};
+
+template<typename Impl>
+class Circle : public Shape<Impl> {
+    double cx, cy, r;
+public:
+    Circle(Impl& p, double cx, double cy, double r)
+        : Shape<Impl>(p), cx(cx), cy(cy), r(r) {}
+    void draw() { this->impl.drawCircle(cx, cy, r); }  // 直接调用，无虚函数开销
+};
+
+// 使用
+int main() {
+    OpenGLImpl ogl;
+    VulkanImpl vk;
+    Circle<OpenGLImpl> c1(ogl, 1.0, 2.0, 3.0);
+    Circle<VulkanImpl> c2(vk, 1.0, 2.0, 3.0);
+    c1.draw();  // OpenGL: drawCircle ...
+    c2.draw();  // Vulkan: drawCircle ...
+}
+```
+
+#### 两种方式对比
+
+| | 传统桥接（动态多态） | 模板桥接（静态多态） |
+|---|---|---|
+| **实现切换时机** | 运行时（通过指针） | 编译时（通过模板参数） |
+| **实现类要求** | 必须继承公共接口（纯虚函数） | 无需继承，只需有同名方法（鸭子类型） |
+| **调用开销** | 虚函数表间接调用 | 直接调用，可内联优化 |
+| **类型安全** | 需要指针转换 | 编译时类型检查，更安全 |
+| **代码体积** | 所有实现共享一份代码 | 每种 Impl 组合生成一份代码（代码膨胀） |
+| **适用场景** | 实现类型运行时才确定 | 实现类型编译时已知 |
+
+#### 实际应用：日志系统
+
+```cpp
+// 编译时选择后端
+class ConsoleBackend {
+public:
+    void write(const std::string& msg) const {
+        std::cout << "[CONSOLE] " << msg << "\n";
+    }
+};
+
+class FileBackend {
+public:
+    void write(const std::string& msg) const {
+        std::cout << "[FILE] " << msg << "\n";
+    }
+};
+
+// 模板桥接：Logger 不关心具体后端
+template<typename Backend>
+class Logger {
+    Backend& backend;
+public:
+    explicit Logger(Backend& b) : backend(b) {}
+    void info(const std::string& msg) { backend.write("[INFO] " + msg); }
+    void error(const std::string& msg) { backend.write("[ERROR] " + msg); }
+};
+
+int main() {
+    ConsoleBackend console;
+    Logger<ConsoleBackend> logger(console);
+    logger.info("Application started");
+
+    FileBackend file;
+    Logger<FileBackend> fileLogger(file);
+    fileLogger.info("Logged to file");
+}
+```
 
 ---
 
