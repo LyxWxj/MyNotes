@@ -101,3 +101,6 @@ Notes/ai-infra-learning
 # OS generated files
 ehthumbs.db
 Thumbs.db
+
+# Generated PDFs
+Slides/pdfs
