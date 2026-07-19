@@ -8,13 +8,13 @@ Linear Systems · Biological Neuron Models · Dynamical Systems
 
 Week 2 focuses on **dynamical systems and neural models** — from linear systems to biological neuron models to network dynamics:
 
-| Day      | Topic                      | Core Skill                               |
+| Day      | Topic                      | Core Skills                               |
 | -------- | -------------------------- | ---------------------------------------- |
-| **W2D3** | Linear Systems             | Euler integration, Oscillations, AR models |
-| **W2D4** | Biological Neuron Models   | LIF neuron, Synapses, STDP               |
-| **W2D5** | Dynamical Systems          | Firing rate models, Wilson-Cowan, Phase plane |
+| **W2D3** | Linear Systems             | Euler integration, Oscillations, Random walks, OU process, Autoregressive models |
+| **W2D4** | Biological Neuron Models   | LIF neuron, Conductance synapses, Short-term plasticity (STP), Spike-timing dependent plasticity (STDP)               |
+| **W2D5** | Dynamical Systems          | Firing rate models, Wilson-Cowan model, Phase plane analysis, Jacobian matrix, Limit cycles |
 
-**The unifying theme**: how do neurons and networks evolve in time, and how can we model their dynamics mathematically?
+**Unifying theme**: How do neurons and networks evolve over time, and how can we model their dynamics mathematically?
 
 ---
 
@@ -22,7 +22,7 @@ Week 2 focuses on **dynamical systems and neural models** — from linear system
 
 ---
 
-### Section 1: One-Dimensional Differential Equations
+### Tutorial 1: One-Dimensional Differential Equations
 
 The simplest dynamical system: $\dot{x} = ax$
 
@@ -32,56 +32,105 @@ The simplest dynamical system: $\dot{x} = ax$
 | -------------------- | ------------------------------- |
 | $a < 0$              | Exponential decay → 0           |
 | $a > 0$              | Exponential growth → ∞          |
-| $a = \text{complex}$ | Oscillation (with growth/decay) |
+| $a = \text{complex}$ | Oscillation with growth/decay |
 
 **Forward Euler integration** (numerical solution):
 
 $$x(t_i) = x(t_{i-1}) + \dot{x}(t_{i-1}) \cdot dt$$
 
+For $\dot{x} = ax$ specifically: $x[k] = x[k-1] + a \cdot x[k-1] \cdot dt$
+
+**Implementation detail**: Use `dtype=complex` to handle complex-valued $a$ (needed for oscillatory dynamics)
+
 ---
 
-### Section 2: Oscillatory Dynamics
+### Tutorial 1: Complex $a$ and Oscillatory Dynamics
 
 When $a$ is complex ($a = \text{real} + i \cdot \text{imag}$), the system oscillates:
 
-**Key insight**:
-
-- Real part → growth/decay rate
-- Imaginary part → oscillation frequency
-
 $$x(t) = x_0 e^{(\text{real} + i \cdot \text{imag})t} = x_0 e^{\text{real} \cdot t} \cdot [\cos(\text{imag} \cdot t) + i \sin(\text{imag} \cdot t)]$$
 
-**For stable oscillation at frequency $f$**: set real part = 0, imag = $2\pi f$
+**Key insight**:
+- **Real part** → growth/decay rate (amplitude envelope)
+- **Imaginary part** → oscillation frequency
+
+**Stable oscillation condition**: Set real part = 0, imaginary part = $2\pi f$
+
+Example: Producing a 0.5 Hz stable oscillation → imaginary part = $2\pi \times 0.5 = \pi \approx 3.14$
+
+**Growing oscillation condition**: real part > 0 AND imaginary part ≠ 0
 
 ---
 
-### Section 3: Two-Dimensional Linear Systems
+### Tutorial 1: Two-Dimensional Linear Systems
 
-Extending to 2D: $\dot{\mathbf{x}} = \mathbf{A}\mathbf{x}$
+Extension to 2D: $\dot{\mathbf{x}} = \mathbf{A}\mathbf{x}$
 
 $$\begin{bmatrix} \dot{x}_1 \\ \dot{x}_2 \end{bmatrix} = \begin{bmatrix} a_{11} & a_{12} \\ a_{21} & a_{22} \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \end{bmatrix}$$
 
-**System function**:
+**Numerical solution**: Uses `scipy.integrate.solve_ivp` (not manual Euler in 2D)
 
-```python
-def system(t, x, a00, a01, a10, a11):
-    x1dot = a00 * x[0] + a01 * x[1]
-    x2dot = a10 * x[0] + a11 * x[1]
-    return np.array([x1dot, x2dot])
-```
+**Stream plots**: Compute $\mathbf{A}\mathbf{x}$ at each grid point; arrows show direction of state change
 
-**Eigenvalues determine behavior**:
+**Eigenvectors**: Directions where $\mathbf{A}\mathbf{x}$ is parallel to $\mathbf{x}$ (invariant directions)
 
-- Both negative → stable node (converge to origin)
-- Both positive → unstable node (diverge)
-- Mixed signs → saddle point
-- Complex → oscillation (spiral)
+**Eigenvalues**: Factor by which $\mathbf{A}\mathbf{x}$ is stretched/shrunk along eigenvector directions
+
+**Stability classification**:
+
+| Eigenvalue Type | Behavior |
+|----------------|----------|
+| Both negative real | Stable node (converge to origin) |
+| Both positive real | Unstable node (diverge) |
+| Opposite signs | Saddle point |
+| Complex | Oscillation / Spiral |
 
 ---
 
-### Random Walks and Diffusion
+### Tutorial 2: Markov Processes
 
-A random walk: at each step, move $\Delta x = \pm 1$ with equal probability.
+**Markov property**: Present state entirely determines the transition to the next state (memoryless)
+
+**Telegraph process**: Two-state ion channel model
+
+- States: Closed (0) and Open (1)
+- Transition probabilities: $P(0 \to 1 | x=0) = \mu_{c2o}$, $P(1 \to 0 | x=1) = \mu_{o2c}$
+
+**Poisson process properties**:
+1. Event probability is independent of all other events
+2. Average rate of events is constant within a given time period
+3. Two events cannot occur simultaneously
+
+**State transition matrix**:
+
+$$\begin{bmatrix} C \\ O \end{bmatrix}_{k+1} = \begin{bmatrix} 1-\mu_{c2o} & \mu_{o2c} \\ \mu_{c2o} & 1-\mu_{o2c} \end{bmatrix} \begin{bmatrix} C \\ O \end{bmatrix}_k$$
+
+- Each column sums to 1 (conservation of probability)
+- Matrix entries:
+  - $1 - \mu_{c2o}$: probability closed stays closed
+  - $\mu_{c2o}$: probability closed transitions to open
+  - $\mu_{o2c}$: probability open transitions to closed
+  - $1 - \mu_{o2c}$: probability open stays open
+
+**Probability propagation algorithm**: $\mathbf{x}_{k+1} = \mathbf{A} \cdot \mathbf{x}_k$ (matrix-vector multiply)
+
+**Equilibrium analysis**:
+- Eigenvalue = 1 corresponds to the **stable equilibrium** eigenvector
+- Other eigenvalues correspond to transient decay
+- Equilibrium eigenvector must be normalized (elements sum to 1)
+- Equilibrium probability of being Open: $\frac{\mu_{c2o}}{\mu_{c2o} + \mu_{o2c}}$
+
+---
+
+### Tutorial 3: Random Walks and Diffusion
+
+**Random walk**: At each step, move $\Delta x = \pm 1$ with equal probability
+
+**Position update**: $x_{k+1} = x_k + \Delta x$
+
+**Gaussian step random walk**: Steps drawn from $\mathcal{N}(\mu, \sigma)$
+
+**Efficient vectorized implementation**:
 
 ```python
 def random_walk_simulator(N, T, mu=0, sigma=1):
@@ -90,55 +139,127 @@ def random_walk_simulator(N, T, mu=0, sigma=1):
     return sim
 ```
 
-**Properties of random walks**:
-
+**Diffusive process properties**:
 - Mean stays near 0 (independent of time)
-- Variance grows linearly with time: $\text{Var} \propto t$
-- This is a **diffusive process**
+- **Variance grows linearly with time**: $\text{Var} \propto t$ (specifically $\text{Var} = \sigma^2 t$)
+- Distribution widens over time but center remains unchanged
 
 ---
 
-### Ornstein-Uhlenbeck (OU) Process
+### Tutorial 3: Deterministic Decay and OU Process
 
-Combines deterministic drift with random diffusion:
+**Basic decay**: $x_{k+1} = \lambda x_k$, solution: $x_k = x_0 \lambda^k$ (decays when $|\lambda| < 1$)
+
+**Decay with target**: $x_{k+1} = x_\infty + \lambda(x_k - x_\infty)$
+
+**Analytical solution**: $x_k = x_\infty(1 - \lambda^k) + x_0 \lambda^k$
+
+As $k \to \infty$: $x_k \to x_\infty$
+
+**Ornstein-Uhlenbeck (OU) process / Drift-Diffusion Model**:
 
 $$x_{k+1} = x_\infty + \lambda(x_k - x_\infty) + \sigma \eta$$
 
+where $\eta \sim \mathcal{N}(0,1)$ (standard normal)
+
+**Two components**:
+- **Drift**: $x_\infty + \lambda(x_k - x_\infty)$, pulls $x$ toward $x_\infty$
+- **Diffusion**: $\sigma \eta$, adds random noise
+
+**Equilibrium variance** (key result):
+
+$$\text{Var}_{eq} = \frac{\sigma^2}{1 - \lambda^2}$$
+
+**Properties**:
+- Depends only on $\lambda$ and $\sigma$, **not** on $x_0$ or $x_\infty$
+- As $\lambda \to 1$: variance diverges (approaches pure random walk)
+- As $\lambda \to 0$: variance approaches $\sigma^2$ (each step independent)
+
+**Empirical variance computation**: Run long simulation of duration $T$, take variance of the **second half** (assuming system has settled)
+
 ```python
-def simulate_ddm(lam, sig, x0, xinfty, T):
-    t = np.arange(0, T, 1.)
-    x = np.zeros_like(t)
-    x[0] = x0
-    for k in range(len(t)-1):
-        x[k+1] = xinfty + lam * (x[k] - xinfty) + sig * np.random.standard_normal()
-    return t, x
+x[-round(T/2):].var()
 ```
 
-**Equilibrium variance** (when $\lambda < 1$):
-
-$$\text{Var} = \frac{\sigma^2}{1 - \lambda^2}$$
-
-Unlike random walk, variance **saturates** due to the restoring drift toward $x_\infty$.
+**Key observations**:
+- Mean of OU process follows the deterministic solution exactly
+- Variance reaches equilibrium (unlike random walk where it grows without bound)
+- Restoring drift force prevents unbounded variance growth
 
 ---
 
-### Autoregressive (AR) Models
+### Tutorial 4: Autoregressive Models
 
-Flip the perspective: given data, learn the dynamics.
+**Perspective shift**: Given data, learn its dynamics (inverse problem)
 
-**First-order AR**: $x_{k+1} = \lambda x_k + \eta$
+**First-order autoregression AR(1)**: $x_{k+1} = \lambda x_k + \eta$
 
-**Higher-order AR**: $x_{k+1} = \alpha_0 + \alpha_1 x_k + \alpha_2 x_{k-1} + \dots + \alpha_r x_{k-r}$
+**Regression formulation**: $\mathbf{x}_2 = \lambda \mathbf{x}_1$
+- $\mathbf{x}_1 = x[0:T-1]$ (past values)
+- $\mathbf{x}_2 = x[1:T]$ (future values, shifted by 1)
 
-**Residual** = data − prediction:
+**Least squares solution**:
 
 ```python
-res = x2 - (p[0] + lam_hat * x1[:, 1])
+p, res, rnk, s = np.linalg.lstsq(x1, x2, rcond=None)
 ```
 
-**Key finding**: humans are terrible at generating random sequences! An AR model can predict "random" human input better than chance (error < 0.5).
+**Adding intercept term**: Prepend a column of 1s to x1
 
-The 6th-order AR model finds the sweet spot between underfitting and overfitting.
+```python
+x1 = x1[:, np.newaxis]**[0, 1]  # Add columns: constant and linear terms
+```
+
+Regression coefficient $p[1]$ is the estimated $\hat{\lambda}$
+
+**Residual analysis**:
+- Residuals = data - prediction: $\text{res} = x_2 - (p[0] + \hat{\lambda} \cdot x_1[:, 1])$
+- Residual standard deviation should approximately equal $\sigma$ (noise parameter)
+- Residual histogram should be approximately normal
+
+---
+
+### Tutorial 4: Higher-Order Autoregressive Models
+
+**Order-$r$ AR model**: $x_{k+1} = \alpha_0 + \alpha_1 x_k + \alpha_2 x_{k-1} + \dots + \alpha_r x_{k-r}$
+
+$r+1$ coefficients to fit (including intercept $\alpha_0$)
+
+**Time-delay matrix construction (build_time_delay_matrices)**:
+
+- $\mathbf{x}_1$: matrix of size $[(r+1) \times (n-r)]$
+  - Row 0: all ones (intercept)
+  - Row 1: $x[0:T-r]$ (lag 1)
+  - Row 2: $x[1:T-r+1]$ (lag 2, achieved via `np.roll`)
+  - ... up to lag $r$
+- $\mathbf{x}_2$: vector $x[r:]$ (values to predict)
+
+**np.roll trick**: `xprime = np.roll(xprime, -1)` shifts array left by 1 each iteration
+
+**Prediction and classification**:
+- For binary (+1/-1) data: prediction = $\text{sign}(\mathbf{x}_1^T \cdot \mathbf{p})$
+- Error rate = $\text{count}(x_2 \neq \text{prediction}) / \text{len}(x_2)$
+- Random chance baseline: error rate = 0.5
+
+**Overfitting observation**:
+- Sweeping AR orders from r=1 to r=20
+- There is a **sweet spot** (around r=6 for human-generated data)
+- Too low r: underfitting (misses patterns)
+- Too high r: overfitting (fits training noise, poor on test)
+- Demonstrates bias-variance tradeoff
+
+**Human randomness vs machine randomness**:
+- Humans are poor at generating random sequences (detectable patterns)
+- AR models can exploit these patterns for better-than-chance predictions
+- Machine-generated random integers are truly unpredictable (error ≈ 0.5)
+- Binary encoding: '0' → -1, '1' → +1 (via `x*2 - 1`)
+
+**Connections between tutorials**:
+- Tutorial 1: Deterministic continuous-time dynamics ($\dot{x} = Ax$)
+- Tutorial 2: Discrete-time probabilistic transitions (state transition matrix)
+- Tutorial 3: Combining deterministic drift with stochastic diffusion (OU process)
+- Tutorial 4: Fitting models to data (inverting the generative process via regression)
+- The OU process $x_{k+1} = \lambda x_k + \sigma \eta$ is both the generative model (Tutorial 3) and the model being fit (Tutorial 4), closing the loop
 
 ---
 
@@ -146,146 +267,313 @@ The 6th-order AR model finds the sweet spot between underfitting and overfitting
 
 ---
 
-### The Leaky Integrate-and-Fire (LIF) Model
+### Tutorial 1: Leaky Integrate-and-Fire Model (LIF)
 
-The simplest mathematical model of a neuron:
+**Core membrane potential equation (subthreshold dynamics)**:
 
 $$\tau_m \frac{dV}{dt} = -(V - E_L) + \frac{I}{g_L}$$
 
-**Parameters**:
+where $\tau_m = C_m / g_L$ is the membrane time constant, $g_L$ is leak conductance, $E_L$ is resting potential
 
-| Symbol | Meaning | Typical value |
-|--------|---------|---------------|
-| $\tau_m$ | Membrane time constant | 10 ms |
-| $g_L$ | Leak conductance | 10 nS |
-| $E_L$ | Resting potential | −75 mV |
-| $V_{th}$ | Spike threshold | −55 mV |
-| $V_{reset}$ | Reset potential | −75 mV |
-| $t_{ref}$ | Refractory time | 2 ms |
+**Spike-and-reset rule**:
 
----
+$$\text{if } V(t_{sp}) \geq V_{th}: \quad V(t) = V_{reset} \text{ for } t \in (t_{sp}, t_{sp} + \tau_{ref}]$$
 
-### LIF Neuron: Euler Integration
+**Default parameters**:
+
+| Parameter | Value | Meaning |
+|-----------|-------|---------|
+| $V_{th}$ | -55 mV | Spike threshold |
+| $V_{reset}$ | -75 mV | Reset potential |
+| $E_L$ | -75 mV | Resting potential |
+| $\tau_m$ | 10 ms | Membrane time constant |
+| $g_L$ | 10 nS | Leak conductance |
+| $t_{ref}$ | 2 ms | Refractory time |
+| $dt$ | 0.1 ms | Time step |
+
+**Euler integration implementation (run_LIF)**:
 
 ```python
-def run_LIF(pars, Iinj, stop=False):
-    # ... parameter setup ...
-    for it in range(Lt - 1):
-        if tr > 0:                          # refractory period
-            v[it] = V_reset
-            tr = tr - 1
-        elif v[it] >= V_th:                 # spike!
-            rec_spikes.append(it)
-            v[it] = V_reset
-            tr = tref / dt
-        # Calculate the increment of the membrane potential
-        dv = (dt / tau_m) * (-(v[it] - E_L) + Iinj[it] / g_L)
-        # Update the membrane potential
-        v[it + 1] = v[it] + dv
+for it in range(Lt - 1):
+    if tr > 0:                          # Refractory period
+        v[it] = V_reset
+        tr = tr - 1
+    elif v[it] >= V_th:                 # Spike!
+        rec_spikes.append(it)
+        v[it] = V_reset
+        tr = tref / dt
+    # Calculate the increment of the membrane potential
+    dv = (dt / tau_m) * (-(v[it] - E_L) + Iinj[it] / g_L)
+    # Update the membrane potential
+    v[it + 1] = v[it] + dv
 ```
-
-**Key outputs**: membrane potential trajectory `v` and spike times `sp`
 
 ---
 
-### Firing Rate and Spike Irregularity
+### Tutorial 1: Different Types of Input Currents
 
-**F-I curve**: output firing rate as a function of input current.
+**Direct Current (DC)**: Constant current, produces regular spikes (CV_ISI ≈ 0)
 
-**CV of ISI** (Coefficient of Variation of Inter-Spike Intervals):
+**Gaussian White Noise (GWN)**:
+
+$$I_{gwn} = \mu + \sigma \cdot \frac{\xi(t)}{\sqrt{dt/1000}}$$
+
+where $\xi(t) \sim \mathcal{N}(0,1)$, dividing by $\sqrt{dt/1000}$ converts discrete-time noise to proper continuous-time scaling (units to seconds)
+
+**Ornstein-Uhlenbeck (OU) process (colored noise)**:
+
+$$\tau_\eta \frac{d\eta}{dt} = -\eta(t) + \sigma_\eta \sqrt{2\tau_\eta} \xi(t)$$
+
+**Properties**:
+- $\mathbb{E}[\eta(t)] = \mu$
+- Autocovariance: $\text{Cov}[\eta(t), \eta(t+\tau)] = \sigma_\eta^2 e^{-|t-\tau|/\tau_\eta}$
+
+**Euler implementation**:
+
+```python
+I_ou[it+1] = I_ou[it] + (dt/tau_ou)*(mu - I_ou[it]) + sqrt(2*dt/tau_ou)*sig*noise[it+1]
+```
+
+---
+
+### Tutorial 1: Firing Rate and Spike Irregularity
+
+**Frequency-Current curve (F-I curve)**: Output firing frequency as a function of input current
+
+**Coefficient of Variation of ISI (CV_ISI)**:
 
 $$\text{CV}_{\text{ISI}} = \frac{\text{std}(\text{ISI})}{\text{mean}(\text{ISI})}$$
 
-| CV value | Meaning                                |
-| -------- | -------------------------------------- |
-| 0        | Perfectly regular (clock-like)         |
-| 1        | Poisson process (maximum irregularity) |
+| CV Value | Meaning |
+|----------|---------|
+| 0 | Perfectly regular (clock-like) |
+| 1 | Poisson process (maximum irregularity) |
+
+**Key findings**:
+- DC input produces regular spiking (CV ≈ 0)
+- GWN input produces irregular spiking; higher $\sigma$ increases CV_ISI
+- Increasing $\sigma$ smooths the F-I curve
+- Increasing mean $\mu$ while keeping $\sigma$ fixed decreases CV_ISI (more regular at higher rates)
+
+---
+
+### Tutorial 2: Correlated Inputs and Correlation Transfer
+
+**Correlated input model**:
+
+$$\frac{I_i}{g_L} = \mu_i + \sigma_i (\sqrt{1-c}\xi_i + \sqrt{c}\xi_c)$$
+
+where $c \in [0,1]$ controls the fraction of common input, $\xi_i$ is independent noise, $\xi_c$ is shared common noise
+
+**Sample correlation coefficient (Pearson)**:
+
+$$r_{ij} = \frac{\text{cov}(I_i, I_j)}{\sqrt{\text{var}(I_i)} \sqrt{\text{var}(I_j)}}$$
+
+where $\text{cov}(I_i, I_j) = \sum_{k=1}^{L}(I_i^k - \bar{I_i})(I_j^k - \bar{I_j})$
+
+Note: Strict sample covariance should divide by $L-1$, but in the correlation coefficient the $L-1$ factors cancel
+
+**Poisson spike train generator (Poisson_generator)**:
 
 ```python
-def isi_cv_LIF(spike_times):
-    if len(spike_times) >= 2:
-        isi = np.diff(spike_times)
-        cv = np.std(isi) / np.mean(isi)
-    return isi, cv
+poisson_train = 1.0 * (u_rand < rate * (dt / 1000))
 ```
+
+Spike probability per bin = $\text{rate} \times dt / 1000$
+
+**Correlated Poisson generation (generate_corr_Poisson)**:
+1. Generate a "mother" Poisson train at rate $\lambda/c$
+2. Each child independently samples a fraction $c$ of the mother's spikes (via shuffling indices)
+
+**Campbell's theorem (mean and variance of synaptic current from Poisson input)**:
+
+$$\mu_{\rm syn} = \lambda J \int P(t) dt$$
+
+$$\sigma_{\rm syn} = \lambda J \int P(t)^2 dt$$
+
+where $\lambda$ is Poisson rate, $J$ is PSP amplitude, $P(t)$ is postsynaptic current kernel
+
+**Key findings**:
+- Output correlation is **always smaller** than input correlation (LIF acts as a "correlation filter")
+- Correlation transfer function is approximately linear
+- Higher mean $\mu$ and higher $\sigma$ both increase the slope of the transfer function (better correlation transmission)
+- Higher firing rates lead to better correlation transfer
 
 ---
 
-### Input Correlations and Output Correlations
+### Tutorial 3: Conductance-Based Synapses
 
-How do correlated inputs affect output correlations?
+**Synaptic conductance dynamics**:
 
-**Correlated input** to two neurons:
+$$\frac{dg_{\rm syn}(t)}{dt} = \bar{g}_{\rm syn} \sum_k \delta(t-t_k) - \frac{g_{\rm syn}(t)}{\tau_{\rm syn}}$$
 
-$$\frac{I_i}{g_L} = \mu + \sigma(\sqrt{1-c}\xi_i + \sqrt{c}\xi_c)$$
+- $\bar{g}_{\rm syn}$: maximum conductance change per spike (synaptic weight)
+- $\tau_{\rm syn}$: synaptic time constant (controls decay speed)
 
-where $c \in [0,1]$ controls the fraction of common input.
+**Ohm's law (conductance to current)**:
 
-**Sample correlation coefficient**:
+$$I_{\rm syn}(t) = g_{\rm syn}(t)(V(t) - E_{\rm syn})$$
+
+- $E_E = 0$ mV (excitatory reversal potential, depolarizing)
+- $E_I = -80$ mV (inhibitory reversal potential, hyperpolarizing)
+
+**Total synaptic current**:
+
+$$I_{\rm syn} = -g_E(t)(V - E_E) - g_I(t)(V - E_I)$$
+
+**Conductance-based LIF membrane equation**:
+
+$$\tau_m \frac{dV}{dt} = -(V - E_L) - \frac{g_E(t)}{g_L}(V - E_E) - \frac{g_I(t)}{g_L}(V - E_I) + \frac{I_{\rm inj}}{g_L}$$
+
+**Euler update for conductance (run_LIF_cond)**:
 
 ```python
-def my_CC(i, j):
-    cov = np.sum((i - np.mean(i)) * (j - np.mean(j)))
-    var_i = np.sum((i - np.mean(i))**2)
-    var_j = np.sum((j - np.mean(j))**2)
-    return cov / np.sqrt(var_i * var_j)
+gE[it+1] = gE[it] - (dt/tau_syn_E)*gE[it] + gE_bar * spike_train_ex[it+1]
+gI[it+1] = gI[it] - (dt/tau_syn_I)*gI[it] + gI_bar * spike_train_in[it+1]
 ```
 
-**Key finding**: output correlation < input correlation. The neuron acts as a "correlation filter."
+**Default synaptic parameters**:
+- Excitatory: $g_E = 2.4$ nS, $E_E = 0$ mV, $\tau_E = 2$ ms
+- Inhibitory: $g_I = 2.4$ nS, $E_I = -80$ mV, $\tau_I = 5$ ms
+- 80 excitatory, 20 inhibitory presynaptic neurons at 10 Hz
+
+**Free Membrane Potential (FMP)**: Membrane potential computed with spike threshold removed (set $V_{th} = \infty$)
+
+- Mean FMP > threshold: **Mean-driven regime** (regular firing, low CV_ISI)
+- Mean FMP < threshold: **Fluctuation-driven regime** (irregular firing, high CV_ISI)
+- Balance of excitation/inhibition determines firing pattern
+- Synaptic input is **colored noise** (exponential kernel filtering), not white noise
 
 ---
 
-### Conductance-Based Synapses
+### Tutorial 3: Short-Term Synaptic Plasticity (STP)
 
-Real neurons receive synaptic inputs modeled as conductance changes:
+**Three-variable dynamic model**:
 
-$$\tau_m \frac{dV}{dt} = -(V-E_L) - \frac{g_E}{g_L}(V-E_E) - \frac{g_I}{g_L}(V-E_I) + \frac{I_{\text{inj}}}{g_L}$$
+$$\frac{du_E}{dt} = -\frac{u_E}{\tau_f} + U_0(1-u_E^-)\delta(t-t_{sp})$$
 
-**Free Membrane Potential (FMP)**: membrane potential with spike threshold removed (artificially set $V_{th} = \infty$).
+$$\frac{dR_E}{dt} = \frac{1-R_E}{\tau_d} - u_E^+ R_E^- \delta(t-t_{sp})$$
 
-- Mean FMP above threshold → regular firing
-- Mean FMP below threshold → irregular, noise-driven firing
-- **Balance of excitation/inhibition** determines firing regime
+$$\frac{dg_E}{dt} = -\frac{g_E}{\tau_E} + \bar{g}_E u_E^+ R_E^- \delta(t-t_{sp})$$
+
+**Variable meanings**:
+
+| Variable | Meaning | Range | Decay Constant |
+|----------|---------|-------|----------------|
+| $u$ | Release probability (usage fraction) | $[0, 1]$ | $\tau_f$ (facilitation time constant) |
+| $R$ | Available resource | $[0, 1]$ | $\tau_d$ (depression time constant) |
+| $g$ | Postsynaptic conductance | $[0, \bar{g}]$ | $\tau_E$ (synaptic time constant) |
+
+**Physical process**:
+```
+Spike arrives → u increases (calcium influx)
+              → Consumes resources: R decreases
+              → Produces conductance: g increases
+
+Between spikes → u decays back to 0 (τ_f)
+               → R recovers to 1 (τ_d)
+               → g decays (τ_E)
+```
+
+**Euler implementation (dynamic_syn)**:
+
+```python
+for it in range(Lt - 1):
+    # Update u (release probability)
+    du = -(dt/tau_f) * u[it] + U0 * (1.0 - u[it]) * pre_spike_train[it+1]
+    u[it+1] = u[it] + du
+    
+    # Update R (resource) - note use of updated u[it+1]
+    dR = (dt/tau_d) * (1.0 - R[it]) - u[it+1] * R[it] * pre_spike_train[it+1]
+    R[it+1] = R[it] + dR
+    
+    # Update g (conductance) - note use of updated u[it+1] and R[it]
+    dg = -(dt/tau_syn) * g[it] + g_bar * R[it] * u[it+1] * pre_spike_train[it+1]
+    g[it+1] = g[it] + dg
+```
+
+**Key point**: When a spike arrives, update $u$ first, then use the new $u$ to update $R$ and $g$ (order matters!)
+
+**Short-Term Depression (STD) vs Short-Term Facilitation (STF) parameters**:
+
+| Parameter | STD | STF |
+|-----------|-----|-----|
+| $U_0$ | 0.5 (high initial release rate) | 0.2 (low initial release rate) |
+| $\tau_d$ | 100 ms | 100 ms |
+| $\tau_f$ | 50 ms (fast recovery) | 750 ms (slow decay) |
+
+**STD mechanism**:
+- At high input rates, resources don't recover fast enough, conductance continuously decreases
+- $g_{10}/g_1$ decreases monotonically with input rate
+
+**STF mechanism**:
+- When $\tau_f$ is large, $u$ decays slowly between spikes, accumulating effect
+- $g_{10}/g_1$ changes non-monotonically with input rate (initially increases, then decreases)
 
 ---
 
-### Short-Term Plasticity (STP)
+### Tutorial 4: Spike-Timing Dependent Plasticity (STDP)
 
-Synapses can change strength based on recent spike history:
-
-**Short-Term Depression (STD)**: synapse weakens with repeated use
-
-- Parameters: $U_0 = 0.5$, $\tau_d = 100$ ms, $\tau_f = 50$ ms
-**Short-Term Facilitation (STF)**: synapse strengthens with repeated use
-- Parameters: $U_0 = 0.2$, $\tau_d = 100$ ms, $\tau_f = 750$ ms
-**STP dynamics**:
-
-$$\frac{du}{dt} = -\frac{u}{\tau_f} + U_0(1-u^-)\delta(t-t_{sp})$$
-
-$$\frac{dR}{dt} = \frac{1-R}{\tau_d} - u^+ R^- \delta(t-t_{sp})$$
-
----
-
-### Spike-Timing Dependent Plasticity (STDP)
-
-Synaptic weight changes based on the **timing** of pre- and postsynaptic spikes:
+**STDP weight change rule (biphasic exponential decay)**:
 
 $$\Delta W = \begin{cases} A_+ e^{(t_{pre}-t_{post})/\tau_+} & \text{if } t_{post} > t_{pre} \text{ (LTP)} \\ -A_- e^{-(t_{pre}-t_{post})/\tau_-} & \text{if } t_{post} < t_{pre} \text{ (LTD)} \end{cases}$$
 
-**Tracking variables**:
+where $\Delta t = t_{pre} - t_{post}$. For simplicity, $\tau_+ = \tau_- = \tau_{\rm stdp}$
+
+**Default STDP parameters**:
+- $A_+ = 0.008$ (LTP magnitude)
+- $A_- = A_+ \times 1.10 = 0.0088$ (LTD magnitude, slightly larger — asymmetric)
+- $\tau_{\rm stdp} = 20$ ms
+
+**Trace variables P(t) and M(t) for efficient STDP implementation**:
+
+For each presynaptic neuron $i$:
+$$\tau_+ \frac{dP}{dt} = -P$$
+On presynaptic spike: $P(t) = P(t) + A_+$
+
+For each postsynaptic neuron:
+$$\tau_- \frac{dM}{dt} = -M$$
+On postsynaptic spike: $M(t) = M(t) - A_-$
+
+- $P(t)$ is always positive (tracks recent presynaptic activity for LTP)
+- $M(t)$ is always negative (tracks recent postsynaptic activity for LTD)
+
+**Euler update for P (generate_P)**:
 
 ```python
-def generate_P(pars, pre_spike_train_ex):
-    A_plus, tau_stdp = pars['A_plus'], pars['tau_stdp']
-    dt = pars['dt']
-    P = np.zeros(pre_spike_train_ex.shape)
-    for it in range(Lt - 1):
-        dP = -(dt / tau_stdp) * P[:, it] + A_plus * pre_spike_train_ex[:, it + 1]
-        P[:, it + 1] = P[:, it] + dP
-    return P
+dP = -(dt/tau_stdp)*P[:,it] + A_plus * spike_train[:,it+1]
+P[:,it+1] = P[:,it] + dP
 ```
 
-**Key insight**: STDP causes synapses from **correlated** presynaptic neurons to be strengthened, while uncorrelated synapses weaken — a form of unsupervised learning.
+**Weight update rules using trace variables**:
+
+When presynaptic neuron $i$ fires (LTD):
+$$\bar{g}_i = \bar{g}_i + M(t) \cdot \bar{g}_{max}$$
+- $M$ is negative, so weight decreases
+- Clamp: if $\bar{g}_i < 0$, set $\bar{g}_i = 0$
+
+When postsynaptic neuron fires (LTP):
+$$\bar{g}_i = \bar{g}_i + P_i(t) \cdot \bar{g}_{max} \quad \forall i$$
+- $P$ is positive, so weight increases
+- Clamp: if $\bar{g}_i > \bar{g}_{max}$, set $\bar{g}_i = \bar{g}_{max}$
+
+**LIF membrane equation with STDP synapses**:
+
+$$\tau_m \frac{dV}{dt} = -(V - E_L) - g_E(t)(V - E_E)$$
+
+where $g_E(t) = \sum_i g_i(t)$, each $g_i(t)$ uses the dynamically updated $\bar{g}_i$
+
+**Default synapse parameters (STDP simulations)**:
+- $\bar{g}_E = 0.024$ nS (max conductance per synapse)
+- $g_{E,init} = 0.014 - 0.024$ nS (initial conductance)
+- $E_E = 0$ mV, $\tau_E = 5$ ms
+- $N = 300$ presynaptic neurons at 10-15 Hz, $dt = 1$ ms
+
+**Key findings**:
+- With uncorrelated Poisson inputs, many synapses weaken over time (LTD dominates due to $A_- > A_+$)
+- Weight distribution evolves over time; bimodal distribution emerges (many weights near 0, some near $g_{max}$)
+- With correlated inputs: correlated presynaptic neurons maintain their weights (higher chance of pre-before-post pairing), while uncorrelated synapses depress
+- STDP enables **unsupervised learning**: synapses carrying correlated/relevant information are selectively strengthened
 
 ---
 
@@ -293,15 +581,20 @@ def generate_P(pars, pre_spike_train_ex):
 
 ---
 
-### Single Population Firing Rate Model
+### Tutorial 1: Single Population Firing Rate Model
 
-Instead of modeling individual neurons, model the **average firing rate** of a population:
+**Feedforward firing rate dynamics (Eq. 1)**:
 
-$$\tau \frac{dr}{dt} = -r + F(w \cdot r + I_{\text{ext}})$$
+$$\tau \frac{dr}{dt} = -r + F(I_{\rm ext})$$
 
-**Sigmoid transfer function**:
+**Sigmoidal transfer function / F-I curve (Eq. 2)**:
 
 $$F(x; a, \theta) = \frac{1}{1 + e^{-a(x-\theta)}} - \frac{1}{1 + e^{a\theta}}$$
+
+- $a$ = gain, $\theta$ = threshold
+- The second term ensures $F(0; a, \theta) = 0$
+
+**Implementation**:
 
 ```python
 def F(x, a, theta):
@@ -309,22 +602,38 @@ def F(x, a, theta):
     return f
 ```
 
+**Recurrent network dynamics (Eq. 3)**:
+
+$$\tau \frac{dr}{dt} = -r + F(w \cdot r + I_{\rm ext})$$
+
+where $w$ is recurrent synaptic weight (E to E)
+
+**Analytical solution for $w = 0$**:
+
+$$r(t) = r(0) + [F(I_{\rm ext}; a, \theta) - r(0)](1 - e^{-t/\tau})$$
+
 ---
 
-### Fixed Points and Stability
+### Tutorial 1: Fixed Points and Stability
 
-**Fixed point**: value of $r$ where $\frac{dr}{dt} = 0$
+**Fixed point condition (Eq. 4)**: $r$ value when $\frac{dr}{dt} = 0$
 
-$$-r^* + F(w \cdot r^* + I_{\text{ext}}) = 0$$
+$$-r^* + F(w \cdot r^* + I_{\rm ext}; a, \theta) = 0$$
 
-**Eigenvalue** (stability):
+**Derivative of sigmoid transfer function (Eq. 5)**:
 
-$$\lambda = \frac{-1 + w \cdot F'(w \cdot r^* + I_{\text{ext}})}{\tau}$$
+$$\frac{dF}{dx} = a \cdot e^{-a(x-\theta)} \cdot (1 + e^{-a(x-\theta)})^{-2}$$
+
+**Eigenvalue for stability analysis (Eq. 4 in Bonus)**:
+
+$$\lambda = \frac{-1 + w \cdot F'(w \cdot r^* + I_{\rm ext}; a, \theta)}{\tau}$$
 
 | $\lambda$ | Stability |
 |-----------|-----------|
 | $\lambda < 0$ | Stable (attracting) |
 | $\lambda > 0$ | Unstable (repelling) |
+
+**Implementation**:
 
 ```python
 def eig_single(fp, tau, a, theta, w, I_ext, **other_pars):
@@ -332,46 +641,88 @@ def eig_single(fp, tau, a, theta, w, I_ext, **other_pars):
     return eig
 ```
 
----
-
-### Wilson-Cowan Model: E/I Populations
-
-Two coupled populations (Excitatory + Inhibitory):
-
-$$\tau_E \frac{dr_E}{dt} = -r_E + F_E(w_{EE}r_E - w_{EI}r_I + I_E^{\text{ext}})$$
-
-$$\tau_I \frac{dr_I}{dt} = -r_I + F_I(w_{IE}r_E - w_{II}r_I + I_I^{\text{ext}})$$
-
-```python
-def simulate_wc(tau_E, a_E, theta_E, tau_I, a_I, theta_I,
-                wEE, wEI, wIE, wII, I_ext_E, I_ext_I,
-                rE_init, rI_init, dt, range_t, **other_pars):
-    for k in range(Lt - 1):
-        drE = (dt/tau_E) * (-rE[k] + F(wEE*rE[k] - wEI*rI[k] + I_ext_E[k], a_E, theta_E))
-        drI = (dt/tau_I) * (-rI[k] + F(wIE*rE[k] - wII*rI[k] + I_ext_I[k], a_I, theta_I))
-        rE[k+1] = rE[k] + drE
-        rI[k+1] = rI[k] + drI
-    return rE, rI
-```
+**Default parameters**: $\tau = 1.0$ ms, $a = 1.2$, $\theta = 2.8$, $w = 0.0$, $I_{\rm ext} = 0.0$, $T = 20$ ms, $dt = 0.1$ ms
 
 ---
 
-### Phase Plane Analysis
+### Tutorial 1: OU Noise Input
 
-Plot $r_E$ vs $r_I$ to visualize system dynamics:
+**OU process**:
 
-**Nullclines**: curves where $\frac{dr_E}{dt} = 0$ or $\frac{dr_I}{dt} = 0$
+$$\tau_\eta \frac{d\eta}{dt} = -\eta(t) + \sigma_\eta \sqrt{2\tau_\eta} \xi(t)$$
+
+**Euler update**:
 
 ```python
-def get_E_nullcline(rE, a_E, theta_E, wEE, wEI, I_ext_E, **other_pars):
-    rI = 1/wEI * (wEE * rE - F_inv(rE, a_E, theta_E) + I_ext_E)
-    return rI
-def get_I_nullcline(rI, a_I, theta_I, wIE, wII, I_ext_I, **other_pars):
-    rE = 1/wIE * (wII * rI + F_inv(rI, a_I, theta_I) - I_ext_I)
-    return rE
+I_ou[it+1] = I_ou[it] + dt/tau_ou * (0 - I_ou[it]) + sqrt(2*dt/tau_ou) * sig * noise[it+1]
 ```
 
-**Vector field**: arrows showing $(\frac{dr_E}{dt}, \frac{dr_I}{dt})$ at each point
+**Key finding**: When multiple fixed points exist, noisy inputs can drive transitions between fixed points
+
+---
+
+### Tutorial 2: Wilson-Cowan Model
+
+**Two coupled populations (excitatory + inhibitory) (Eq. 1)**:
+
+$$\tau_E \frac{dr_E}{dt} = -r_E + F_E(w_{EE}r_E - w_{EI}r_I + I_E^{\rm ext}; a_E, \theta_E)$$
+
+$$\tau_I \frac{dr_I}{dt} = -r_I + F_I(w_{IE}r_E - w_{II}r_I + I_I^{\rm ext}; a_I, \theta_I)$$
+
+**Euler updates**:
+
+```python
+r_E[k+1] = r_E[k] + (dt/τ_E)*(-r_E[k] + F(w_EE*r_E[k] - w_EI*r_I[k] + I_ext_E, a_E, θ_E))
+r_I[k+1] = r_I[k] + (dt/τ_I)*(-r_I[k] + F(w_IE*r_E[k] - w_II*r_I[k] + I_ext_I, a_I, θ_I))
+```
+
+**Default parameters**:
+
+| Parameter | Value | Meaning |
+|-----------|-------|---------|
+| $\tau_E$ | 1.0 ms | E population timescale |
+| $\tau_I$ | 2.0 ms | I population timescale |
+| $a_E$ | 1.2 | E population gain |
+| $a_I$ | 1.0 | I population gain |
+| $\theta_E$ | 2.8 | E population threshold |
+| $\theta_I$ | 4.0 | I population threshold |
+| $w_{EE}$ | 9.0 | E→E connection strength |
+| $w_{EI}$ | 4.0 | I→E connection strength |
+| $w_{IE}$ | 13.0 | E→I connection strength |
+| $w_{II}$ | 11.0 | I→I connection strength |
+
+---
+
+### Tutorial 2: Nullclines
+
+**Nullcline definition**: Curves where $\frac{dr_E}{dt} = 0$ or $\frac{dr_I}{dt} = 0$
+
+**E nullcline ($\frac{dr_E}{dt} = 0$, Eq. 2)**:
+$$-r_E + F_E(w_{EE}r_E - w_{EI}r_I + I_E^{\rm ext}; a_E, \theta_E) = 0$$
+
+**I nullcline ($\frac{dr_I}{dt} = 0$, Eq. 3)**:
+$$-r_I + F_I(w_{IE}r_E - w_{II}r_I + I_I^{\rm ext}; a_I, \theta_I) = 0$$
+
+**Explicit nullcline expressions (Eqs. 4-5)**:
+
+$$\text{E nullcline: } \quad r_I = \frac{1}{w_{EI}}[w_{EE}r_E - F_E^{-1}(r_E; a_E, \theta_E) + I_E^{\rm ext}]$$
+
+$$\text{I nullcline: } \quad r_E = \frac{1}{w_{IE}}[w_{II}r_I + F_I^{-1}(r_I; a_I, \theta_I) - I_I^{\rm ext}]$$
+
+**Inverse transfer function (Eq. 6)**:
+
+$$F^{-1}(x; a, \theta) = -\frac{1}{a} \ln\left[\frac{1}{x + \frac{1}{1+e^{a\theta}}} - 1\right] + \theta$$
+
+**Nullcline properties**:
+- E nullcline divides the phase plane into regions where $\frac{dr_E}{dt} > 0$ and $\frac{dr_E}{dt} < 0$
+- I nullcline divides the phase plane into regions where $\frac{dr_I}{dt} > 0$ and $\frac{dr_I}{dt} < 0$
+- Intersections of the two nullclines are the system's **fixed points**
+
+---
+
+### Tutorial 2: Vector Field
+
+**Vector field definition**: Map of arrows showing $(\frac{dr_E}{dt}, \frac{dr_I}{dt})$ at each point in the phase plane
 
 ```python
 def EIderivs(rE, rI, tau_E, a_E, theta_E, wEE, wEI, I_ext_E,
@@ -381,13 +732,50 @@ def EIderivs(rE, rI, tau_E, a_E, theta_E, wEE, wEI, I_ext_E,
     return drEdt, drIdt
 ```
 
+**Key observations**:
+- Trajectories follow the vector field direction
+- Different trajectories eventually reach one of two fixed points (depending on initial conditions)
+- Points where trajectories converge are intersections of the nullcline curves
+
 ---
 
-### Jacobian Matrix and Stability
+### Tutorial 3: Jacobian Matrix and Stability
 
-For the 2D Wilson-Cowan system, stability is determined by the **Jacobian**:
+**System rewrite**:
+
+$$\frac{dr_E}{dt} = G_E(r_E, r_I) = \frac{1}{\tau_E}[-r_E + F_E(w_{EE}r_E - w_{EI}r_I + I_E^{\rm ext}; a, \theta)]$$
+
+$$\frac{dr_I}{dt} = G_I(r_E, r_I) = \frac{1}{\tau_I}[-r_I + F_I(w_{IE}r_E - w_{II}r_I + I_I^{\rm ext}; a, \theta)]$$
+
+**Jacobian matrix (Eq. 7)**:
 
 $$J = \begin{bmatrix} \frac{\partial G_E}{\partial r_E} & \frac{\partial G_E}{\partial r_I} \\ \frac{\partial G_I}{\partial r_E} & \frac{\partial G_I}{\partial r_I} \end{bmatrix}$$
+
+**Jacobian matrix elements (Eqs. 8-11)**:
+
+$$J[0,0] = \frac{\partial G_E}{\partial r_E} = \frac{1}{\tau_E}[-1 + w_{EE} F_E'(w_{EE}r_E^* - w_{EI}r_I^* + I_E^{\rm ext})]$$
+
+$$J[0,1] = \frac{\partial G_E}{\partial r_I} = \frac{1}{\tau_E}[-w_{EI} F_E'(w_{EE}r_E^* - w_{EI}r_I^* + I_E^{\rm ext})]$$
+
+$$J[1,0] = \frac{\partial G_I}{\partial r_E} = \frac{1}{\tau_I}[w_{IE} F_I'(w_{IE}r_E^* - w_{II}r_I^* + I_I^{\rm ext})]$$
+
+$$J[1,1] = \frac{\partial G_I}{\partial r_I} = \frac{1}{\tau_I}[-1 - w_{II} F_I'(w_{IE}r_E^* - w_{II}r_I^* + I_I^{\rm ext})]$$
+
+**Matrix notation**:
+
+$$J = T^{-1}(FW - I)$$
+
+where:
+- $T = \begin{bmatrix} \tau_E & 0 \\ 0 & \tau_I \end{bmatrix}$ (time constant matrix)
+- $F = \begin{bmatrix} F_E' & 0 \\ 0 & F_I' \end{bmatrix}$ (gain derivative matrix)
+- $W = \begin{bmatrix} w_{EE} & -w_{EI} \\ w_{IE} & -w_{II} \end{bmatrix}$ (connectivity matrix)
+- $I$ is the identity matrix
+
+**Stability criterion**:
+- $\det(J) > 0$ at stable fixed point (both eigenvalues have negative real parts)
+- $\det(FW - I) = (F_E' w_{EI})(F_I' w_{IE}) - (F_I' w_{II} + 1)(F_E' w_{EE} - 1) > 0$
+
+**Implementation**:
 
 ```python
 def get_eig_Jacobian(fp, tau_E, a_E, theta_E, wEE, wEI, I_ext_E,
@@ -404,48 +792,90 @@ def get_eig_Jacobian(fp, tau_E, a_E, theta_E, wEE, wEI, I_ext_E,
 
 ---
 
-### Limit Cycles and Oscillations
+### Tutorial 3: Nullcline Slope Analysis
 
-When eigenvalues become **complex**, the system oscillates:
+**E nullcline slope (Eq. 12)**:
 
-**Oscillatory parameters**: $w_{EE}=6.4$, $w_{EI}=4.8$, $w_{IE}=6.0$, $w_{II}=1.2$, $I_E^{\text{ext}}=0.8$
+$$\left(\frac{dr_I}{dr_E}\right)_{\text{E-nullcline}} = \frac{F_E' w_{EE} - 1}{F_E' w_{EI}}$$
+
+**I nullcline slope (Eq. 13)**:
+
+$$\left(\frac{dr_I}{dr_E}\right)_{\text{I-nullcline}} = \frac{F_I' w_{IE}}{F_I' w_{II} + 1}$$
+
+**Properties**:
+- I nullcline slope is always positive
+- E nullcline slope sign depends on $(F_E' w_{EE} - 1)$
+
+**Conclusion 1**: At a stable fixed point, the I nullcline has a steeper slope than the E nullcline
+
+**Conclusion 2**: When adding input to the inhibitory population
+- E nullcline stays the same
+- I nullcline shifts left by $\delta I_I^{\rm ext} / w_{IE}$
+
+---
+
+### Tutorial 3: Limit Cycles and Oscillations
+
+**Condition for oscillations**: Eigenvalues become **complex**
+
+**Oscillatory parameters**: $w_{EE}=6.4$, $w_{EI}=4.8$, $w_{IE}=6.0$, $w_{II}=1.2$, $I_E^{\rm ext}=0.8$
 
 - Trajectories form a **limit cycle** in the phase plane
-- E and I populations alternate in activity
+- Excitatory (E) and inhibitory (I) populations alternate in activity
 - Frequency determined by the imaginary part of eigenvalues
-**Bifurcation**: dramatic change in system behavior as parameters change
+- Oscillation stability determined by the real part (positive → growing, negative → decaying)
+
+**Bifurcation**: Dramatic qualitative change in system behavior as parameters change
 - Changing $\tau_I$ can switch between steady state and oscillations
 - Nullclines stay the same, but vector field changes
+- Intuition: When $\tau_I$ is small, inhibitory activity changes faster than excitatory, leading to oscillations
 
 ---
 
-### Inhibition-Stabilized Network (ISN)
+### Tutorial 3: Inhibition-Stabilized Network (ISN)
 
-Two regimes based on $\frac{\partial G_E}{\partial r_E}$:
+**Two regimes based on $\frac{\partial G_E}{\partial r_E}$**:
 
-| Regime | Condition | Behavior |
-|--------|-----------|----------|
-| **non-ISN** | $\frac{\partial G_E}{\partial r_E} < 0$ | Adding inhibition to I → E decreases |
-| **ISN** | $\frac{\partial G_E}{\partial r_E} > 0$ | Adding inhibition to I → E also decreases (paradoxically) |
+$$\frac{\partial G_E}{\partial r_E} = \frac{1}{\tau_E}[-1 + w_{EE} F_E'] = \frac{1}{\tau_E}(F_E' w_{EE} - 1)$$
 
-**ISN is common in cortex**: strong recurrent excitation ($w_{EE}$ large) creates a regime where inhibition is needed for stability.
+| Regime | Condition | E Nullcline Slope | Behavior |
+|--------|-----------|-------------------|----------|
+| **non-ISN** | $F_E' w_{EE} - 1 < 0$ | Negative | Increase inhibition on I → E decreases |
+| **ISN** | $F_E' w_{EE} - 1 > 0$ | Positive | Increase inhibition on I → E paradoxically increases |
+
+**ISN is common in cortex**: Strong recurrent excitation ($w_{EE}$ large) creates a regime that requires inhibition to be stable
+
+**ISN paradoxical behavior**:
+- Normal case: Inhibit I → E increases (reduced inhibition)
+- ISN case: Inhibit I → E also decreases (because E's self-excitation is too strong, needs I to stabilize)
 
 ---
 
-### Working Memory: Persistent Activity
+### Tutorial 3: Working Memory — Persistent Activity
 
-Brief input can trigger **sustained activity** that outlasts the stimulus:
-
-**Mechanism**: multiple fixed points + noise
+**Mechanism**: Multiple fixed points + noise
 
 1. System starts at low-activity fixed point
-2. Brief pulse pushes state past the unstable fixed point
+2. Brief pulse pushes state past unstable fixed point
 3. System settles at high-activity fixed point
-4. This represents "memory" of the stimulus
-**Wilson-Cowan model demonstrates this**:
-- Without pulse: system stays at resting state
-- With sufficient pulse: system switches to persistent activity
-- Critical pulse amplitude determines the transition
+4. This represents a "memory" of the stimulus
+
+**Implementation**: OU noise + brief current pulse
+
+```python
+def my_inject(pars, t_start, t_lag=10.):
+    I = np.zeros(Lt)
+    N_start = int(t_start / dt)
+    N_lag = int(t_lag / dt)
+    I[N_start:N_start + N_lag] = 1.
+    return I
+```
+
+**Key parameters**:
+- Pulse amplitude $S_E$ determines whether transition is triggered
+- Critical pulse amplitude: Just enough to push state past unstable fixed point
+- Sufficiently large pulse: System switches to persistent activity
+- After pulse ends: System maintains high-activity state (working memory)
 
 ---
 
@@ -459,22 +889,33 @@ Brief input can trigger **sustained activity** that outlasts the stimulus:
 
 - Euler integration
 - Eigenvalue analysis
-- Random walks & OU process
-- Autoregressive models
+- Markov processes and state transition matrices
+- Random walks and diffusion processes
+- OU process and equilibrium variance
+- Autoregressive models and time-delay matrices
 
 ### W2D4: Neuron Models
 
-- LIF neuron dynamics
+- LIF neuron dynamics and Euler integration
+- DC/GWN/OU input types
+- Correlated inputs and correlation transfer
 - Conductance-based synapses
-- Short-term plasticity
-- STDP learning rule
+- Free membrane potential and firing regimes
+- Short-term plasticity: depression and facilitation
+- STDP learning rule and weight updates
+- P/M trace variables
 
 ### W2D5: Network Dynamics
 
-- Firing rate models
-- Wilson-Cowan model
-- Phase plane analysis
-- Fixed points & stability
+- Firing rate model and sigmoid transfer function
+- Fixed points and eigenvalue stability
+- Wilson-Cowan model and E/I coupling
+- Nullclines and vector fields
+- Jacobian matrix and linearization
+- Nullcline slope analysis
+- Limit cycles and bifurcations
+- Inhibition-stabilized network
+- Working memory and persistent activity
 
 ---
 
@@ -482,12 +923,46 @@ Brief input can trigger **sustained activity** that outlasts the stimulus:
 
 $$\tau_m \frac{dV}{dt} = -(V-E_L) + \frac{I}{g_L} \quad \text{(LIF neuron)}$$
 
-$$\tau \frac{dr}{dt} = -r + F(w \cdot r + I_{\text{ext}}) \quad \text{(Firing rate model)}$$
+$$\tau_m \frac{dV}{dt} = -(V-E_L) - \frac{g_E}{g_L}(V-E_E) - \frac{g_I}{g_L}(V-E_I) + \frac{I_{\rm inj}}{g_L} \quad \text{(Conductance-based LIF)}$$
 
-$$\tau_E \frac{dr_E}{dt} = -r_E + F_E(w_{EE}r_E - w_{EI}r_I + I_E^{\text{ext}}) \quad \text{(Wilson-Cowan)}$$
+$$x_{k+1} = x_\infty + \lambda(x_k - x_\infty) + \sigma\eta \quad \text{(OU process)}$$
 
-$$\lambda = \frac{-1 + w \cdot F'(w \cdot r^* + I_{\text{ext}})}{\tau} \quad \text{(Eigenvalue/stability)}$$
+$$\text{Var}_{eq} = \frac{\sigma^2}{1-\lambda^2} \quad \text{(OU equilibrium variance)}$$
 
-$$\text{Var} = \frac{\sigma^2}{1-\lambda^2} \quad \text{(OU equilibrium variance)}$$
+$$\tau \frac{dr}{dt} = -r + F(w \cdot r + I_{\rm ext}) \quad \text{(Firing rate model)}$$
+
+$$F(x; a, \theta) = \frac{1}{1+e^{-a(x-\theta)}} - \frac{1}{1+e^{a\theta}} \quad \text{(Sigmoid transfer function)}$$
+
+$$\tau_E \frac{dr_E}{dt} = -r_E + F_E(w_{EE}r_E - w_{EI}r_I + I_E^{\rm ext}) \quad \text{(Wilson-Cowan E)}$$
+
+$$\tau_I \frac{dr_I}{dt} = -r_I + F_I(w_{IE}r_E - w_{II}r_I + I_I^{\rm ext}) \quad \text{(Wilson-Cowan I)}$$
+
+$$\lambda = \frac{-1 + w \cdot F'(w \cdot r^* + I_{\rm ext})}{\tau} \quad \text{(Eigenvalue/stability)}$$
+
+$$J = T^{-1}(FW - I) \quad \text{(Jacobian matrix)}$$
+
+$$\frac{dr_I}{dr_E}\bigg|_{\text{E-nullcline}} = \frac{F_E' w_{EE} - 1}{F_E' w_{EI}} \quad \text{(E nullcline slope)}$$
+
+$$\frac{dr_I}{dr_E}\bigg|_{\text{I-nullcline}} = \frac{F_I' w_{IE}}{F_I' w_{II} + 1} \quad \text{(I nullcline slope)}$$
+
+$$\Delta W = \begin{cases} A_+ e^{\Delta t/\tau_+} & \Delta t < 0 \text{ (LTP)} \\ -A_- e^{-\Delta t/\tau_-} & \Delta t > 0 \text{ (LTD)} \end{cases} \quad \text{(STDP rule)}$$
 
 ---
+
+### Logical Connections Between Tutorials
+
+| Tutorial | Model | Dimension | Key Analysis |
+|----------|-------|-----------|--------------|
+| W2D3 T1 | $\dot{x} = ax$ | 1D | Euler integration, eigenvalues |
+| W2D3 T2 | Markov process | 2D | State transition matrix, equilibrium |
+| W2D3 T3 | OU process | 1D | Random walk, drift-diffusion, equilibrium variance |
+| W2D3 T4 | Autoregressive model | 1D | Time-delay matrices, regression fitting |
+| W2D4 T1 | LIF neuron | 1D | Membrane dynamics, F-I curve, CV_ISI |
+| W2D4 T2 | Correlated LIF | 2×1D | Correlated inputs, correlation transfer |
+| W2D4 T3 | Conductance LIF + STP | 1D | Synaptic conductance, u-R-g dynamics |
+| W2D4 T4 | LIF + STDP | N×1D | Weight updates, unsupervised learning |
+| W2D5 T1 | Single population rate | 1D | F-I curve, fixed points, eigenvalue stability |
+| W2D5 T2 | Wilson-Cowan | 2D | Nullclines, vector field, phase plane |
+| W2D5 T3 | WC + analysis | 2D | Jacobian eigenvalues, limit cycles, ISN, working memory |
+
+**Progressive relationship**: From single population with one eigenvalue, to two-population system requiring a 2×2 Jacobian matrix (two eigenvalues that can be real or complex), enabling richer dynamics including oscillations and bistability.
