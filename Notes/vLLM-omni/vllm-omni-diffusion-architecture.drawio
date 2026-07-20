@@ -1,0 +1,585 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="architecture-overview" name="Architecture Overview">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- User Code -->
+        <mxCell id="user_code" value="&lt;b&gt;用户代码&lt;/b&gt;&lt;br&gt;omni = Omni(model=&quot;Qwen/Qwen-Image&quot;)&lt;br&gt;outputs = omni.generate(&quot;a cat&quot;, params)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="30" width="350" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- 1. Omni -->
+        <mxCell id="omni" value="&lt;b&gt;1. Omni&lt;/b&gt;&lt;br&gt;&lt;i&gt;entrypoints/omni.py&lt;/i&gt;&lt;br&gt;用户交互入口，参数验证" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="120" width="350" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- 2. AsyncOmniEngine -->
+        <mxCell id="async_engine" value="&lt;b&gt;2. AsyncOmniEngine&lt;/b&gt;&lt;br&gt;&lt;i&gt;engine/async_omni_engine.py&lt;/i&gt;&lt;br&gt;管理 StagePool，启动 Orchestrator 线程" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="210" width="350" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- 3. Orchestrator -->
+        <mxCell id="orchestrator" value="&lt;b&gt;3. Orchestrator&lt;/b&gt;&lt;br&gt;&lt;i&gt;engine/orchestrator.py&lt;/i&gt;&lt;br&gt;编排多 Stage 请求流转" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="300" width="350" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- 4. StageDiffusionClient -->
+        <mxCell id="stage_client" value="&lt;b&gt;4. StageDiffusionClient&lt;/b&gt;&lt;br&gt;&lt;i&gt;diffusion/stage_diffusion_client.py&lt;/i&gt;&lt;br&gt;ZMQ PUSH 发送请求" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="390" width="350" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- ZMQ Communication -->
+        <mxCell id="zmq" value="&lt;b&gt;ZMQ (IPC)&lt;/b&gt;&lt;br&gt;ipc://..." style="shape=line;strokeWidth=3;strokeColor=#FF6600;fontSize=11;fontStyle=1;labelBackgroundColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="725" y="465" width="100" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- 5. StageDiffusionProc -->
+        <mxCell id="stage_proc" value="&lt;b&gt;5. StageDiffusionProc&lt;/b&gt;&lt;br&gt;&lt;i&gt;diffusion/stage_diffusion_proc.py&lt;/i&gt;&lt;br&gt;子进程，持有 DiffusionEngine" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="510" width="350" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- 6. DiffusionEngine -->
+        <mxCell id="diffusion_engine" value="&lt;b&gt;6. DiffusionEngine&lt;/b&gt;&lt;br&gt;&lt;i&gt;diffusion/diffusion_engine.py&lt;/i&gt;&lt;br&gt;StepScheduler + _busy_loop 主循环" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="600" width="350" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- 7. MultiprocDiffusionExecutor -->
+        <mxCell id="executor" value="&lt;b&gt;7. MultiprocDiffusionExecutor&lt;/b&gt;&lt;br&gt;&lt;i&gt;diffusion/executor/multiproc_executor.py&lt;/i&gt;&lt;br&gt;管理多个 Worker 进程" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="690" width="350" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- SHM Communication -->
+        <mxCell id="shm" value="&lt;b&gt;SHM MessageQueue&lt;/b&gt;&lt;br&gt;共享内存" style="shape=line;strokeWidth=3;strokeColor=#FF0066;fontSize=11;fontStyle=1;labelBackgroundColor=#FFFFFF;" vertex="1" parent="1">
+          <mxGeometry x="725" y="765" width="100" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- 8. WorkerProc -->
+        <mxCell id="worker_proc" value="&lt;b&gt;8. WorkerProc&lt;/b&gt;&lt;br&gt;&lt;i&gt;diffusion/worker/diffusion_worker.py&lt;/i&gt;&lt;br&gt;Worker 进程入口，消息循环" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="810" width="350" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- 9. DiffusionWorker -->
+        <mxCell id="diffusion_worker" value="&lt;b&gt;9. DiffusionWorker&lt;/b&gt;&lt;br&gt;&lt;i&gt;diffusion/worker/diffusion_worker.py&lt;/i&gt;&lt;br&gt;CUDA 设备，NCCL 分布式，LoRA" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="900" width="350" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- 10. DiffusionModelRunner -->
+        <mxCell id="model_runner" value="&lt;b&gt;10. DiffusionModelRunner&lt;/b&gt;&lt;br&gt;&lt;i&gt;diffusion/worker/diffusion_model_runner.py&lt;/i&gt;&lt;br&gt;模型加载，state_cache 管理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="990" width="350" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- 11. Pipeline -->
+        <mxCell id="pipeline" value="&lt;b&gt;11. QwenPipeline&lt;/b&gt;&lt;br&gt;&lt;i&gt;models/qwen_image/pipeline_qwen_image.py&lt;/i&gt;&lt;br&gt;SupportsStepExecution: denoise_step() / step_scheduler() / post_decode()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="1080" width="350" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- 12. Transformer -->
+        <mxCell id="transformer" value="&lt;b&gt;12. Transformer&lt;/b&gt;&lt;br&gt;&lt;i&gt;如 QwenImageTransformer2D&lt;/i&gt;&lt;br&gt;DiT 模型计算，可应用 teacache/cache_dit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="1180" width="350" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Arrows -->
+        <mxCell id="arrow1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#333333;" edge="1" source="user_code" target="omni" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#333333;" edge="1" source="omni" target="async_engine" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#333333;" edge="1" source="async_engine" target="orchestrator" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#333333;" edge="1" source="orchestrator" target="stage_client" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#FF6600;" edge="1" source="stage_client" target="stage_proc" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#333333;" edge="1" source="stage_proc" target="diffusion_engine" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#333333;" edge="1" source="diffusion_engine" target="executor" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#FF0066;" edge="1" source="executor" target="worker_proc" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#333333;" edge="1" source="worker_proc" target="diffusion_worker" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#333333;" edge="1" source="diffusion_worker" target="model_runner" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#333333;" edge="1" source="model_runner" target="pipeline" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow12" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#333333;" edge="1" source="pipeline" target="transformer" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Legend -->
+        <mxCell id="legend_title" value="&lt;b&gt;Legend&lt;/b&gt;" style="text;html=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="50" y="30" width="100" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend1" value="Entry Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="50" y="70" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend2" value="Engine Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="50" y="110" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend3" value="IPC Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="50" y="150" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend4" value="Scheduler Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="50" y="190" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend5" value="Worker Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="50" y="230" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend6" value="Model Layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="50" y="270" width="120" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Communication Legend -->
+        <mxCell id="legend_comm" value="&lt;b&gt;Communication&lt;/b&gt;" style="text;html=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="50" y="320" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_zmq" value="ZMQ IPC" style="shape=line;strokeWidth=3;strokeColor=#FF6600;" vertex="1" parent="1">
+          <mxGeometry x="50" y="360" width="120" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_shm" value="SHM MessageQueue" style="shape=line;strokeWidth=3;strokeColor=#FF0066;" vertex="1" parent="1">
+          <mxGeometry x="50" y="390" width="120" height="10" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+<diagram id="c5as0t6h-w0px" name="Step-wise Execution Flow"><mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="&lt;b&gt;Step-wise Diffusion 执行流程 (StepScheduler 模式)&lt;/b&gt;" style="text;html=1;fontSize=18;align=center;" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="500" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- StepScheduler Box -->
+        <mxCell id="scheduler_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6E6FA;strokeColor=#9673a6;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="80" width="300" height="500" as="geometry" />
+        </mxCell>
+        <mxCell id="scheduler_title" value="&lt;b&gt;StepScheduler&lt;/b&gt;&lt;br&gt;&lt;i&gt;sched/step_scheduler.py&lt;/i&gt;" style="text;html=1;fontSize=14;align=center;" vertex="1" parent="1">
+          <mxGeometry x="80" y="90" width="240" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- StepScheduler.add_request -->
+        <mxCell id="add_request" value="&lt;b&gt;add_request()&lt;/b&gt;&lt;br&gt;记录 _StepProgress&lt;br&gt;(current=0, total=50)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="80" y="140" width="240" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- StepScheduler.schedule -->
+        <mxCell id="schedule" value="&lt;b&gt;schedule()&lt;/b&gt;&lt;br&gt;从 _waiting 队列取出请求&lt;br&gt;返回 DiffusionSchedulerOutput" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="80" y="210" width="240" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- StepScheduler.update -->
+        <mxCell id="update" value="&lt;b&gt;update_from_output()&lt;/b&gt;&lt;br&gt;更新 step_index&lt;br&gt;检查 finished 状态" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="80" y="280" width="240" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- Progress State -->
+        <mxCell id="progress_state" value="&lt;b&gt;_StepProgress&lt;/b&gt;&lt;br&gt;current_step: int&lt;br&gt;total_steps: int" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="100" y="360" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Request State -->
+        <mxCell id="request_state" value="&lt;b&gt;DiffusionRequestState&lt;/b&gt;&lt;br&gt;request_id: str&lt;br&gt;status: WAITING/RUNNING/FINISHED" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="100" y="440" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- DiffusionEngine Box -->
+        <mxCell id="engine_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F3FF;strokeColor=#6c8ebf;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="80" width="350" height="500" as="geometry" />
+        </mxCell>
+        <mxCell id="engine_title" value="&lt;b&gt;DiffusionEngine&lt;/b&gt;&lt;br&gt;&lt;i&gt;diffusion/diffusion_engine.py&lt;/i&gt;" style="text;html=1;fontSize=14;align=center;" vertex="1" parent="1">
+          <mxGeometry x="430" y="90" width="290" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- _busy_loop -->
+        <mxCell id="busy_loop" value="&lt;b&gt;_busy_loop()&lt;/b&gt;&lt;br&gt;主循环: schedule → execute → update" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="430" y="140" width="290" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- schedule call -->
+        <mxCell id="sched_call" value="sched_output = scheduler.schedule()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="450" y="210" width="250" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- execute call -->
+        <mxCell id="exec_call" value="runner_output = execute_fn(sched_output)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="450" y="260" width="250" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- update call -->
+        <mxCell id="update_call" value="scheduler.update_from_output(sched_output, runner_output)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="450" y="310" width="250" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Loop Arrow -->
+        <mxCell id="loop_arrow" value="&lt;b&gt;循环直到完成&lt;/b&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#FF6600;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="update_call" target="sched_call" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="730" y="325" />
+              <mxPoint x="730" y="225" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- handle finished -->
+        <mxCell id="handle_finished" value="&lt;b&gt;_handle_finished_requests()&lt;/b&gt;&lt;br&gt;通知调用方请求完成" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="450" y="370" width="250" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- DiffusionExecutor Box -->
+        <mxCell id="executor_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF0E6;strokeColor=#d79b00;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="800" y="80" width="300" height="500" as="geometry" />
+        </mxCell>
+        <mxCell id="executor_title" value="&lt;b&gt;MultiprocDiffusionExecutor&lt;/b&gt;&lt;br&gt;&lt;i&gt;executor/multiproc_executor.py&lt;/i&gt;" style="text;html=1;fontSize=14;align=center;" vertex="1" parent="1">
+          <mxGeometry x="810" y="90" width="280" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- execute_step -->
+        <mxCell id="execute_step" value="&lt;b&gt;execute_step()&lt;/b&gt;&lt;br&gt;collective_rpc(&quot;execute_stepwise&quot;)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="830" y="140" width="240" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- broadcast -->
+        <mxCell id="broadcast" value="&lt;b&gt;broadcast_mq.enqueue()&lt;/b&gt;&lt;br&gt;广播到所有 Worker" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="830" y="210" width="240" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- result dequeue -->
+        <mxCell id="result_dequeue" value="&lt;b&gt;result_mq.dequeue()&lt;/b&gt;&lt;br&gt;等待 rank 0 返回" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="830" y="260" width="240" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Cache Backend Note -->
+        <mxCell id="cache_note" value="&lt;b&gt;⚠️ Cache Backend&lt;/b&gt;&lt;br&gt;当前 step-wise 模式&lt;br&gt;不支持 cache_backend!&lt;br&gt;&lt;br&gt;&lt;i&gt;这是要集成的优化点&lt;/i&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="830" y="320" width="240" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Worker Box -->
+        <mxCell id="worker_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6E6;strokeColor=#b85450;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="600" width="500" height="350" as="geometry" />
+        </mxCell>
+        <mxCell id="worker_title" value="&lt;b&gt;Worker 进程内部&lt;/b&gt;" style="text;html=1;fontSize=14;align=center;" vertex="1" parent="1">
+          <mxGeometry x="200" y="610" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- WorkerProc.execute_stepwise -->
+        <mxCell id="wp_execute" value="&lt;b&gt;WorkerProc.execute_stepwise()&lt;/b&gt;&lt;br&gt;接收 RPC 消息，调用 DiffusionWorker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="80" y="650" width="200" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- DiffusionWorker.execute_stepwise -->
+        <mxCell id="dw_execute" value="&lt;b&gt;DiffusionWorker.execute_stepwise()&lt;/b&gt;&lt;br&gt;激活 LoRA，调用 ModelRunner" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="80" y="720" width="200" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- DiffusionModelRunner.execute_stepwise -->
+        <mxCell id="dmr_execute" value="&lt;b&gt;DiffusionModelRunner.execute_stepwise()&lt;/b&gt;&lt;br&gt;1. _update_states()&lt;br&gt;2. _prepare_batch_inputs()&lt;br&gt;3. pipeline.denoise_step()&lt;br&gt;4. pipeline.step_scheduler()&lt;br&gt;5. pipeline.post_decode()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="310" y="650" width="220" height="120" as="geometry" />
+        </mxCell>
+        
+        <!-- Arrows between worker components -->
+        <mxCell id="w_arrow1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;" edge="1" source="wp_execute" target="dw_execute" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="w_arrow2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;" edge="1" source="dw_execute" target="dmr_execute" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Pipeline Box -->
+        <mxCell id="pipeline_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9E6;strokeColor=#d79b00;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="600" width="450" height="350" as="geometry" />
+        </mxCell>
+        <mxCell id="pipeline_title" value="&lt;b&gt;Pipeline (SupportsStepExecution)&lt;/b&gt;&lt;br&gt;&lt;i&gt;如 QwenPipeline&lt;/i&gt;" style="text;html=1;fontSize=14;align=center;" vertex="1" parent="1">
+          <mxGeometry x="680" y="610" width="300" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- prepare_encode -->
+        <mxCell id="prepare_encode" value="&lt;b&gt;prepare_encode()&lt;/b&gt;&lt;br&gt;编码 prompt，准备初始 latents" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="620" y="660" width="200" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- denoise_step -->
+        <mxCell id="denoise_step" value="&lt;b&gt;denoise_step()&lt;/b&gt;&lt;br&gt;调用 Transformer.forward()&lt;br&gt;返回 noise_pred" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="620" y="720" width="200" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- step_scheduler -->
+        <mxCell id="step_scheduler" value="&lt;b&gt;step_scheduler()&lt;/b&gt;&lt;br&gt;更新 latents, timestep, step_index&lt;br&gt;检查 denoise_completed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="620" y="790" width="200" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- post_decode -->
+        <mxCell id="post_decode" value="&lt;b&gt;post_decode()&lt;/b&gt;&lt;br&gt;VAE 解码 → 图像输出" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="850" y="720" width="180" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Transformer -->
+        <mxCell id="transformer" value="&lt;b&gt;Transformer&lt;/b&gt;&lt;br&gt;&lt;i&gt;如 QwenImageTransformer2D&lt;/i&gt;&lt;br&gt;DiT 模型计算" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFD700;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="620" y="860" width="200" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Pipeline arrows -->
+        <mxCell id="p_arrow1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;" edge="1" source="prepare_encode" target="denoise_step" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p_arrow2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;" edge="1" source="denoise_step" target="step_scheduler" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p_arrow3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#00AA00;" edge="1" source="step_scheduler" target="denoise_step" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="590" y="815" />
+              <mxPoint x="590" y="745" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="p_arrow4" value="完成时" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#00AA00;" edge="1" source="step_scheduler" target="post_decode" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="p_arrow5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;" edge="1" source="denoise_step" target="transformer" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Loop label on pipeline -->
+        <mxCell id="pipeline_loop" value="&lt;b&gt;循环 50 次&lt;/b&gt;&lt;br&gt;(num_inference_steps)" style="text;html=1;fontSize=11;fontColor=#00AA00;align=center;" vertex="1" parent="1">
+          <mxGeometry x="555" y="750" width="80" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Arrows from Engine to Executor -->
+        <mxCell id="e_arrow1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#FF6600;" edge="1" source="exec_call" target="execute_step" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Arrows from Executor to Worker -->
+        <mxCell id="ex_arrow1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#FF0066;" edge="1" source="execute_step" target="wp_execute" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="950" y="600" />
+              <mxPoint x="180" y="600" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Arrow from ModelRunner to Pipeline -->
+        <mxCell id="mr_arrow" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;" edge="1" source="dmr_execute" target="denoise_step" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Key Point Box -->
+        <mxCell id="key_point" value="&lt;b&gt;🎯 Cache 优化集成点&lt;/b&gt;&lt;br&gt;&lt;br&gt;1. DiffusionModelRunner.execute_stepwise()&lt;br&gt;   - 移除 cache_backend 检查&lt;br&gt;   - 在 denoise_step() 前后调用 cache refresh&lt;br&gt;&lt;br&gt;2. Pipeline.denoise_step()&lt;br&gt;   - 集成 teacache hook 或 cache_dit 逻辑&lt;br&gt;   - 根据 cache 命中决定是否跳过计算&lt;br&gt;&lt;br&gt;3. 可选: StepScheduler 动态调整步骤数" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="80" width="350" height="180" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel></diagram><diagram id="9u1xbfre-5j6c" name="Cache Integration Architecture"><mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="&lt;b&gt;Cache 优化集成架构 (TeaCache / Cache-DiT)&lt;/b&gt;" style="text;html=1;fontSize=18;align=center;" vertex="1" parent="1">
+          <mxGeometry x="350" y="20" width="500" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- Current Status Box -->
+        <mxCell id="current_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6E6;strokeColor=#b85450;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="80" width="450" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="current_title" value="&lt;b&gt;❌ 当前状态 (Request 模式)&lt;/b&gt;" style="text;html=1;fontSize=14;fillColor=#b85450;fontColor=#FFFFFF;align=center;" vertex="1" parent="1">
+          <mxGeometry x="100" y="90" width="350" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="current_content" value="&lt;ul&gt;&lt;li&gt;Cache Backend 在 Worker 初始化时启用&lt;/li&gt;&lt;li&gt;在 DiffusionModelRunner.load_model() 中应用&lt;/li&gt;&lt;li&gt;在 execute_model() 中 refresh&lt;/li&gt;&lt;li&gt;Step-wise 模式&lt;b&gt;不支持&lt;/b&gt; cache_backend&lt;/li&gt;&lt;/ul&gt;" style="text;html=1;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="70" y="125" width="410" height="100" as="geometry" />
+        </mxCell>
+        
+        <!-- Target Status Box -->
+        <mxCell id="target_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6FFE6;strokeColor=#82b366;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="280" width="450" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="target_title" value="&lt;b&gt;✅ 目标状态 (Step-wise 模式)&lt;/b&gt;" style="text;html=1;fontSize=14;fillColor=#82b366;fontColor=#FFFFFF;align=center;" vertex="1" parent="1">
+          <mxGeometry x="100" y="290" width="350" height="30" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="target_content" value="&lt;ul&gt;&lt;li&gt;Step-wise 模式支持 cache_backend&lt;/li&gt;&lt;li&gt;每个 denoise_step() 前后管理 cache 状态&lt;/li&gt;&lt;li&gt;支持 teacache 和 cache_dit 两种后端&lt;/li&gt;&lt;li&gt;可选: 根据 cache 命中率动态调整步骤数&lt;/li&gt;&lt;/ul&gt;" style="text;html=1;fontSize=12;align=left;" vertex="1" parent="1">
+          <mxGeometry x="70" y="325" width="410" height="100" as="geometry" />
+        </mxCell>
+        
+        <!-- Cache Backend Architecture -->
+        <mxCell id="cache_arch_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F3FF;strokeColor=#6c8ebf;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="550" y="80" width="500" height="400" as="geometry" />
+        </mxCell>
+        <mxCell id="cache_arch_title" value="&lt;b&gt;Cache Backend 架构&lt;/b&gt;" style="text;html=1;fontSize=16;align=center;" vertex="1" parent="1">
+          <mxGeometry x="700" y="90" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- CacheBackend ABC -->
+        <mxCell id="cache_abc" value="&lt;b&gt;CacheBackend&lt;/b&gt; (ABC)&lt;br&gt;&lt;i&gt;cache/selector.py&lt;/i&gt;&lt;br&gt;enable() / refresh() / is_enabled()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="650" y="130" width="200" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- TeaCacheBackend -->
+        <mxCell id="teacache" value="&lt;b&gt;TeaCacheBackend&lt;/b&gt;&lt;br&gt;&lt;i&gt;cache/teacache/backend.py&lt;/i&gt;&lt;br&gt;基于 timestep embedding 相似度&lt;br&gt;CFG-aware 缓存策略" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="580" y="220" width="180" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- CacheDiTBackend -->
+        <mxCell id="cache_dit" value="&lt;b&gt;CacheDiTBackend&lt;/b&gt;&lt;br&gt;&lt;i&gt;cache/cache_dit_backend.py&lt;/i&gt;&lt;br&gt;DBCache + TaylorSeer + SCM&lt;br&gt;支持 dual-transformer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="800" y="220" width="180" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Selector -->
+        <mxCell id="selector" value="&lt;b&gt;get_cache_backend()&lt;/b&gt;&lt;br&gt;&lt;i&gt;cache/selector.py&lt;/i&gt;&lt;br&gt;根据配置选择后端" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="650" y="330" width="200" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- Cache Config -->
+        <mxCell id="cache_config" value="&lt;b&gt;DiffusionCacheConfig&lt;/b&gt;&lt;br&gt;cache_backend: str&lt;br&gt;cache_config: dict&lt;br&gt;&lt;br&gt;teacache: rel_l1_thresh, coefficients&lt;br&gt;cache_dit: Fn_compute_blocks, max_warmup_steps, etc." style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="620" y="400" width="260" height="90" as="geometry" />
+        </mxCell>
+        
+        <!-- Cache arrows -->
+        <mxCell id="ca1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;" edge="1" source="cache_abc" target="teacache" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ca2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;" edge="1" source="cache_abc" target="cache_dit" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ca3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;" edge="1" source="selector" target="teacache" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ca4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;" edge="1" source="selector" target="cache_dit" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- Integration Points -->
+        <mxCell id="integration_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF0E6;strokeColor=#d79b00;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="50" y="480" width="1000" height="380" as="geometry" />
+        </mxCell>
+        <mxCell id="integration_title" value="&lt;b&gt;集成点: DiffusionModelRunner.execute_stepwise()&lt;/b&gt;" style="text;html=1;fontSize=16;align=center;" vertex="1" parent="1">
+          <mxGeometry x="300" y="490" width="500" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 1: Check cache -->
+        <mxCell id="step1" value="&lt;b&gt;1. 检查 Cache 配置&lt;/b&gt;&lt;br&gt;if cache_backend not in (None, &quot;none&quot;):&lt;br&gt;    # 启用 cache" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="70" y="530" width="220" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 2: Refresh before -->
+        <mxCell id="step2" value="&lt;b&gt;2. denoise_step() 前&lt;/b&gt;&lt;br&gt;cache_backend.refresh(pipeline, step)&lt;br&gt;更新 cache 状态" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="320" y="530" width="220" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 3: Execute -->
+        <mxCell id="step3" value="&lt;b&gt;3. 执行 denoise_step()&lt;/b&gt;&lt;br&gt;pipeline.denoise_step(input_batch)&lt;br&gt;transformer.forward()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="570" y="530" width="220" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 4: Cache hooks -->
+        <mxCell id="step4" value="&lt;b&gt;4. Cache Hooks 工作&lt;/b&gt;&lt;br&gt;teacache: HookRegistry 拦截 forward&lt;br&gt;cache_dit: BlockAdapter 管理缓存" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="820" y="530" width="220" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 5: Update scheduler -->
+        <mxCell id="step5" value="&lt;b&gt;5. 更新调度器&lt;/b&gt;&lt;br&gt;pipeline.step_scheduler(state, noise_pred)&lt;br&gt;更新 step_index, denoise_completed" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="70" y="620" width="220" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 6: Check completion -->
+        <mxCell id="step6" value="&lt;b&gt;6. 检查完成状态&lt;/b&gt;&lt;br&gt;if state.denoise_completed:&lt;br&gt;    result = pipeline.post_decode()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="320" y="620" width="220" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Step 7: Return -->
+        <mxCell id="step7" value="&lt;b&gt;7. 返回结果&lt;/b&gt;&lt;br&gt;RunnerOutput(request_id, step_index,&lt;br&gt;finished, result)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="570" y="620" width="220" height="60" as="geometry" />
+        </mxCell>
+        
+        <!-- Loop Arrow -->
+        <mxCell id="loop_arrow" value="&lt;b&gt;如果未完成，继续循环&lt;/b&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#00AA00;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="step5" target="step1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="180" y="710" />
+              <mxPoint x="50" y="710" />
+              <mxPoint x="50" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Integration arrows -->
+        <mxCell id="ia1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;" edge="1" source="step1" target="step2" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ia2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;" edge="1" source="step2" target="step3" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ia3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;" edge="1" source="step3" target="step4" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ia4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#00AA00;" edge="1" source="step4" target="step5" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="930" y="600" />
+              <mxPoint x="930" y="700" />
+              <mxPoint x="180" y="700" />
+              <mxPoint x="180" y="620" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="ia5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;" edge="1" source="step5" target="step6" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ia6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;" edge="1" source="step6" target="step7" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <!-- TeaCache Details -->
+        <mxCell id="teacache_detail_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FFF0;strokeColor=#82b366;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="80" width="300" height="250" as="geometry" />
+        </mxCell>
+        <mxCell id="teacache_detail_title" value="&lt;b&gt;TeaCache 工作原理&lt;/b&gt;" style="text;html=1;fontSize=14;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="90" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="teacache_detail" value="&lt;ul&gt;&lt;li&gt;&lt;b&gt;基于 timestep embedding 相似度&lt;/b&gt;&lt;/li&gt;&lt;li&gt;使用 HookRegistry 拦截 transformer forward&lt;/li&gt;&lt;li&gt;计算 l1 相对距离判断是否复用缓存&lt;/li&gt;&lt;li&gt;CFG-aware: 正负样本分别缓存&lt;/li&gt;&lt;li&gt;自适应阈值: rel_l1_thresh&lt;/li&gt;&lt;/ul&gt;" style="text;html=1;fontSize=11;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="125" width="280" height="150" as="geometry" />
+        </mxCell>
+        
+        <!-- CacheDiT Details -->
+        <mxCell id="cachedit_detail_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FFF0;strokeColor=#82b366;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="350" width="300" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="cachedit_detail_title" value="&lt;b&gt;Cache-DiT 工作原理&lt;/b&gt;" style="text;html=1;fontSize=14;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="360" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cachedit_detail" value="&lt;ul&gt;&lt;li&gt;&lt;b&gt;DBCache (Dynamic Block Cache)&lt;/b&gt;&lt;br&gt;动态块级缓存，基于残差差异&lt;/li&gt;&lt;li&gt;&lt;b&gt;TaylorSeer&lt;/b&gt;&lt;br&gt;Taylor 展开预测隐藏状态&lt;/li&gt;&lt;li&gt;&lt;b&gt;SCM (Step Computation Masking)&lt;/b&gt;&lt;br&gt;动态跳过计算步骤&lt;/li&gt;&lt;li&gt;&lt;b&gt;BlockAdapter&lt;/b&gt;&lt;br&gt;支持多 block list 和 dual-transformer&lt;/li&gt;&lt;/ul&gt;" style="text;html=1;fontSize=11;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="395" width="280" height="200" as="geometry" />
+        </mxCell>
+        
+        <!-- Implementation Steps -->
+        <mxCell id="impl_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6FF;strokeColor=#9933CC;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="670" width="300" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="impl_title" value="&lt;b&gt;📝 实现步骤&lt;/b&gt;" style="text;html=1;fontSize=14;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="680" width="150" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="impl_steps" value="&lt;ol&gt;&lt;li&gt;移除 cache_backend 检查&lt;/li&gt;&lt;li&gt;在 load_model() 中初始化 cache&lt;/li&gt;&lt;li&gt;在 denoise_step() 前调用 refresh&lt;/li&gt;&lt;li&gt;测试 teacache 和 cache_dit&lt;/li&gt;&lt;li&gt;对比性能和质量&lt;/li&gt;&lt;/ol&gt;" style="text;html=1;fontSize=11;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="715" width="260" height="120" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel></diagram></mxfile>
