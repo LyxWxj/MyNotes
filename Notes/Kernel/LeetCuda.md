@@ -13,6 +13,7 @@
 **思路**：把 `row×col` 个元素线性展开，每线程处理 1 个元素。
 
 **Grid 配置**：
+
 ```
 <<<ceil(row * col / 256), 256>>>
        ↑ block 数              ↑ 每 block 线程数
@@ -22,6 +23,7 @@ blockDim.x = 256
 ```
 
 **坐标计算**：
+
 ```cpp
 int global_idx = blockIdx.x * blockDim.x + threadIdx.x;  // 全局线程 ID [0, row*col)
 int global_row = global_idx / col;  // 源矩阵行号
@@ -29,6 +31,7 @@ int global_col = global_idx % col;  // 源矩阵列号
 ```
 
 **col2row — 按源矩阵列主序遍历**：
+
 ```cpp
 __global__ void mat_transpose_f32_col2row_kernel(float* x, float* y,
                                                  const int row, const int col) {
@@ -40,10 +43,12 @@ __global__ void mat_transpose_f32_col2row_kernel(float* x, float* y,
     //  ↑ 写 y[col][row]，步长 = row，不连续
 }
 ```
+
 - **读 x**：`x[global_idx]` 连续读 → coalesced ✓
 - **写 y**：`y[col * row + row]` 跨 `row` 步长跳 → non-coalesced ✗
 
 **row2col — 按源矩阵行主序遍历**：
+
 ```cpp
 __global__ void mat_transpose_f32_row2col_kernel(float* x, float* y,
                                                  const int row, const int col) {
@@ -55,6 +60,7 @@ __global__ void mat_transpose_f32_row2col_kernel(float* x, float* y,
     //  ↑ 连续写 → coalesced ✓
 }
 ```
+
 - **读 x**：`x[row * col + col]` 跨 `col` 步长跳 → non-coalesced ✗
 - **写 y**：`y[global_idx]` 连续写 → coalesced ✓
 
@@ -67,6 +73,7 @@ __global__ void mat_transpose_f32_row2col_kernel(float* x, float* y,
 把 1D 线性展开换成 2D 网格，坐标计算更自然。
 
 **Grid 配置**：
+
 ```
 <<<dim3(col / 32, row / 32), dim3(32, 32)>>>
        ↑ gridDim.x  gridDim.y     ↑ blockDim.x blockDim.y
@@ -79,12 +86,14 @@ blockDim.y = 32         (每 block 32 行)
 ```
 
 **坐标计算**：
+
 ```cpp
 int global_x = blockIdx.x * blockDim.x + threadIdx.x;  // 列号
 int global_y = blockIdx.y * blockDim.y + threadIdx.y;  // 行号
 ```
 
 **col2row2d**：
+
 ```cpp
 __global__ void mat_transpose_f32_col2row2d_kernel(float* x, float* y,
                                                    const int row, const int col) {
@@ -97,6 +106,7 @@ __global__ void mat_transpose_f32_col2row2d_kernel(float* x, float* y,
 ```
 
 **row2col2d**：
+
 ```cpp
 __global__ void mat_transpose_f32_row2col2d_kernel(float* x, float* y,
                                                    const int row, const int col) {
@@ -123,6 +133,7 @@ const int block_x = (blockIdx.x + blockIdx.y) % gridDim.x;
 ```
 
 **调度对比**（假设 gridDim = 4×4）：
+
 ```
 普通调度:                  对角线调度:
 (0,0) (1,0) (2,0) (3,0)   (0,0) (1,0) (2,0) (3,0)
@@ -155,6 +166,7 @@ __global__ void mat_transpose_f32_diagonal2d_kernel(float* x, float* y,
 **思路**：每线程处理 4 个连续元素（`float4` = 128-bit），用一条 `LD.E.128` / `ST.E.128` 指令完成。
 
 **Grid 配置**（1D）：
+
 ```
 标量:  <<<ceil(row * col / 256), 256>>>
 float4: <<<ceil(row * col / (256 * 4)), 256>>>
@@ -162,6 +174,7 @@ float4: <<<ceil(row * col / (256 * 4)), 256>>>
 ```
 
 **Grid 配置**（2D）：
+
 ```
 标量:  <<<dim3(col/32, row/32), dim3(32, 32)>>>
 float4: <<<dim3(col/(32*4), row/32), dim3(32, 32)>>>
@@ -170,6 +183,7 @@ float4: <<<dim3(col/(32*4), row/32), dim3(32, 32)>>>
 ```
 
 **col2row float4**：
+
 ```cpp
 __global__ void mat_transpose_f32x4_col2row_kernel(float* x, float* y,
                                                     const int row, const int col) {
@@ -197,13 +211,14 @@ __global__ void mat_transpose_f32x4_col2row_kernel(float* x, float* y,
 
 ### 5. Shared Memory 中转 — 核心优化
 
-**核心思想**：用 shared memory 做中转，把一次"散读/散写"拆成两次"连续访问"。
+**核心思想**：用 shared memory 做中转，把一次 " 散读/散写 " 拆成两次 " 连续访问 "。
 
 ```
 x[HBM] --coalesced read--> tile[smem] --coalesced write--> y[HBM]
 ```
 
 **Grid 配置**：
+
 ```
 <<<dim3(col / (32*4), row / 32), dim3(32, 32)>>>
 每 block: 32×32 = 1024 线程
@@ -250,6 +265,7 @@ local_y%STRIDE:  0 1 2 3│  0 1 2 3  │  0 1 2 3  │     │  0  1  2  3
 ```
 
 读 tile 时的坐标变换：
+
 ```cpp
 // 线程 ly 读 tile 的第 (ly%8)*4 行，列号 = lx*4 + ly/8
 smem_val.x = tile[(ly % STRIDE) * 4    ][lx * 4 + ly / STRIDE];
@@ -259,6 +275,7 @@ smem_val.w = tile[(ly % STRIDE) * 4 + 3][lx * 4 + ly / STRIDE];
 ```
 
 **图解**（STRIDE=8，一个 warp 的 32 个线程读 tile）：
+
 ```
 tile 行:    0  1  2  3  4  5  6  7  ... 28 29 30 31
             ├──┤  ├──┤  ├──┤  ├──┤     ├──┤  ├──┤
@@ -351,6 +368,196 @@ Shared + BCF       → padding 消除 bank conflict
 Shared + Merge     → 写端也合并成 float4（128-bit write）
 ```
 
-**一句话：转置的矛盾是"读行写列"，shared memory 的作用是把一次不连续拆成两次连续。**
+**一句话：转置的矛盾是 " 读行写列 "，shared memory 的作用是把一次不连续拆成两次连续。**
 
-## 
+## All Reduce
+
+首先是 warp 内规约的函数：
+
+```cpp
+template<const int kWarpSize = WARP_SIZE>
+__device__ __forceinline__ float warp_reduce_sum_f32(float val) {
+#pragma unroll
+  for (int mask = kWarpSize >> 1; mask >= 1; mask >>= 1) {
+    val += __shfl_xor_sync(0xffffffff, val, mask);
+  }
+  return val;
+}
+```
+
+```cpp
+__shfl_xor_sync(0xffffffff, val, mask)
+//              ↑ 参与的线程掩码（全 1 = 32 个线程全参与）
+//                           ↑ 要交换的值
+//                                ↑ 偏移量
+```
+
+**行为**：线程 `i` 读取线程 `i XOR mask` 的 `val`。
+
+```
+例: mask = 1
+  线程 0 读线程 (0^1)=1 的值
+  线程 1 读线程 (1^1)=0 的值
+  线程 2 读线程 (2^1)=3 的值
+  线程 3 读线程 (3^1)=2 的值
+  → 相邻线程交换数据
+
+例: mask = 2
+  线程 0 读线程 (0^2)=2 的值
+  线程 2 读线程 (2^2)=0 的值
+  → 间隔 2 的线程交换数据
+```
+
+## 循环展开过程
+
+```cpp
+for (int mask = 16; mask >= 1; mask >>= 1) {
+    val += __shfl_xor_sync(0xffffffff, val, mask);
+}
+```
+
+以 32 个线程为例（`kWarpSize=32`）：
+
+```
+初始:  T0=a0  T1=a1  T2=a2  T3=a3  T4=a4  T5=a5  T6=a6  T7=a7 ... T31=a31
+━━━ mask = 16 (32>>1) ━━━
+T0 读 T16: T0 = a0+a16    T4 读 T20: T4 = a4+a20
+T1 读 T17: T1 = a1+a17    T5 读 T21: T5 = a5+a21
+T2 读 T18: T2 = a2+a18    T6 读 T22: T6 = a6+a22
+T3 读 T19: T3 = a3+a19    T7 读 T23: T7 = a7+a23
+...
+T16读 T0 : T16 = a0 + a16
+T17读 T1 : T17 = a1 + a17
+...
+━━━ mask = 8 (16>>1) ━━━
+T0 读 T8: T0 = a0+a16+a8+a24    T4 读 T12: T4 = a4+a20+a12+a28
+T1 读 T9: T1 = a1+a17+a9+a25    T5 读 T13: T5 = a5+a21+a13+a29
+T2 读 T10: T2 = a2+a18+a10+a26  T6 读 T14: T6 = a6+a22+a14+a30
+T3 读 T11: T3 = a3+a19+a11+a27  T7 读 T15: T7 = a7+a23+a15+a31
+...
+━━━ mask = 4 (8>>1) ━━━
+T0 读 T4: T0 = a0+a16+a8+a24+a4+a20+a12+a28 
+             = a0+a4+a8+a12+a16+a20+a24+a28   
+T1 读 T5: T1 = a1+a5+a9+a13+a17+a21+a25+a29
+T2 读 T6: T2 = a2+a18+a10+a26+a6+a22+a14+a30
+             = a2+a6+a10+a14+a18+a22+a26+a30
+T3 = a3 + a7 + .. + a31
+T4 读 T8: T4 = a4+a20+a12+a28+a8+a24+a16+a0
+			 = a0+a4+a8+a12+a16+a20+a24+a28 = T1
+...
+━━━ mask = 2 ━━━
+T0 读 T2: T0 = a0+a2+a4+...+a30
+T1 读 T3: T1 = a1+a3+a5+...+a31
+━━━ mask = 1 ━━━
+T0 读 T1: T0 = a0+a1+..+a31  ← 最终结果
+```
+
+## 图解：Butterfly 拓扑
+
+```
+T0 ──┬── a0+a4 ──┬── a0+a4+a2+a6 ──┬── 全部之和
+     │           │                 │
+T2 ──┼── a2+a6 ──┘                 │
+     │                             │
+T1 ──┬── a1+a5 ──┬── a1+a5+a3+a7 ──┘
+     │           │
+T3 ──┼── a3+a7 ──┘
+
+每一跳: mask 减半 → 交换距离加倍
+log2(32) = 5 轮 → 32 个线程的值全部归约到 lane 0
+```
+
+## 为什么用 shuffle 而不是 smem？
+
+```
+Shared Memory 方案:
+  32 个线程写 smem → __syncwarp → 1 个线程读 32 次
+  = 32 次 smem 写 + 32 次 smem 读 = 64 次 smem 访问
+
+Shuffle 方案:
+  5 轮 × 每轮 32 个线程各读 1 次 = 160 次寄存器间传输
+  但 shuffle 是寄存器→寄存器，延迟 ~1 cycle
+  smem 延迟 ~20-30 cycles
+
+Shuffle 更快: 零 smem 开销，纯寄存器操作
+```
+
+> [!tip] `0xffffffff` 的含义 这是 32-bit 掩码，每一位对应一个 lane。全 1 表示 32 个 lane 全参与。如果某些 lane 不活跃（比如 warp 内只有部分线程有效），需要动态获取活跃掩码：
+>
+> ```cpp
+> __activemask()  // 获取当前活跃的 lane 掩码
+> ```
+>
+> 但 reduce 场景通常所有 lane 都活跃，直接用 `0xffffffff` 即可。
+
+Naive 实现：
+
+```cpp
+// lauch: <<<(N/256,1,1),(256,1,1)>>>
+template<const int NUM_THREADS = 256>
+__global__ void block_all_reduce_sum_f32_f32_kernel(float* a, float* y, const int N) {
+  int tid = threadIdx.x;
+  int bid = blockIdx.x;
+  int idx = bid * NUM_THREADS + tid;
+  constexpr int NUM_WARPS = (NUM_THREADS + WARP_SIZE - 1) / WARP_SIZE;
+  __shared__ float reduce_smem[NUM_WARPS];
+  float sum = (idx < N) ? a[idx] : 0.f;
+  int warp = tid / WARP_SIZE;
+  int lane = tid % WARP_SIZE;
+  sum = warp_reduce_sum_f32<WARP_SIZE>(sum);
+  if (lane == 0)
+    reduce_smem[warp] = sum;
+  __syncthreads();
+  sum = (lane < NUM_WARPS) ? reduce_smem[lane] : 0.f;
+  if (warp == 0)
+    sum = warp_reduce_sum_f32<NUM_WARPS>(sum);
+  if (tid == 0) atomicAdd(y, sum);
+}
+```
+
+计算基础索引
+
+```cpp
+int tid = threadIdx.x;                    // block 内线程 ID [0, 255]
+int bid = blockIdx.x;                     // block ID
+int idx = bid * NUM_THREADS + tid;        // 全局索引
+constexpr int NUM_WARPS = 256 / 32 = 8;  // block 内有 8 个 warp
+__shared__ float reduce_smem[8];          // shared memory: 每个 warp 存一个部分和
+```
+
+```cpp
+float sum = (idx < N) ? a[idx] : 0.f;  // 每个线程加载 1 个元素，越界填 0
+```
+
+Warp 内 Reduce
+
+```cpp
+int warp = tid / 32;  // 当前线程属于第几个 warp
+int lane = tid % 32;  // warp 内的 lane 编号
+sum = warp_reduce_sum_f32<32>(sum);  // warp 内 32 个线程的 sum 全部加起来 
+```
+
+`warp_reduce_sum_f32` 的蝶形规约算法上面已经解释过了。
+
+然后每个 Warp 内的 0 号线程（lane=0）把结果写入共享内存。
+
+```cpp
+if (lane == 0)
+    reduce_smem[warp] = sum;  // reduce_smem[0~7] = 8 个 warp 的部分和
+__syncthreads();  // 等所有线程写完
+```
+
+warp 内的前 NUM_WARPS 个 lane 读取每个 Warp 内的和，超出的填 0,这样现在 Warp 内的和就是整个 block 的和
+
+```cpp
+sum = (lane < 8) ? reduce_smem[lane] : 0.f;
+```
+
+0 号 warp 再规约一次，该 block 的 0 号线程返回答案
+
+```cpp
+  if (warp == 0)
+    sum = warp_reduce_sum_f32<NUM_WARPS>(sum);
+  if (tid == 0) atomicAdd(y, sum);
+```
+
