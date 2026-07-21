@@ -12,6 +12,8 @@ for 每个 K 方向的 tile:
 4. RF → SMEM → GMEM: 把结果 C 写回
 ```
 
+![GEMM 数据流](images/05-gemm-dataflow.png)
+
 ## 2. Block MMA 与 Block Copy
 
 在 CuTe 中，"Block 级"的操作由 **TiledMma** 和 **TiledCopy** 描述：

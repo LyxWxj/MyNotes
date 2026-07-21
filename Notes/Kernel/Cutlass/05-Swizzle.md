@@ -58,19 +58,7 @@ Swizzle<3, 3, 3> 的含义：
 
 ### 2.2 图解 Swizzle 效果
 
-```
-无 Swizzle（线性布局）：
-行 0: [bank 0] [bank 1] [bank 2] ... [bank 31]
-行 1: [bank 0] [bank 1] [bank 2] ... [bank 31]  ← 同列同 bank！
-行 2: [bank 0] [bank 1] [bank 2] ... [bank 31]
-...
-
-Swizzle 后：
-行 0: [bank 0] [bank 1] [bank 2] ... [bank 31]
-行 1: [bank 1] [bank 2] [bank 3] ... [bank 0]  ← 同列不同 bank！
-行 2: [bank 2] [bank 3] [bank 4] ... [bank 1]
-...
-```
+![Bank Conflict 与 Swizzle 对比](images/04-swizzle.png)
 
 ## 3. CuTe 中的 Swizzle
 
