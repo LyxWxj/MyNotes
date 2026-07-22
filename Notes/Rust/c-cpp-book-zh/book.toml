@@ -1,0 +1,21 @@
+[book]
+title = "面向 C/C++ 程序员的 Rust 教程"
+authors = ["Rust Training Team"]
+language = "zh"
+src = "src"
+
+[build]
+build-dir = "book"
+
+[output.html]
+git-repository-url = "https://github.com/microsoft/RustTraining"
+default-theme = "light"
+preferred-dark-theme = "ayu"
+additional-js = ["mermaid.min.js", "mermaid-init.js"]
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
+
+[output.html.playground]
+editable = true
+line-numbers = true

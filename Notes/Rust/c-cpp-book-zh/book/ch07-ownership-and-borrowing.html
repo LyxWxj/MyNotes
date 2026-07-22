@@ -1,0 +1,570 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>7. 所有权与借用 - 面向 C/C++ 程序员的 Rust 教程</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-e96d0476.css">
+        <link rel="stylesheet" href="css/chrome-d279d366.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "ayu";
+            window.path_to_searchindex_js = "searchindex-9ea38209.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc-aabbbd7a.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">面向 C/C++ 程序员的 Rust 教程</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/microsoft/RustTraining" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="rust-内存管理"><a class="header" href="#rust-内存管理">Rust 内存管理</a></h1>
+<blockquote>
+<p><strong>你将学到：</strong> Rust 的所有权系统 — 这门语言中最重要的概念。学完本章后，你将理解移动语义、借用规则和 <code>Drop</code> 特征。如果你掌握了本章，Rust 的其余部分就水到渠成了。如果你感到困难，请重新阅读 — 对大多数 C/C++ 开发者来说，所有权在第二遍阅读时才会恍然大悟。</p>
+</blockquote>
+<ul>
+<li>C/C++ 中的内存管理是 bug 的来源：
+<ul>
+<li>在 C 中：内存通过 <code>malloc()</code> 分配，通过 <code>free()</code> 释放。没有对悬垂指针、释放后使用或重复释放的检查</li>
+<li>在 C++ 中：RAII（资源获取即初始化）和智能指针有所帮助，但 <code>std::move(ptr)</code> 在移动后仍能编译 — 使用后移动是未定义行为</li>
+</ul>
+</li>
+<li>Rust 使 RAII <strong>万无一失</strong>：
+<ul>
+<li>移动是<strong>破坏性的</strong> — 编译器拒绝让你触碰被移动的变量</li>
+<li>不需要五法则（不需要拷贝构造函数、移动构造函数、拷贝赋值、移动赋值、析构函数）</li>
+<li>Rust 提供对内存分配的完全控制，但在<strong>编译期</strong>强制保证安全</li>
+<li>这通过所有权、借用、可变性和生命周期等机制的组合来实现</li>
+<li>Rust 运行时分配可以发生在栈和堆上</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong>对于 C++ 开发者 — 智能指针对照表：</strong></p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th><strong>C++</strong></th><th><strong>Rust</strong></th><th><strong>安全改进</strong></th></tr>
+</thead>
+<tbody>
+<tr><td><code>std::unique_ptr&lt;T&gt;</code></td><td><code>Box&lt;T&gt;</code></td><td>不可能发生使用后移动</td></tr>
+<tr><td><code>std::shared_ptr&lt;T&gt;</code></td><td><code>Rc&lt;T&gt;</code>（单线程）</td><td>默认无引用循环</td></tr>
+<tr><td><code>std::shared_ptr&lt;T&gt;</code>（线程安全）</td><td><code>Arc&lt;T&gt;</code></td><td>显式的线程安全</td></tr>
+<tr><td><code>std::weak_ptr&lt;T&gt;</code></td><td><code>Weak&lt;T&gt;</code></td><td>必须检查有效性</td></tr>
+<tr><td>原始指针</td><td><code>*const T</code> / <code>*mut T</code></td><td>仅在 <code>unsafe</code> 块中</td></tr>
+</tbody>
+</table>
+</div>
+<p>对于 C 开发者：<code>Box&lt;T&gt;</code> 取代了 <code>malloc</code>/<code>free</code> 配对。<code>Rc&lt;T&gt;</code> 取代了手动引用计数。原始指针存在但仅限于 <code>unsafe</code> 块中。</p>
+</blockquote>
+<h1 id="rust-所有权借用和生命周期"><a class="header" href="#rust-所有权借用和生命周期">Rust 所有权、借用和生命周期</a></h1>
+<ul>
+<li>回忆一下，Rust 只允许对一个变量有一个可变引用和多个只读引用
+<ul>
+<li>变量的初始声明建立了<code>所有权</code></li>
+<li>后续的引用从原始所有者<code>借用</code>。规则是借用的作用域永远不能超过拥有者的作用域。换句话说，借用的<code>生命周期</code>不能超过拥有者的生命周期</li>
+</ul>
+</li>
+</ul>
+<pre class="playground"><code class="language-rust">fn main() {
+    let a = 42; // Owner
+    let b = &amp;a; // First borrow
+    {
+        let aa = 42;
+        let c = &amp;a; // Second borrow; a is still in scope
+        // Ok: c goes out of scope here
+        // aa goes out of scope here
+    }
+    // let d = &amp;aa; // Will not compile unless aa is moved to outside scope
+    // b implicitly goes out of scope before a
+    // a goes out of scope last
+}</code></pre>
+<ul>
+<li>Rust 可以通过几种不同的机制向方法传递参数
+<ul>
+<li>按值（拷贝）：通常用于可以简单拷贝的类型（如：u8、u32、i8、i32）</li>
+<li>按引用：这等同于传递指向实际值的指针。这也通常被称为借用，引用可以是不可变的（<code>&amp;</code>）或可变的（<code>&amp;mut</code>）</li>
+<li>通过移动：这将值的“所有权“转移给函数。调用者不能再引用原始值</li>
+</ul>
+</li>
+</ul>
+<pre class="playground"><code class="language-rust">fn foo(x: &amp;u32) {
+    println!("{x}");
+}
+fn bar(x: u32) {
+    println!("{x}");
+}
+fn main() {
+    let a = 42;
+    foo(&amp;a);    // By reference
+    bar(a);     // By value (copy)
+}</code></pre>
+<ul>
+<li>Rust 禁止方法返回悬垂引用
+<ul>
+<li>方法返回的引用必须仍在作用域内</li>
+<li>Rust 会在引用超出作用域时自动 <code>drop</code> 它</li>
+</ul>
+</li>
+</ul>
+<pre class="playground"><code class="language-rust">fn no_dangling() -&gt; &amp;u32 {
+    // lifetime of a begins here
+    let a = 42;
+    // Won't compile. lifetime of a ends here
+    &amp;a
+}
+
+fn ok_reference(a: &amp;u32) -&gt; &amp;u32 {
+    // Ok because the lifetime of a always exceeds ok_reference()
+    a
+}
+fn main() {
+    let a = 42;     // lifetime of a begins here
+    let b = ok_reference(&amp;a);
+    // lifetime of b ends here
+    // lifetime of a ends here
+}</code></pre>
+<h1 id="rust-移动语义"><a class="header" href="#rust-移动语义">Rust 移动语义</a></h1>
+<ul>
+<li>默认情况下，Rust 赋值会转移所有权</li>
+</ul>
+<pre class="playground"><code class="language-rust">fn main() {
+    let s = String::from("Rust");    // Allocate a string from the heap
+    let s1 = s; // Transfer ownership to s1. s is invalid at this point
+    println!("{s1}");
+    // This will not compile
+    //println!("{s}");
+    // s1 goes out of scope here and the memory is deallocated
+    // s goes out of scope here, but nothing happens because it doesn't own anything
+}</code></pre>
+<pre class="mermaid">graph LR
+    subgraph "Before: let s1 = s"
+        S["s (stack)&lt;br/&gt;ptr"] --&gt;|"owns"| H1["Heap: R u s t"]
+    end
+
+    subgraph "After: let s1 = s"
+        S_MOVED["s (stack)&lt;br/&gt;⚠️ MOVED"] -.-&gt;|"invalid"| H2["Heap: R u s t"]
+        S1["s1 (stack)&lt;br/&gt;ptr"] --&gt;|"now owns"| H2
+    end
+
+    style S_MOVED fill:#ff6b6b,color:#000,stroke:#333
+    style S1 fill:#51cf66,color:#000,stroke:#333
+    style H2 fill:#91e5a3,color:#000,stroke:#333
+</pre>
+
+<p><em><code>let s1 = s</code> 之后，所有权转移到 <code>s1</code>。堆数据保持不动 — 只有栈指针移动了。<code>s</code> 现在无效了。</em></p>
+<hr>
+<h1 id="rust-移动语义和借用"><a class="header" href="#rust-移动语义和借用">Rust 移动语义和借用</a></h1>
+<pre class="playground"><code class="language-rust">fn foo(s : String) {
+    println!("{s}");
+    // The heap memory pointed to by s will be deallocated here
+}
+fn bar(s : &amp;String) {
+    println!("{s}");
+    // Nothing happens -- s is borrowed
+}
+fn main() {
+    let s = String::from("Rust string move example");    // Allocate a string from the heap
+    foo(s); // Transfers ownership; s is invalid now
+    // println!("{s}");  // will not compile
+    let t = String::from("Rust string borrow example");
+    bar(&amp;t);    // t continues to hold ownership
+    println!("{t}"); 
+}</code></pre>
+<h1 id="rust-移动语义和所有权"><a class="header" href="#rust-移动语义和所有权">Rust 移动语义和所有权</a></h1>
+<ul>
+<li>可以通过移动来转移所有权
+<ul>
+<li>在移动完成后引用未释放的引用是非法的</li>
+<li>如果不希望移动，请考虑使用借用</li>
+</ul>
+</li>
+</ul>
+<pre class="playground"><code class="language-rust">struct Point {
+    x: u32,
+    y: u32,
+}
+fn consume_point(p: Point) {
+    println!("{} {}", p.x, p.y);
+}
+fn borrow_point(p: &amp;Point) {
+    println!("{} {}", p.x, p.y);
+}
+fn main() {
+    let p = Point {x: 10, y: 20};
+    // Try flipping the two lines
+    borrow_point(&amp;p);
+    consume_point(p);
+}</code></pre>
+<h1 id="rust-clone"><a class="header" href="#rust-clone">Rust Clone</a></h1>
+<ul>
+<li><code>clone()</code> 方法可用于拷贝原始内存。原始引用继续有效（缺点是我们有了 2 倍的分配）</li>
+</ul>
+<pre class="playground"><code class="language-rust">fn main() {
+    let s = String::from("Rust");    // Allocate a string from the heap
+    let s1 = s.clone(); // Copy the string; creates a new allocation on the heap
+    println!("{s1}");  
+    println!("{s}");
+    // s1 goes out of scope here and the memory is deallocated
+    // s goes out of scope here, and the memory is deallocated
+}</code></pre>
+<pre class="mermaid">graph LR
+    subgraph "After: let s1 = s.clone()"
+        S["s (stack)&lt;br/&gt;ptr"] --&gt;|"owns"| H1["Heap: R u s t"]
+        S1["s1 (stack)&lt;br/&gt;ptr"] --&gt;|"owns (copy)"| H2["Heap: R u s t"]
+    end
+
+    style S fill:#51cf66,color:#000,stroke:#333
+    style S1 fill:#51cf66,color:#000,stroke:#333
+    style H1 fill:#91e5a3,color:#000,stroke:#333
+    style H2 fill:#91e5a3,color:#000,stroke:#333
+</pre>
+
+<p><em><code>clone()</code> 创建一个<strong>独立的</strong>堆分配。<code>s</code> 和 <code>s1</code> 都是有效的 — 各自拥有自己的副本。</em></p>
+<h1 id="rust-copy-特征"><a class="header" href="#rust-copy-特征">Rust Copy 特征</a></h1>
+<ul>
+<li>Rust 使用 <code>Copy</code> 特征为内置类型实现拷贝语义
+<ul>
+<li>示例包括 u8、u32、i8、i32 等。拷贝语义使用“按值传递“</li>
+<li>用户定义的数据类型可以选择性地通过 <code>derive</code> 宏自动实现 <code>Copy</code> 特征来启用<code>拷贝</code>语义</li>
+<li>编译器将在新赋值后为副本分配空间</li>
+</ul>
+</li>
+</ul>
+<pre class="playground"><code class="language-rust">// Try commenting this out to see the change in let p1 = p; below
+#[derive(Copy, Clone, Debug)]   // We'll discuss this more later
+struct Point{x: u32, y:u32}
+fn main() {
+    let p = Point {x: 42, y: 40};
+    let p1 = p;     // This will perform a copy now instead of move
+    println!("p: {p:?}");
+    println!("p1: {p:?}");
+    let p2 = p1.clone();    // Semantically the same as copy
+}</code></pre>
+<h1 id="rust-drop-特征"><a class="header" href="#rust-drop-特征">Rust Drop 特征</a></h1>
+<ul>
+<li>Rust 在作用域结束时自动调用 <code>drop()</code> 方法
+<ul>
+<li><code>drop</code> 是一个名为 <code>Drop</code> 的泛型特征的一部分。编译器为所有类型提供了一个空操作的默认实现，但类型可以覆盖它。例如，<code>String</code> 类型覆盖了它以释放堆分配的内存</li>
+<li>对于 C 开发者：这取代了手动 <code>free()</code> 调用的需要 — 资源在超出作用域时自动释放（RAII）</li>
+</ul>
+</li>
+<li><strong>关键安全性：</strong> 你不能直接调用 <code>.drop()</code>（编译器禁止）。相反，使用 <code>drop(obj)</code> 将值移入函数，运行其析构函数，并防止任何进一步的使用 — 消除了重复释放的 bug</li>
+</ul>
+<blockquote>
+<p><strong>对于 C++ 开发者：</strong> <code>Drop</code> 直接对应 C++ 析构函数（<code>~ClassName()</code>）：</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th></th><th><strong>C++ 析构函数</strong></th><th><strong>Rust <code>Drop</code></strong></th></tr>
+</thead>
+<tbody>
+<tr><td><strong>语法</strong></td><td><code>~MyClass() { ... }</code></td><td><code>impl Drop for MyType { fn drop(&amp;mut self) { ... } }</code></td></tr>
+<tr><td><strong>何时调用</strong></td><td>作用域结束（RAII）</td><td>作用域结束（相同）</td></tr>
+<tr><td><strong>移动时调用</strong></td><td>源对象留在“有效但未指定“状态 — 析构函数仍然在被移动的对象上运行</td><td>源对象<strong>消失</strong> — 不会在被移动的值上调用析构函数</td></tr>
+<tr><td><strong>手动调用</strong></td><td><code>obj.~MyClass()</code>（危险，很少使用）</td><td><code>drop(obj)</code>（安全 — 获取所有权，调用 <code>drop</code>，防止进一步使用）</td></tr>
+<tr><td><strong>顺序</strong></td><td>声明的逆序</td><td>声明的逆序（相同）</td></tr>
+<tr><td><strong>五法则</strong></td><td>必须管理拷贝构造函数、移动构造函数、拷贝赋值、移动赋值、析构函数</td><td>只有 <code>Drop</code> — 编译器处理移动语义，<code>Clone</code> 是可选的</td></tr>
+<tr><td><strong>需要虚析构函数？</strong></td><td>是，如果通过基类指针删除</td><td>否 — 没有继承，所以没有切片问题</td></tr>
+</tbody>
+</table>
+</div>
+</blockquote>
+<pre class="playground"><code class="language-rust">struct Point {x: u32, y:u32}
+
+// Equivalent to: ~Point() { printf("Goodbye point x:%u, y:%u\n", x, y); }
+impl Drop for Point {
+    fn drop(&amp;mut self) {
+        println!("Goodbye point x:{}, y:{}", self.x, self.y);
+    }
+}
+fn main() {
+    let p = Point{x: 42, y: 42};
+    {
+        let p1 = Point{x:43, y: 43};
+        println!("Exiting inner block");
+        // p1.drop() called here — like C++ end-of-scope destructor
+    }
+    println!("Exiting main");
+    // p.drop() called here
+}</code></pre>
+<h1 id="练习移动copy-和-drop"><a class="header" href="#练习移动copy-和-drop">练习：移动、Copy 和 Drop</a></h1>
+<p>🟡 <strong>中级</strong> — 自由实验；编译器会引导你</p>
+<ul>
+<li>使用带和不带 <code>Copy</code> 的 <code>Point</code>（在 <code>#[derive(Debug)]</code> 中）创建你自己的实验，确保你理解区别。目的是深入理解移动 vs 拷贝的工作方式，所以务必提问</li>
+<li>为 <code>Point</code> 实现一个自定义 <code>Drop</code>，在 <code>drop</code> 中将 x 和 y 设置为 0。这是一种对释放锁和其他资源很有用的模式</li>
+</ul>
+<pre class="playground"><code class="language-rust">struct Point{x: u32, y: u32}
+fn main() {
+    // Create Point, assign it to a different variable, create a new scope,
+    // pass point to a function, etc.
+}</code></pre>
+<details><summary>解答（点击展开）</summary>
+<pre class="playground"><code class="language-rust">#[derive(Debug)]
+struct Point { x: u32, y: u32 }
+
+impl Drop for Point {
+    fn drop(&amp;mut self) {
+        println!("Dropping Point({}, {})", self.x, self.y);
+        self.x = 0;
+        self.y = 0;
+        // Note: setting to 0 in drop demonstrates the pattern,
+        // but you can't observe these values after drop completes
+    }
+}
+
+fn consume(p: Point) {
+    println!("Consuming: {:?}", p);
+    // p is dropped here
+}
+
+fn main() {
+    let p1 = Point { x: 10, y: 20 };
+    let p2 = p1;  // Move — p1 is no longer valid
+    // println!("{:?}", p1);  // Won't compile: p1 was moved
+
+    {
+        let p3 = Point { x: 30, y: 40 };
+        println!("p3 in inner scope: {:?}", p3);
+        // p3 is dropped here (end of scope)
+    }
+
+    consume(p2);  // p2 is moved into consume and dropped there
+    // println!("{:?}", p2);  // Won't compile: p2 was moved
+
+    // Now try: add #[derive(Copy, Clone)] to Point (and remove the Drop impl)
+    // and observe how p1 remains valid after let p2 = p1;
+}
+// Output:
+// p3 in inner scope: Point { x: 30, y: 40 }
+// Dropping Point(30, 40)
+// Consuming: Point { x: 10, y: 20 }
+// Dropping Point(10, 20)</code></pre>
+</details>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="ch06-enums-and-pattern-matching.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="ch07-1-lifetimes-and-borrowing-deep-dive.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="ch06-enums-and-pattern-matching.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="ch07-1-lifetimes-and-borrowing-deep-dive.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+        <script>
+            window.playground_line_numbers = true;
+        </script>
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+        <script src="ace-2a3cd908.js"></script>
+        <script src="mode-rust-2c9d5c9a.js"></script>
+        <script src="editor-16ca416c.js"></script>
+        <script src="theme-dawn-4493f9c8.js"></script>
+        <script src="theme-tomorrow_night-9dbe62a9.js"></script>
+
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-09f2665d.js"></script>
+
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid-eefea253.min.js"></script>
+        <script src="mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

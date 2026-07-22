@@ -561,3 +561,119 @@ sum = (lane < 8) ? reduce_smem[lane] : 0.f;
   if (tid == 0) atomicAdd(y, sum);
 ```
 
+---
+
+## Softmax
+
+### 数学公式
+
+```
+softmax(x_i) = exp(x_i) / Σ_j exp(x_j)
+```
+
+对每一行（一个 token 的所有维度）独立做归一化：
+
+```
+输入 x: (seq_len, head_dim)
+输出 y: (seq_len, head_dim)
+
+block 0 → softmax(x[0][0..head_dim-1]) → y[0]
+block 1 → softmax(x[1][0..head_dim-1]) → y[1]
+...
+```
+
+### Warp Reduce / Block Reduce / All Reduce 的关系
+
+```
+┌─────────────────────────────────────────────────────┐
+│  All Reduce（跨 block）                              │
+│  ┌───────────────┐ ┌───────────────┐                │
+│  │ Block 0       │ │ Block 1       │  ...           │
+│  │ ┌────┐ ┌────┐ │ │ ┌────┐ ┌────┐ │                │
+│  │ │Warp│ │Warp│ │ │ │Warp│ │Warp│ │                │
+│  │ │ 0  │ │ 1  │ │ │ │ 0  │ │ 1  │ │                │
+│  │ └────┘ └────┘ │ │ └────┘ └────┘ │                │
+│  │   Block Reduce│ │   Block Reduce│                │
+│  └───────┬───────┘ └───────┬───────┘                │
+│          └──── atomicAdd / 第二次 kernel ────→ 最终结果│
+└─────────────────────────────────────────────────────┘
+```
+
+| 级别 | 范围 | 通信方式 | 延迟 |
+|---|---|---|---|
+| **Warp Reduce** | 32 线程（同一 warp） | `__shfl_xor_sync`（寄存器） | ~5 cycles |
+| **Block Reduce** | 1 block 内所有线程 | warp reduce + smem + warp 0 reduce | ~50 cycles |
+| **All Reduce** | 所有 block | block reduce + atomicAdd / 第二次 kernel | ~100+ cycles |
+
+**Warp Reduce** — 32 个线程，纯寄存器 butterfly：
+
+```cpp
+for (int mask = 16; mask >= 1; mask >>= 1)
+    val += __shfl_xor_sync(0xffffffff, val, mask);
+// 5 轮 → lane 0 得到 32 个线程的总和
+```
+
+**Block Reduce** — warp reduce + smem + warp 0 二次 reduce：
+
+```cpp
+float warp_sum = warp_reduce_sum(val);       // warp 内 reduce
+if (lane == 0) smem[warp] = warp_sum;        // 写 smem
+__syncthreads();
+val = smem[lane];                             // warp 0 读所有部分和
+if (warp == 0) final = warp_reduce_sum(val);  // warp 0 二次 reduce
+final = __shfl_sync(0xffffffff, final, 0);    // broadcast 给所有线程
+```
+
+> [!tip] 选择原则
+> - 数据量 ≤ 32 → 只用 Warp Reduce
+> - 32 < 数据量 ≤ 1024 → Block Reduce（softmax 每行归约）
+> - 数据量 > 1024 → All Reduce（block reduce + atomicAdd）
+
+### Softmax Per Token Kernel
+
+```cpp
+template <const int NUM_THREADS = 256>
+__global__ void softmax_f32_per_token_kernel(float* x, float* y, int N) {
+  const int idx = blockIdx.x * blockDim.x + threadIdx.x;
+  float exp_val = (idx < N) ? expf(x[idx]) : 0.f;     // 1. 每线程算 exp
+  float exp_sum = block_reduce_sum_f32<NUM_THREADS>(exp_val); // 2. block reduce 求和
+  if (idx < N) y[idx] = exp_val / exp_sum;             // 3. 归一化
+}
+```
+
+### 数值稳定性：Safe Softmax
+
+朴素实现在 `x[i]` 很大时 `exp(x)` 溢出 → inf。
+
+```
+safe softmax: exp(x_i - x_max) / Σ exp(x_j - x_max)
+```
+
+需要先求 `x_max`（一次 block reduce max），再求 `sum(exp(x - x_max))`（一次 block reduce sum），两遍扫描。
+
+### Online Softmax（一遍扫描）
+
+维护 `(max, denominator)` 对，边扫描边合并：
+
+```
+新来元素 x:
+  new_max = max(old_max, x)
+  new_denom = old_denom * exp(old_max - new_max) + exp(x - new_max)
+             ↑ 旧 sum 乘修正因子              ↑ 新元素贡献
+```
+
+用 `MD` 结构体在 warp 内合并：
+
+```cpp
+struct MD { float m; float d; };  // max, denominator
+
+// 合并两个 (m, d) 对
+greater = m 较大的那个
+smaller = m 较小的那个
+merged.d = greater.d + smaller.d * exp(smaller.m - greater.m)
+merged.m = greater.m
+```
+
+> [!important] Online Softmax 是 FlashAttention 的基础
+> FlashAttention 中每个线程处理一小块 Q@K^T，需要在线合并 max 和 sum。
+> 用 MD reduce 只需一遍扫描，不需要先算全局 max 再算 sum（两遍）。

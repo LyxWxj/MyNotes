@@ -1,0 +1,481 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>简介 - 面向 C/C++ 程序员的 Rust 教程</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-e96d0476.css">
+        <link rel="stylesheet" href="css/chrome-d279d366.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "ayu";
+            window.path_to_searchindex_js = "searchindex-9ea38209.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc-aabbbd7a.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">面向 C/C++ 程序员的 Rust 教程</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/microsoft/RustTraining" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="面向-cc-程序员的-rust-入门课程"><a class="header" href="#面向-cc-程序员的-rust-入门课程">面向 C/C++ 程序员的 Rust 入门课程</a></h1>
+<h2 id="课程概述"><a class="header" href="#课程概述">课程概述</a></h2>
+<ul>
+<li>课程概述
+<ul>
+<li>Rust 的优势（分别从 C 和 C++ 的角度阐述）</li>
+<li>本地安装</li>
+<li>类型、函数、控制流、模式匹配</li>
+<li>模块、cargo</li>
+<li>特征、泛型</li>
+<li>集合、错误处理</li>
+<li>闭包、内存管理、生命周期、智能指针</li>
+<li>并发</li>
+<li>不安全 Rust，包括外部函数接口（FFI）</li>
+<li><code>no_std</code> 和嵌入式 Rust 基础（面向固件团队）</li>
+<li>案例研究：真实世界的 C++ 到 Rust 转换模式</li>
+</ul>
+</li>
+<li>本课程不涉及 <code>async</code> Rust — 请参阅配套的 <a href="../async-book/">Async Rust 培训</a>，其中全面介绍了 future、执行器、<code>Pin</code>、tokio 以及生产环境中的异步模式</li>
+</ul>
+<hr>
+<h1 id="自学指南"><a class="header" href="#自学指南">自学指南</a></h1>
+<p>本教材既可用于讲师授课，也适合自学。如果你是自学，以下是一些建议，帮助你充分利用本教材：</p>
+<p><strong>推荐学习进度：</strong></p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>章节</th><th>主题</th><th>建议用时</th><th>检查点</th></tr>
+</thead>
+<tbody>
+<tr><td>1–4</td><td>环境搭建、类型、控制流</td><td>1 天</td><td>你能编写一个命令行温度转换器</td></tr>
+<tr><td>5–7</td><td>数据结构、所有权</td><td>1–2 天</td><td>你能解释<em>为什么</em> <code>let s2 = s1</code> 会使 <code>s1</code> 失效</td></tr>
+<tr><td>8–9</td><td>模块、错误处理</td><td>1 天</td><td>你能创建一个多文件项目，并使用 <code>?</code> 传播错误</td></tr>
+<tr><td>10–12</td><td>特征、泛型、闭包</td><td>1–2 天</td><td>你能编写一个带有特征约束的泛型函数</td></tr>
+<tr><td>13–14</td><td>并发、unsafe/FFI</td><td>1 天</td><td>你能使用 <code>Arc&lt;Mutex&lt;T&gt;&gt;</code> 编写一个线程安全的计数器</td></tr>
+<tr><td>15–16</td><td>深入探索</td><td>按自己的节奏</td><td>参考资料 — 需要时再阅读</td></tr>
+<tr><td>17–19</td><td>最佳实践与参考</td><td>按自己的节奏</td><td>编写实际代码时查阅</td></tr>
+</tbody>
+</table>
+</div>
+<p><strong>如何使用练习：</strong></p>
+<ul>
+<li>每个章节都有标注难度的动手练习：🟢 入门、🟡 中级、🔴 挑战</li>
+<li><strong>在查看解答之前，一定要先自己尝试练习。</strong> 与借用检查器的斗争是学习过程的一部分 — 编译器的错误信息就是你的老师</li>
+<li>如果卡住超过 15 分钟，可以展开查看解答，研究它，然后关闭解答从头再试一次</li>
+<li><a href="https://play.rust-lang.org/">Rust Playground</a> 让你无需本地安装就能运行代码</li>
+</ul>
+<p><strong>遇到困难时：</strong></p>
+<ul>
+<li>仔细阅读编译器的错误信息 — Rust 的错误信息非常有帮助</li>
+<li>重新阅读相关章节；像所有权（第 7 章）这样的概念，往往在第二遍阅读时才会恍然大悟</li>
+<li><a href="https://doc.rust-lang.org/std/">Rust 标准库文档</a> 非常优秀 — 可以搜索任何类型或方法</li>
+<li>关于异步模式，请参阅配套的 <a href="../async-book/">Async Rust 培训</a></li>
+</ul>
+<hr>
+<h1 id="目录"><a class="header" href="#目录">目录</a></h1>
+<h2 id="第一部分--基础"><a class="header" href="#第一部分--基础">第一部分 — 基础</a></h2>
+<h3 id="1-介绍与动机"><a class="header" href="#1-介绍与动机">1. 介绍与动机</a></h3>
+<ul>
+<li><a href="ch01-introduction-and-motivation.html#speaker-intro-and-general-approach">讲师介绍和总体方法</a></li>
+<li><a href="ch01-introduction-and-motivation.html#the-case-for-rust">Rust 的优势</a></li>
+<li><a href="ch01-introduction-and-motivation.html#how-does-rust-address-these-issues">Rust 如何解决这些问题？</a></li>
+<li><a href="ch01-introduction-and-motivation.html#other-rust-usps-and-features">Rust 的其他独特卖点和特性</a></li>
+<li><a href="ch01-introduction-and-motivation.html#quick-reference-rust-vs-cc">快速参考：Rust vs C/C++</a></li>
+<li><a href="ch01-1-why-c-cpp-developers-need-rust.html">为什么 C/C++ 开发者需要 Rust</a>
+<ul>
+<li><a href="ch01-1-why-c-cpp-developers-need-rust.html#what-rust-eliminates--the-complete-list">Rust 消除了什么 — 完整列表</a></li>
+<li><a href="ch01-1-why-c-cpp-developers-need-rust.html#the-problems-shared-by-c-and-c">C 和 C++ 共有的问题</a></li>
+<li><a href="ch01-1-why-c-cpp-developers-need-rust.html#c-adds-more-problems-on-top">C++ 带来了更多问题</a></li>
+<li><a href="ch01-1-why-c-cpp-developers-need-rust.html#how-rust-addresses-all-of-this">Rust 如何解决所有这些问题</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="2-快速入门"><a class="header" href="#2-快速入门">2. 快速入门</a></h3>
+<ul>
+<li><a href="ch02-getting-started.html#enough-talk-already-show-me-some-code">别说了：给我看代码</a></li>
+<li><a href="ch02-getting-started.html#rust-local-installation">Rust 本地安装</a></li>
+<li><a href="ch02-getting-started.html#rust-packages-crates">Rust 包（crate）</a></li>
+<li><a href="ch02-getting-started.html#example-cargo-and-crates">示例：cargo 和 crate</a></li>
+</ul>
+<h3 id="3-基本类型和变量"><a class="header" href="#3-基本类型和变量">3. 基本类型和变量</a></h3>
+<ul>
+<li><a href="ch03-built-in-types.html#built-in-rust-types">Rust 内置类型</a></li>
+<li><a href="ch03-built-in-types.html#rust-type-specification-and-assignment">Rust 类型声明和赋值</a></li>
+<li><a href="ch03-built-in-types.html#rust-type-specification-and-inference">Rust 类型声明和推断</a></li>
+<li><a href="ch03-built-in-types.html#rust-variables-and-mutability">Rust 变量和可变性</a></li>
+</ul>
+<h3 id="4-控制流"><a class="header" href="#4-控制流">4. 控制流</a></h3>
+<ul>
+<li><a href="ch04-control-flow.html#rust-if-keyword">Rust if 关键字</a></li>
+<li><a href="ch04-control-flow.html#rust-loops-using-while-and-for">Rust 使用 while 和 for 循环</a></li>
+<li><a href="ch04-control-flow.html#rust-loops-using-loop">Rust 使用 loop 循环</a></li>
+<li><a href="ch04-control-flow.html#rust-expression-blocks">Rust 表达式块</a></li>
+</ul>
+<h3 id="5-数据结构和集合"><a class="header" href="#5-数据结构和集合">5. 数据结构和集合</a></h3>
+<ul>
+<li><a href="ch05-data-structures.html#rust-array-type">Rust 数组类型</a></li>
+<li><a href="ch05-data-structures.html#rust-tuples">Rust 元组</a></li>
+<li><a href="ch05-data-structures.html#rust-references">Rust 引用</a></li>
+<li><a href="ch05-data-structures.html#c-references-vs-rust-references--key-differences">C++ 引用 vs Rust 引用 — 关键区别</a></li>
+<li><a href="ch05-data-structures.html#rust-slices">Rust 切片</a></li>
+<li><a href="ch05-data-structures.html#rust-constants-and-statics">Rust 常量和静态变量</a></li>
+<li><a href="ch05-data-structures.html#rust-strings-string-vs-str">Rust 字符串：String vs &amp;str</a></li>
+<li><a href="ch05-data-structures.html#rust-structs">Rust 结构体</a></li>
+<li><a href="ch05-data-structures.html#rust-vec-type">Rust Vec&lt;T&gt;</a></li>
+<li><a href="ch05-data-structures.html#rust-hashmap-type">Rust HashMap</a></li>
+<li><a href="ch05-data-structures.html#exercise-vec-and-hashmap">练习：Vec 和 HashMap</a></li>
+</ul>
+<h3 id="6-模式匹配和枚举"><a class="header" href="#6-模式匹配和枚举">6. 模式匹配和枚举</a></h3>
+<ul>
+<li><a href="ch06-enums-and-pattern-matching.html#rust-enum-types">Rust 枚举类型</a></li>
+<li><a href="ch06-enums-and-pattern-matching.html#rust-match-statement">Rust match 语句</a></li>
+<li><a href="ch06-enums-and-pattern-matching.html#exercise-implement-add-and-subtract-using-match-and-enum">练习：使用 match 和枚举实现加法和减法</a></li>
+</ul>
+<h3 id="7-所有权和内存管理"><a class="header" href="#7-所有权和内存管理">7. 所有权和内存管理</a></h3>
+<ul>
+<li><a href="ch07-ownership-and-borrowing.html#rust-memory-management">Rust 内存管理</a></li>
+<li><a href="ch07-ownership-and-borrowing.html#rust-ownership-borrowing-and-lifetimes">Rust 所有权、借用和生命周期</a></li>
+<li><a href="ch07-ownership-and-borrowing.html#rust-move-semantics">Rust 移动语义</a></li>
+<li><a href="ch07-ownership-and-borrowing.html#rust-clone">Rust Clone</a></li>
+<li><a href="ch07-ownership-and-borrowing.html#rust-copy-trait">Rust Copy 特征</a></li>
+<li><a href="ch07-ownership-and-borrowing.html#rust-drop-trait">Rust Drop 特征</a></li>
+<li><a href="ch07-ownership-and-borrowing.html#exercise-move-copy-and-drop">练习：移动、Copy 和 Drop</a></li>
+<li><a href="ch07-1-lifetimes-and-borrowing-deep-dive.html#rust-lifetime-and-borrowing">Rust 生命周期和借用</a></li>
+<li><a href="ch07-1-lifetimes-and-borrowing-deep-dive.html#rust-lifetime-annotations">Rust 生命周期标注</a></li>
+<li><a href="ch07-1-lifetimes-and-borrowing-deep-dive.html#exercise-slice-storage-with-lifetimes">练习：带生命周期的切片存储</a></li>
+<li><a href="ch07-1-lifetimes-and-borrowing-deep-dive.html#lifetime-elision-rules-deep-dive">生命周期省略规则深入探讨</a></li>
+<li><a href="ch07-2-smart-pointers-and-interior-mutability.html#rust-boxt">Rust Box&lt;T&gt;</a></li>
+<li><a href="ch07-2-smart-pointers-and-interior-mutability.html#interior-mutability-cellt-and-refcellt">内部可变性：Cell&lt;T&gt; 和 RefCell&lt;T&gt;</a></li>
+<li><a href="ch07-2-smart-pointers-and-interior-mutability.html#shared-ownership-rct">共享所有权：Rc&lt;T&gt;</a></li>
+<li><a href="ch07-2-smart-pointers-and-interior-mutability.html#exercise-shared-ownership-and-interior-mutability">练习：共享所有权和内部可变性</a></li>
+</ul>
+<h3 id="8-模块和-crate"><a class="header" href="#8-模块和-crate">8. 模块和 Crate</a></h3>
+<ul>
+<li><a href="ch08-crates-and-modules.html#rust-crates-and-modules">Rust crate 和模块</a></li>
+<li><a href="ch08-crates-and-modules.html#exercise-modules-and-functions">练习：模块和函数</a></li>
+<li><a href="ch08-crates-and-modules.html#workspaces-and-crates-packages">工作空间和 crate（包）</a></li>
+<li><a href="ch08-crates-and-modules.html#exercise-using-workspaces-and-package-dependencies">练习：使用工作空间和包依赖</a></li>
+<li><a href="ch08-crates-and-modules.html#using-community-crates-from-cratesio">使用 crates.io 上的社区 crate</a></li>
+<li><a href="ch08-crates-and-modules.html#crates-dependencies-and-semver">Crate 依赖和语义化版本</a></li>
+<li><a href="ch08-crates-and-modules.html#exercise-using-the-rand-crate">练习：使用 rand crate</a></li>
+<li><a href="ch08-crates-and-modules.html#cargotoml-and-cargolock">Cargo.toml 和 Cargo.lock</a></li>
+<li><a href="ch08-crates-and-modules.html#cargo-test-feature">Cargo 测试功能</a></li>
+<li><a href="ch08-crates-and-modules.html#other-cargo-features">Cargo 的其他功能</a></li>
+<li><a href="ch08-1-testing-patterns.html">测试模式</a></li>
+</ul>
+<h3 id="9-错误处理"><a class="header" href="#9-错误处理">9. 错误处理</a></h3>
+<ul>
+<li><a href="ch09-error-handling.html#connecting-enums-to-option-and-result">将枚举与 Option 和 Result 关联起来</a></li>
+<li><a href="ch09-error-handling.html#rust-option-type">Rust Option 类型</a></li>
+<li><a href="ch09-error-handling.html#rust-result-type">Rust Result 类型</a></li>
+<li><a href="ch09-error-handling.html#exercise-log-function-implementation-with-option">练习：使用 Option 实现 log() 函数</a></li>
+<li><a href="ch09-error-handling.html#rust-error-handling">Rust 错误处理</a></li>
+<li><a href="ch09-error-handling.html#exercise-error-handling">练习：错误处理</a></li>
+<li><a href="ch09-1-error-handling-best-practices.html">错误处理最佳实践</a></li>
+</ul>
+<h3 id="10-特征和泛型"><a class="header" href="#10-特征和泛型">10. 特征和泛型</a></h3>
+<ul>
+<li><a href="ch10-traits.html#rust-traits">Rust 特征</a></li>
+<li><a href="ch10-traits.html#c-operator-overloading--rust-stdops-traits">C++ 运算符重载 → Rust std::ops 特征</a></li>
+<li><a href="ch10-traits.html#exercise-logger-trait-implementation">练习：Logger 特征实现</a></li>
+<li><a href="ch10-traits.html#when-to-use-enum-vs-dyn-trait">何时使用枚举 vs dyn Trait</a></li>
+<li><a href="ch10-traits.html#exercise-think-before-you-translate">练习：翻译之前先思考</a></li>
+<li><a href="ch10-1-generics.html#rust-generics">Rust 泛型</a></li>
+<li><a href="ch10-1-generics.html#exercise-generics">练习：泛型</a></li>
+<li><a href="ch10-1-generics.html#combining-rust-traits-and-generics">结合 Rust 特征和泛型</a></li>
+<li><a href="ch10-1-generics.html#rust-traits-constraints-in-data-types">Rust 数据类型中的特征约束</a></li>
+<li><a href="ch10-1-generics.html#exercise-traits-constraints-and-generics">练习：特征约束和泛型</a></li>
+<li><a href="ch10-1-generics.html#rust-type-state-pattern-and-generics">Rust 类型状态模式和泛型</a></li>
+<li><a href="ch10-1-generics.html#rust-builder-pattern">Rust 建造者模式</a></li>
+</ul>
+<h3 id="11-类型系统高级特性"><a class="header" href="#11-类型系统高级特性">11. 类型系统高级特性</a></h3>
+<ul>
+<li><a href="ch11-from-and-into-traits.html#rust-from-and-into-traits">Rust From 和 Into 特征</a></li>
+<li><a href="ch11-from-and-into-traits.html#exercise-from-and-into">练习：From 和 Into</a></li>
+<li><a href="ch11-from-and-into-traits.html#rust-default-trait">Rust Default 特征</a></li>
+<li><a href="ch11-from-and-into-traits.html#other-rust-type-conversions">Rust 的其他类型转换</a></li>
+</ul>
+<h3 id="12-函数式编程"><a class="header" href="#12-函数式编程">12. 函数式编程</a></h3>
+<ul>
+<li><a href="ch12-closures.html#rust-closures">Rust 闭包</a></li>
+<li><a href="ch12-closures.html#exercise-closures-and-capturing">练习：闭包和捕获</a></li>
+<li><a href="ch12-closures.html#rust-iterators">Rust 迭代器</a></li>
+<li><a href="ch12-closures.html#exercise-rust-iterators">练习：Rust 迭代器</a></li>
+<li><a href="ch12-1-iterator-power-tools.html#iterator-power-tools-reference">迭代器高级技巧参考</a></li>
+</ul>
+<h3 id="13-并发"><a class="header" href="#13-并发">13. 并发</a></h3>
+<ul>
+<li><a href="ch13-concurrency.html#rust-concurrency">Rust 并发</a></li>
+<li><a href="ch13-concurrency.html#why-rust-prevents-data-races-send-and-sync">为什么 Rust 能防止数据竞争：Send 和 Sync</a></li>
+<li><a href="ch13-concurrency.html#exercise-multi-threaded-word-count">练习：多线程单词计数</a></li>
+</ul>
+<h3 id="14-不安全-rust-和-ffi"><a class="header" href="#14-不安全-rust-和-ffi">14. 不安全 Rust 和 FFI</a></h3>
+<ul>
+<li><a href="ch14-unsafe-rust-and-ffi.html#unsafe-rust">不安全 Rust</a></li>
+<li><a href="ch14-unsafe-rust-and-ffi.html#simple-ffi-example-rust-library-function-consumed-by-c">简单 FFI 示例</a></li>
+<li><a href="ch14-unsafe-rust-and-ffi.html#complex-ffi-example">复杂 FFI 示例</a></li>
+<li><a href="ch14-unsafe-rust-and-ffi.html#ensuring-correctness-of-unsafe-code">确保 unsafe 代码的正确性</a></li>
+<li><a href="ch14-unsafe-rust-and-ffi.html#exercise-writing-a-safe-ffi-wrapper">练习：编写安全的 FFI 包装器</a></li>
+</ul>
+<h2 id="第二部分--深入探索"><a class="header" href="#第二部分--深入探索">第二部分 — 深入探索</a></h2>
+<h3 id="15-no_std--面向裸机的-rust"><a class="header" href="#15-no_std--面向裸机的-rust">15. no_std — 面向裸机的 Rust</a></h3>
+<ul>
+<li><a href="ch15-no_std-rust-without-the-standard-library.html#what-is-no_std">什么是 no_std？</a></li>
+<li><a href="ch15-no_std-rust-without-the-standard-library.html#when-to-use-no_std-vs-std">何时使用 no_std vs std</a></li>
+<li><a href="ch15-no_std-rust-without-the-standard-library.html#exercise-no_std-ring-buffer">练习：no_std 环形缓冲区</a></li>
+<li><a href="ch15-1-embedded-deep-dive.html">嵌入式深入探讨</a></li>
+</ul>
+<h3 id="16-案例研究真实世界的-c-到-rust-转换"><a class="header" href="#16-案例研究真实世界的-c-到-rust-转换">16. 案例研究：真实世界的 C++ 到 Rust 转换</a></h3>
+<ul>
+<li><a href="ch16-case-studies.html#case-study-1-inheritance-hierarchy--enum-dispatch">案例研究 1：继承层次结构 → 枚举分发</a></li>
+<li><a href="ch16-case-studies.html#case-study-2-shared_ptr-tree--arenaindex-pattern">案例研究 2：shared_ptr 树 → Arena/索引模式</a></li>
+<li><a href="ch16-1-case-study-lifetime-borrowing.html#case-study-3-framework-communication--lifetime-borrowing">案例研究 3：框架通信 → 生命周期借用</a></li>
+<li><a href="ch16-1-case-study-lifetime-borrowing.html#case-study-4-god-object--composable-state">案例研究 4：上帝对象 → 可组合状态</a></li>
+<li><a href="ch16-1-case-study-lifetime-borrowing.html#case-study-5-trait-objects--when-they-are-right">案例研究 5：特征对象 — 何时该用</a></li>
+</ul>
+<h2 id="第三部分--最佳实践与参考"><a class="header" href="#第三部分--最佳实践与参考">第三部分 — 最佳实践与参考</a></h2>
+<h3 id="17-最佳实践"><a class="header" href="#17-最佳实践">17. 最佳实践</a></h3>
+<ul>
+<li><a href="ch17-best-practices.html#rust-best-practices-summary">Rust 最佳实践总结</a></li>
+<li><a href="ch17-1-avoiding-excessive-clone.html#avoiding-excessive-clone">避免过度使用 clone()</a></li>
+<li><a href="ch17-2-avoiding-unchecked-indexing.html#avoiding-unchecked-indexing">避免未检查的索引访问</a></li>
+<li><a href="ch17-3-collapsing-assignment-pyramids.html#collapsing-assignment-pyramids">消除赋值金字塔</a></li>
+<li><a href="ch17-3-collapsing-assignment-pyramids.html#capstone-exercise-diagnostic-event-pipeline">综合练习：诊断事件管道</a></li>
+<li><a href="ch17-4-logging-and-tracing-ecosystem.html#logging-and-tracing-ecosystem">日志与追踪生态系统</a></li>
+</ul>
+<h3 id="18-c--rust-语义深入对比"><a class="header" href="#18-c--rust-语义深入对比">18. C++ → Rust 语义深入对比</a></h3>
+<ul>
+<li><a href="ch18-cpp-rust-semantic-deep-dives.html">类型转换、预处理器、模块、volatile、static、constexpr、SFINAE 等</a></li>
+</ul>
+<h3 id="19-rust-宏"><a class="header" href="#19-rust-宏">19. Rust 宏</a></h3>
+<ul>
+<li><a href="ch19-macros.html#declarative-macros-with-macro_rules">声明式宏（<code>macro_rules!</code>）</a></li>
+<li><a href="ch19-macros.html#common-standard-library-macros">常用标准库宏</a></li>
+<li><a href="ch19-macros.html#derive-macros">派生宏</a></li>
+<li><a href="ch19-macros.html#attribute-macros">属性宏</a></li>
+<li><a href="ch19-macros.html#procedural-macros-conceptual-overview">过程宏</a></li>
+<li><a href="ch19-macros.html#when-to-use-what-macros-vs-functions-vs-generics">何时使用什么：宏 vs 函数 vs 泛型</a></li>
+<li><a href="ch19-macros.html#exercises">练习</a></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+                            <a rel="next prefetch" href="ch01-introduction-and-motivation.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+                    <a rel="next prefetch" href="ch01-introduction-and-motivation.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+        <script>
+            window.playground_line_numbers = true;
+        </script>
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+        <script src="ace-2a3cd908.js"></script>
+        <script src="mode-rust-2c9d5c9a.js"></script>
+        <script src="editor-16ca416c.js"></script>
+        <script src="theme-dawn-4493f9c8.js"></script>
+        <script src="theme-tomorrow_night-9dbe62a9.js"></script>
+
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-09f2665d.js"></script>
+
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid-eefea253.min.js"></script>
+        <script src="mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

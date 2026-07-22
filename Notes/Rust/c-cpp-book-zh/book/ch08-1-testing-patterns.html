@@ -1,0 +1,564 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>测试模式 - 面向 C/C++ 程序员的 Rust 教程</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-e96d0476.css">
+        <link rel="stylesheet" href="css/chrome-d279d366.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "ayu";
+            window.path_to_searchindex_js = "searchindex-9ea38209.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc-aabbbd7a.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">面向 C/C++ 程序员的 Rust 教程</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/microsoft/RustTraining" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h2 id="面向-c-程序员的测试模式"><a class="header" href="#面向-c-程序员的测试模式">面向 C++ 程序员的测试模式</a></h2>
+<blockquote>
+<p><strong>你将学到：</strong> Rust 的内置测试框架 —— <code>#[test]</code>、<code>#[should_panic]</code>、返回 <code>Result</code> 的测试、测试数据的构建器模式、基于特征的模拟、使用 <code>proptest</code> 的属性测试、使用 <code>insta</code> 的快照测试以及集成测试组织。零配置测试，替代 Google Test + CMake。</p>
+</blockquote>
+<p>C++ 测试通常依赖外部框架（Google Test、Catch2、Boost.Test），需要复杂的构建集成。Rust 的测试框架<strong>内置于语言和工具链中</strong> —— 无需依赖、无需 CMake 集成、无需测试运行器配置。</p>
+<h3 id="test-之外的测试属性"><a class="header" href="#test-之外的测试属性"><code>#[test]</code> 之外的测试属性</a></h3>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn basic_pass() {
+        assert_eq!(2 + 2, 4);
+    }
+
+    // 期望 panic —— 等价于 GTest 的 EXPECT_DEATH
+    #[test]
+    #[should_panic]
+    fn out_of_bounds_panics() {
+        let v = vec![1, 2, 3];
+        let _ = v[10]; // Panic —— 测试通过
+    }
+
+    // 期望 panic 并带有特定消息子串
+    #[test]
+    #[should_panic(expected = "index out of bounds")]
+    fn specific_panic_message() {
+        let v = vec![1, 2, 3];
+        let _ = v[10];
+    }
+
+    // 返回 Result&lt;(), E&gt; 的测试 —— 用 ? 代替 unwrap()
+    #[test]
+    fn test_with_result() -&gt; Result&lt;(), String&gt; {
+        let value: u32 = "42".parse().map_err(|e| format!("{e}"))?;
+        assert_eq!(value, 42);
+        Ok(())
+    }
+
+    // 默认忽略慢速测试 —— 用 `cargo test -- --ignored` 运行
+    #[test]
+    #[ignore]
+    fn slow_integration_test() {
+        std::thread::sleep(std::time::Duration::from_secs(10));
+    }
+}
+<span class="boring">}</span></code></pre>
+<pre><code class="language-bash">cargo test                          # 运行所有非忽略的测试
+cargo test -- --ignored             # 仅运行被忽略的测试
+cargo test -- --include-ignored     # 运行所有测试，包括被忽略的
+cargo test test_name                # 运行匹配名称模式的测试
+cargo test -- --nocapture           # 测试期间显示 println! 输出
+cargo test -- --test-threads=1      # 串行运行测试（用于共享状态）
+</code></pre>
+<h3 id="测试辅助工具测试数据的构建器模式"><a class="header" href="#测试辅助工具测试数据的构建器模式">测试辅助工具：测试数据的构建器模式</a></h3>
+<p>在 C++ 中你会使用 Google Test 夹具（<code>class MyTest : public ::testing::Test</code>）。在 Rust 中，使用构建器函数或 <code>Default</code> 特征：</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // 构建器函数 —— 使用合理的默认值创建测试数据
+    fn make_gpu_event(severity: Severity, fault_code: u32) -&gt; DiagEvent {
+        DiagEvent {
+            source: "accel_diag".to_string(),
+            severity,
+            message: format!("Test event FC:{fault_code}"),
+            fault_code,
+        }
+    }
+
+    // 可复用的测试夹具 —— 一组预构建的事件
+    fn sample_events() -&gt; Vec&lt;DiagEvent&gt; {
+        vec![
+            make_gpu_event(Severity::Critical, 67956),
+            make_gpu_event(Severity::Warning, 32709),
+            make_gpu_event(Severity::Info, 10001),
+        ]
+    }
+
+    #[test]
+    fn filter_critical_events() {
+        let events = sample_events();
+        let critical: Vec&lt;_&gt; = events.iter()
+            .filter(|e| e.severity == Severity::Critical)
+            .collect();
+        assert_eq!(critical.len(), 1);
+        assert_eq!(critical[0].fault_code, 67956);
+    }
+}
+<span class="boring">}</span></code></pre>
+<h3 id="使用特征进行模拟"><a class="header" href="#使用特征进行模拟">使用特征进行模拟</a></h3>
+<p>在 C++ 中，模拟需要 Google Mock 等框架或手动虚函数重写。在 Rust 中，为依赖定义特征并在测试中替换实现：</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// 生产特征
+trait SensorReader {
+    fn read_temperature(&amp;self, sensor_id: u32) -&gt; Result&lt;f64, String&gt;;
+}
+
+// 生产实现
+struct HwSensorReader;
+impl SensorReader for HwSensorReader {
+    fn read_temperature(&amp;self, sensor_id: u32) -&gt; Result&lt;f64, String&gt; {
+        // 真实硬件调用...
+        Ok(72.5)
+    }
+}
+
+// 测试模拟 —— 返回可预测的值
+#[cfg(test)]
+struct MockSensorReader {
+    temperatures: std::collections::HashMap&lt;u32, f64&gt;,
+}
+
+#[cfg(test)]
+impl SensorReader for MockSensorReader {
+    fn read_temperature(&amp;self, sensor_id: u32) -&gt; Result&lt;f64, String&gt; {
+        self.temperatures.get(&amp;sensor_id)
+            .copied()
+            .ok_or_else(|| format!("Unknown sensor {sensor_id}"))
+    }
+}
+
+// 被测函数 —— 对读取器使用泛型
+fn check_overtemp(reader: &amp;impl SensorReader, ids: &amp;[u32], threshold: f64) -&gt; Vec&lt;u32&gt; {
+    ids.iter()
+        .filter(|&amp;&amp;id| reader.read_temperature(id).unwrap_or(0.0) &gt; threshold)
+        .copied()
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn detect_overtemp_sensors() {
+        let mut mock = MockSensorReader { temperatures: Default::default() };
+        mock.temperatures.insert(0, 72.5);
+        mock.temperatures.insert(1, 91.0);  // 超过阈值
+        mock.temperatures.insert(2, 65.0);
+
+        let hot = check_overtemp(&amp;mock, &amp;[0, 1, 2], 80.0);
+        assert_eq!(hot, vec![1]);
+    }
+}
+<span class="boring">}</span></code></pre>
+<h3 id="测试中的临时文件和目录"><a class="header" href="#测试中的临时文件和目录">测试中的临时文件和目录</a></h3>
+<p>C++ 测试通常使用平台特定的临时目录。Rust 有 <code>tempfile</code>：</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Cargo.toml: [dev-dependencies]
+// tempfile = "3"
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::NamedTempFile;
+    use std::io::Write;
+
+    #[test]
+    fn parse_config_from_file() -&gt; Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+        // 创建一个 drop 时自动删除的临时文件
+        let mut file = NamedTempFile::new()?;
+        writeln!(file, r#"{{"sku": "ServerNode", "level": "Quick"}}"#)?;
+
+        let config = load_config(file.path().to_str().unwrap())?;
+        assert_eq!(config.sku, "ServerNode");
+        Ok(())
+        // file 在这里被删除 —— 不需要清理代码
+    }
+}
+<span class="boring">}</span></code></pre>
+<h3 id="使用-proptest-进行基于属性的测试"><a class="header" href="#使用-proptest-进行基于属性的测试">使用 <code>proptest</code> 进行基于属性的测试</a></h3>
+<p>不是编写特定的测试用例，而是描述对所有输入都应成立的<strong>属性</strong>。<code>proptest</code> 生成随机输入并找到最小的失败用例：</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Cargo.toml: [dev-dependencies]
+// proptest = "1"
+
+#[cfg(test)]
+mod tests {
+    use proptest::prelude::*;
+
+    fn parse_and_format(n: u32) -&gt; String {
+        format!("{n}")
+    }
+
+    proptest! {
+        #[test]
+        fn roundtrip_u32(n: u32) {
+            let formatted = parse_and_format(n);
+            let parsed: u32 = formatted.parse().unwrap();
+            prop_assert_eq!(n, parsed);
+        }
+
+        #[test]
+        fn string_contains_no_null(s in "[a-zA-Z0-9 ]{0,100}") {
+            prop_assert!(!s.contains('\0'));
+        }
+    }
+}
+<span class="boring">}</span></code></pre>
+<h3 id="使用-insta-进行快照测试"><a class="header" href="#使用-insta-进行快照测试">使用 <code>insta</code> 进行快照测试</a></h3>
+<p>对于产生复杂输出（JSON、格式化字符串）的测试，<code>insta</code> 自动生成和管理参考快照：</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Cargo.toml: [dev-dependencies]
+// insta = { version = "1", features = ["json"] }
+
+#[cfg(test)]
+mod tests {
+    use insta::assert_json_snapshot;
+
+    #[test]
+    fn der_entry_format() {
+        let entry = DerEntry {
+            fault_code: 67956,
+            component: "GPU".to_string(),
+            message: "ECC error detected".to_string(),
+        };
+        // 首次运行：在 tests/snapshots/ 中创建快照文件
+        // 后续运行：与保存的快照进行比较
+        assert_json_snapshot!(entry);
+    }
+}
+<span class="boring">}</span></code></pre>
+<pre><code class="language-bash">cargo insta test              # 运行测试并审查新的/更改的快照
+cargo insta review            # 交互式审查快照更改
+</code></pre>
+<h3 id="c-与-rust-测试对比"><a class="header" href="#c-与-rust-测试对比">C++ 与 Rust 测试对比</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th><strong>C++（Google Test）</strong></th><th><strong>Rust</strong></th><th><strong>说明</strong></th></tr>
+</thead>
+<tbody>
+<tr><td><code>TEST(Suite, Name) { }</code></td><td><code>#[test] fn name() { }</code></td><td>不需要套件/类层次结构</td></tr>
+<tr><td><code>ASSERT_EQ(a, b)</code></td><td><code>assert_eq!(a, b)</code></td><td>内置宏，不需要框架</td></tr>
+<tr><td><code>ASSERT_NEAR(a, b, eps)</code></td><td><code>assert!((a - b).abs() &lt; eps)</code></td><td>或使用 <code>approx</code> crate</td></tr>
+<tr><td><code>EXPECT_THROW(expr, type)</code></td><td><code>#[should_panic(expected = "...")]</code></td><td>或用 <code>catch_unwind</code> 进行精细控制</td></tr>
+<tr><td><code>EXPECT_DEATH(expr, "msg")</code></td><td><code>#[should_panic(expected = "msg")]</code></td><td></td></tr>
+<tr><td><code>class Fixture : public ::testing::Test</code></td><td>构建器函数 + <code>Default</code></td><td>不需要继承</td></tr>
+<tr><td>Google Mock <code>MOCK_METHOD</code></td><td>特征 + 测试实现</td><td>更明确，没有宏魔法</td></tr>
+<tr><td><code>INSTANTIATE_TEST_SUITE_P</code>（参数化）</td><td><code>proptest!</code> 或宏生成的测试</td><td></td></tr>
+<tr><td><code>SetUp()</code> / <code>TearDown()</code></td><td>通过 <code>Drop</code> 实现 RAII —— 清理是自动的</td><td>变量在测试结束时 drop</td></tr>
+<tr><td>单独的测试二进制文件 + CMake</td><td><code>cargo test</code> —— 零配置</td><td></td></tr>
+<tr><td><code>ctest --output-on-failure</code></td><td><code>cargo test -- --nocapture</code></td><td></td></tr>
+</tbody>
+</table>
+</div>
+<hr>
+<h3 id="集成测试tests-目录"><a class="header" href="#集成测试tests-目录">集成测试：<code>tests/</code> 目录</a></h3>
+<p>单元测试与代码一起放在 <code>#[cfg(test)]</code> 模块中。<strong>集成测试</strong>位于 crate 根目录的单独 <code>tests/</code> 目录中，像外部使用者一样测试库的公共 API：</p>
+<pre><code>my_crate/
+├── src/
+│   └── lib.rs          # 你的库代码
+├── tests/
+│   ├── smoke.rs        # 每个 .rs 文件是一个单独的测试二进制文件
+│   ├── regression.rs
+│   └── common/
+│       └── mod.rs      # 共享测试辅助工具（不是测试本身）
+└── Cargo.toml
+</code></pre>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// tests/smoke.rs —— 像外部用户一样测试你的 crate
+use my_crate::DiagEngine;  // 只能访问公共 API
+
+#[test]
+fn engine_starts_successfully() {
+    let engine = DiagEngine::new("test_config.json");
+    assert!(engine.is_ok());
+}
+
+#[test]
+fn engine_rejects_invalid_config() {
+    let engine = DiagEngine::new("nonexistent.json");
+    assert!(engine.is_err());
+}
+<span class="boring">}</span></code></pre>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// tests/common/mod.rs —— 共享辅助工具，不会被编译为测试二进制文件
+pub fn setup_test_environment() -&gt; tempfile::TempDir {
+    let dir = tempfile::tempdir().unwrap();
+    std::fs::write(dir.path().join("config.json"), r#"{"log_level": "debug"}"#).unwrap();
+    dir
+}
+<span class="boring">}</span></code></pre>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// tests/regression.rs —— 可以使用共享辅助工具
+mod common;
+
+#[test]
+fn regression_issue_42() {
+    let env = common::setup_test_environment();
+    let engine = my_crate::DiagEngine::new(
+        env.path().join("config.json").to_str().unwrap()
+    );
+    assert!(engine.is_ok());
+}
+<span class="boring">}</span></code></pre>
+<p><strong>运行集成测试：</strong></p>
+<pre><code class="language-bash">cargo test                          # 运行单元测试和集成测试
+cargo test --test smoke             # 仅运行 tests/smoke.rs
+cargo test --test regression        # 仅运行 tests/regression.rs
+cargo test --lib                    # 仅运行单元测试（跳过集成测试）
+</code></pre>
+<blockquote>
+<p><strong>与单元测试的关键区别</strong>：集成测试无法访问私有函数或 <code>pub(crate)</code> 项。这迫使你验证公共 API 是否足够 —— 这是一个有价值的设计信号。用 C++ 的术语来说，就像只针对公共头文件进行测试，没有 <code>friend</code> 访问权限。</p>
+</blockquote>
+<hr>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="ch08-crates-and-modules.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="ch09-error-handling.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="ch08-crates-and-modules.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="ch09-error-handling.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+        <script>
+            window.playground_line_numbers = true;
+        </script>
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+        <script src="ace-2a3cd908.js"></script>
+        <script src="mode-rust-2c9d5c9a.js"></script>
+        <script src="editor-16ca416c.js"></script>
+        <script src="theme-dawn-4493f9c8.js"></script>
+        <script src="theme-tomorrow_night-9dbe62a9.js"></script>
+
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-09f2665d.js"></script>
+
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid-eefea253.min.js"></script>
+        <script src="mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,674 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>9. 错误处理 - 面向 C/C++ 程序员的 Rust 教程</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-e96d0476.css">
+        <link rel="stylesheet" href="css/chrome-d279d366.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "ayu";
+            window.path_to_searchindex_js = "searchindex-9ea38209.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc-aabbbd7a.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">面向 C/C++ 程序员的 Rust 教程</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/microsoft/RustTraining" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h2 id="将枚举与-option-和-result-关联起来"><a class="header" href="#将枚举与-option-和-result-关联起来">将枚举与 Option 和 Result 关联起来</a></h2>
+<blockquote>
+<p><strong>你将学到：</strong> Rust 如何用 <code>Option&lt;T&gt;</code> 替代空指针，用 <code>Result&lt;T, E&gt;</code> 替代异常，以及 <code>?</code> 运算符如何使错误传播变得简洁。这是 Rust 最具特色的模式 —— 错误是值，而非隐藏的控制流。</p>
+</blockquote>
+<ul>
+<li>还记得我们之前学的 <code>enum</code> 类型吗？Rust 的 <code>Option</code> 和 <code>Result</code> 只是定义在标准库中的枚举：</li>
+</ul>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// 这就是 Option 在 std 中的实际定义：
+enum Option&lt;T&gt; {
+    Some(T),  // 包含一个值
+    None,     // 没有值
+}
+
+// 而 Result：
+enum Result&lt;T, E&gt; {
+    Ok(T),    // 成功并带有值
+    Err(E),   // 错误并带有详情
+}
+<span class="boring">}</span></code></pre>
+<ul>
+<li>这意味着你学到的关于 <code>match</code> 模式匹配的一切都可以直接用于 <code>Option</code> 和 <code>Result</code></li>
+<li>Rust 中<strong>没有空指针</strong> – <code>Option&lt;T&gt;</code> 是替代方案，编译器强制你处理 <code>None</code> 的情况</li>
+</ul>
+<h3 id="c-对比异常-vs-result"><a class="header" href="#c-对比异常-vs-result">C++ 对比：异常 vs Result</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th><strong>C++ 模式</strong></th><th><strong>Rust 等价物</strong></th><th><strong>优势</strong></th></tr>
+</thead>
+<tbody>
+<tr><td><code>throw std::runtime_error(msg)</code></td><td><code>Err(MyError::Runtime(msg))</code></td><td>错误在返回类型中 —— 不会忘记处理</td></tr>
+<tr><td><code>try { } catch (...) { }</code></td><td><code>match result { Ok(v) =&gt; ..., Err(e) =&gt; ... }</code></td><td>没有隐藏的控制流</td></tr>
+<tr><td><code>std::optional&lt;T&gt;</code></td><td><code>Option&lt;T&gt;</code></td><td>需要穷尽匹配 —— 不会忘记 None</td></tr>
+<tr><td><code>noexcept</code> 标注</td><td>默认 —— 所有 Rust 函数都是 “noexcept”</td><td>异常不存在</td></tr>
+<tr><td><code>errno</code> / 返回码</td><td><code>Result&lt;T, E&gt;</code></td><td>类型安全，不能忽略</td></tr>
+</tbody>
+</table>
+</div>
+<h1 id="rust-option-类型"><a class="header" href="#rust-option-类型">Rust Option 类型</a></h1>
+<ul>
+<li>Rust 的 <code>Option</code> 类型是一个只有两个变体的 <code>enum</code>：<code>Some&lt;T&gt;</code> 和 <code>None</code>
+<ul>
+<li>其思想是表示一个 <code>可空</code> 类型，即它要么包含该类型的有效值（<code>Some&lt;T&gt;</code>），要么没有有效值（<code>None</code>）</li>
+<li><code>Option</code> 类型用于操作结果要么成功返回有效值、要么失败（但具体错误无关紧要）的 API 中。例如，考虑从字符串中解析整数值</li>
+</ul>
+</li>
+</ul>
+<pre class="playground"><code class="language-rust">fn main() {
+    // 返回 Option&lt;usize&gt;
+    let a = "1234".find("1");
+    match a {
+        Some(a) =&gt; println!("Found 1 at index {a}"),
+        None =&gt; println!("Couldn't find 1")
+    }
+}</code></pre>
+<h1 id="rust-option-类型-1"><a class="header" href="#rust-option-类型-1">Rust Option 类型</a></h1>
+<ul>
+<li>Rust 的 <code>Option</code> 可以用多种方式处理
+<ul>
+<li><code>unwrap()</code> 在 <code>Option&lt;T&gt;</code> 为 <code>None</code> 时会 panic，否则返回 <code>T</code>，这是最不推荐的方式</li>
+<li><code>or()</code> 可用于返回替代值</li>
+<li><code>if let</code> 让我们可以测试 <code>Some&lt;T&gt;</code></li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><strong>生产模式</strong>：参见 <a href="ch17-2-avoiding-unchecked-indexing.html#safe-value-extraction-with-unwrap_or">使用 unwrap_or 安全提取值</a> 和 <a href="ch17-2-avoiding-unchecked-indexing.html#functional-transforms-map-map_err-find_map">函数式变换：map、map_err、find_map</a> 了解来自生产 Rust 代码的实际示例。</p>
+</blockquote>
+<pre class="playground"><code class="language-rust">fn main() {
+  // 返回 Option&lt;usize&gt;
+  let a = "1234".find("1");
+  println!("{a:?} {}", a.unwrap());
+  let a = "1234".find("5").or(Some(42));
+  println!("{a:?}");
+  if let Some(a) = "1234".find("1") {
+      println!("{a}");
+  } else {
+    println!("Not found in string");
+  }
+  // 这会 panic
+  // "1234".find("5").unwrap();
+}</code></pre>
+<h1 id="rust-result-类型"><a class="header" href="#rust-result-类型">Rust Result 类型</a></h1>
+<ul>
+<li>Result 是一个类似于 <code>Option</code> 的 <code>enum</code> 类型，有两个变体：<code>Ok&lt;T&gt;</code> 或 <code>Err&lt;E&gt;</code>
+<ul>
+<li><code>Result</code> 在可能失败的 Rust API 中被广泛使用。其思想是成功时函数返回 <code>Ok&lt;T&gt;</code>，失败时返回特定错误 <code>Err&lt;T&gt;</code></li>
+</ul>
+</li>
+</ul>
+<pre class="playground"><code class="language-rust">  use std::num::ParseIntError;
+  fn main() {
+  let a : Result&lt;i32, ParseIntError&gt;  = "1234z".parse();
+  match a {
+      Ok(n) =&gt; println!("Parsed {n}"),
+      Err(e) =&gt; println!("Parsing failed {e:?}"),
+  }
+  let a : Result&lt;i32, ParseIntError&gt;  = "1234z".parse().or(Ok(-1));
+  println!("{a:?}");
+  if let Ok(a) = "1234".parse::&lt;i32&gt;() {
+    println!("Let OK {a}");  
+  }
+  // 这会 panic
+  //"1234z".parse().unwrap();
+}</code></pre>
+<h2 id="option-和-result一枚硬币的两面"><a class="header" href="#option-和-result一枚硬币的两面">Option 和 Result：一枚硬币的两面</a></h2>
+<p><code>Option</code> 和 <code>Result</code> 密切相关 —— <code>Option&lt;T&gt;</code> 本质上就是 <code>Result&lt;T, ()&gt;</code>（一个错误不携带信息的 result）：</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th><code>Option&lt;T&gt;</code></th><th><code>Result&lt;T, E&gt;</code></th><th>含义</th></tr>
+</thead>
+<tbody>
+<tr><td><code>Some(value)</code></td><td><code>Ok(value)</code></td><td>成功 —— 值存在</td></tr>
+<tr><td><code>None</code></td><td><code>Err(error)</code></td><td>失败 —— 无值（Option）或错误详情（Result）</td></tr>
+</tbody>
+</table>
+</div>
+<p><strong>相互转换：</strong></p>
+<pre class="playground"><code class="language-rust">fn main() {
+    let opt: Option&lt;i32&gt; = Some(42);
+    let res: Result&lt;i32, &amp;str&gt; = opt.ok_or("value was None");  // Option → Result
+    
+    let res: Result&lt;i32, &amp;str&gt; = Ok(42);
+    let opt: Option&lt;i32&gt; = res.ok();  // Result → Option（丢弃错误）
+    
+    // 它们共享许多相同的方法：
+    // .map()、.and_then()、.unwrap_or()、.unwrap_or_else()、.is_some()/is_ok()
+}</code></pre>
+<blockquote>
+<p><strong>经验法则</strong>：当缺失是正常情况时使用 <code>Option</code>（例如查找键）。当失败需要解释时使用 <code>Result</code>（例如文件 I/O、解析）。</p>
+</blockquote>
+<h1 id="练习使用-option-实现-log-函数"><a class="header" href="#练习使用-option-实现-log-函数">练习：使用 Option 实现 log() 函数</a></h1>
+<p>🟢 <strong>入门</strong></p>
+<ul>
+<li>实现一个接受 <code>Option&lt;&amp;str&gt;</code> 参数的 <code>log()</code> 函数。如果参数是 <code>None</code>，应该打印一个默认字符串</li>
+<li>函数应该返回一个 <code>Result</code>，成功和错误类型都是 <code>()</code>（本例中不会有错误）</li>
+</ul>
+<details><summary>答案（点击展开）</summary>
+<pre class="playground"><code class="language-rust">fn log(message: Option&lt;&amp;str&gt;) -&gt; Result&lt;(), ()&gt; {
+    match message {
+        Some(msg) =&gt; println!("LOG: {msg}"),
+        None =&gt; println!("LOG: (no message provided)"),
+    }
+    Ok(())
+}
+
+fn main() {
+    let _ = log(Some("System initialized"));
+    let _ = log(None);
+    
+    // 使用 unwrap_or 的替代方式：
+    let msg: Option&lt;&amp;str&gt; = None;
+    println!("LOG: {}", msg.unwrap_or("(default message)"));
+}
+// 输出：
+// LOG: System initialized
+// LOG: (no message provided)
+// LOG: (default message)</code></pre>
+</details>
+<hr>
+<h1 id="rust-错误处理"><a class="header" href="#rust-错误处理">Rust 错误处理</a></h1>
+<ul>
+<li>Rust 错误可以是不可恢复的（致命的）或可恢复的。致命错误导致 ``panic```
+<ul>
+<li>通常应避免导致 <code>panic</code> 的情况。<code>panic</code> 由程序中的 bug 引起，包括越界索引、对 <code>Option&lt;None&gt;</code> 调用 <code>unwrap()</code> 等。</li>
+<li>对于不可能发生的条件，显式 <code>panic</code> 是可以的。<code>panic!</code> 或 <code>assert!</code> 宏可用于健全性检查</li>
+</ul>
+</li>
+</ul>
+<pre class="playground"><code class="language-rust">fn main() {
+   let x : Option&lt;u32&gt; = None;
+   // println!("{x}", x.unwrap()); // 会 panic
+   println!("{}", x.unwrap_or(0));  // OK -- 打印 0
+   let x = 41;
+   //assert!(x == 42); // 会 panic
+   //panic!("Something went wrong"); // 无条件 panic
+   let _a = vec![0, 1];
+   // println!("{}", a[2]); // 越界 panic；使用 a.get(2) 会返回 Option&lt;T&gt;
+}</code></pre>
+<h2 id="错误处理c-vs-rust"><a class="header" href="#错误处理c-vs-rust">错误处理：C++ vs Rust</a></h2>
+<h3 id="c-基于异常的错误处理问题"><a class="header" href="#c-基于异常的错误处理问题">C++ 基于异常的错误处理问题</a></h3>
+<pre><code class="language-cpp">// C++ 错误处理 - 异常创建隐藏的控制流
+#include &lt;fstream&gt;
+#include &lt;stdexcept&gt;
+
+std::string read_config(const std::string&amp; path) {
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        throw std::runtime_error("Cannot open: " + path);
+    }
+    std::string content;
+    // 如果 getline 抛出异常怎么办？文件是否正确关闭了？
+    // 使用 RAII 的话是的，但其他资源呢？
+    std::getline(file, content);
+    return content;  // 如果调用者没有 try/catch 怎么办？
+}
+
+int main() {
+    // 错误：忘记用 try/catch 包装！
+    auto config = read_config("nonexistent.txt");
+    // 异常静默传播，程序崩溃
+    // 函数签名中没有任何警告
+    return 0;
+}
+</code></pre>
+<pre class="mermaid">graph TD
+    subgraph "C++ Error Handling Issues"
+        CF["Function Call"]
+        CR["throw exception&lt;br/&gt;or return code"]
+        CIGNORE["[ERROR] Exception not caught&lt;br/&gt;or return code ignored"]
+        CCHECK["try/catch or check"]
+        CERROR["Hidden control flow&lt;br/&gt;throws not in signature"]
+        CERRNO["No compile-time&lt;br/&gt;enforcement"]
+        
+        CF --&gt; CR
+        CR --&gt; CIGNORE
+        CR --&gt; CCHECK
+        CCHECK --&gt; CERROR
+        CERROR --&gt; CERRNO
+        
+        CPROBLEMS["[ERROR] Exceptions invisible in types&lt;br/&gt;[ERROR] Hidden control flow&lt;br/&gt;[ERROR] Easy to forget try/catch&lt;br/&gt;[ERROR] Exception safety is hard&lt;br/&gt;[ERROR] noexcept is opt-in"]
+    end
+    
+    subgraph "Rust Result&lt;T, E&gt; System"
+        RF["Function Call"]
+        RR["Result&lt;T, E&gt;&lt;br/&gt;Ok(value) | Err(error)"]
+        RMUST["[OK] Must handle&lt;br/&gt;Compile error if ignored"]
+        RMATCH["Pattern matching&lt;br/&gt;match, if let, ?"]
+        RDETAIL["Detailed error info&lt;br/&gt;Custom error types"]
+        RSAFE["Type-safe&lt;br/&gt;No global state"]
+        
+        RF --&gt; RR
+        RR --&gt; RMUST
+        RMUST --&gt; RMATCH
+        RMATCH --&gt; RDETAIL
+        RDETAIL --&gt; RSAFE
+        
+        RBENEFITS["[OK] Forced error handling&lt;br/&gt;[OK] Type-safe errors&lt;br/&gt;[OK] Detailed error info&lt;br/&gt;[OK] Composable with ?&lt;br/&gt;[OK] Zero runtime cost"]
+    end
+    
+    style CPROBLEMS fill:#ff6b6b,color:#000
+    style RBENEFITS fill:#91e5a3,color:#000
+    style CIGNORE fill:#ff6b6b,color:#000
+    style RMUST fill:#91e5a3,color:#000
+</pre>
+
+<h3 id="resultt-e-可视化"><a class="header" href="#resultt-e-可视化"><code>Result&lt;T, E&gt;</code> 可视化</a></h3>
+<pre class="playground"><code class="language-rust">// Rust 错误处理 - 全面且强制
+use std::fs::File;
+use std::io::Read;
+
+fn read_file_content(filename: &amp;str) -&gt; Result&lt;String, std::io::Error&gt; {
+    let mut file = File::open(filename)?;  // ? 自动传播错误
+    let mut contents = String::new();
+    file.read_to_string(&amp;mut contents)?;
+    Ok(contents)  // 成功情况
+}
+
+fn main() {
+    match read_file_content("example.txt") {
+        Ok(content) =&gt; println!("File content: {}", content),
+        Err(error) =&gt; println!("Failed to read file: {}", error),
+        // 编译器强制我们处理两种情况！
+    }
+}</code></pre>
+<pre class="mermaid">graph TD
+    subgraph "Result&lt;T, E&gt; Flow"
+        START["Function starts"]
+        OP1["File::open()"]
+        CHECK1{{"Result check"}}
+        OP2["file.read_to_string()"]
+        CHECK2{{"Result check"}}
+        SUCCESS["Ok(contents)"]
+        ERROR1["Err(io::Error)"]
+        ERROR2["Err(io::Error)"]
+        
+        START --&gt; OP1
+        OP1 --&gt; CHECK1
+        CHECK1 --&gt;|"Ok(file)"| OP2
+        CHECK1 --&gt;|"Err(e)"| ERROR1
+        OP2 --&gt; CHECK2
+        CHECK2 --&gt;|"Ok(())"| SUCCESS
+        CHECK2 --&gt;|"Err(e)"| ERROR2
+        
+        ERROR1 --&gt; PROPAGATE["? operator&lt;br/&gt;propagates error"]
+        ERROR2 --&gt; PROPAGATE
+        PROPAGATE --&gt; CALLER["Caller must&lt;br/&gt;handle error"]
+    end
+    
+    subgraph "Pattern Matching Options"
+        MATCH["match result"]
+        IFLET["if let Ok(val) = result"]
+        UNWRAP["result.unwrap()&lt;br/&gt;[WARNING] Panics on error"]
+        EXPECT["result.expect(msg)&lt;br/&gt;[WARNING] Panics with message"]
+        UNWRAP_OR["result.unwrap_or(default)&lt;br/&gt;[OK] Safe fallback"]
+        QUESTION["result?&lt;br/&gt;[OK] Early return"]
+        
+        MATCH --&gt; SAFE1["[OK] Handles both cases"]
+        IFLET --&gt; SAFE2["[OK] Handles error case"]
+        UNWRAP_OR --&gt; SAFE3["[OK] Always returns value"]
+        QUESTION --&gt; SAFE4["[OK] Propagates to caller"]
+        UNWRAP --&gt; UNSAFE1["[ERROR] Can panic"]
+        EXPECT --&gt; UNSAFE2["[ERROR] Can panic"]
+    end
+    
+    style SUCCESS fill:#91e5a3,color:#000
+    style ERROR1 fill:#ffa07a,color:#000
+    style ERROR2 fill:#ffa07a,color:#000
+    style SAFE1 fill:#91e5a3,color:#000
+    style SAFE2 fill:#91e5a3,color:#000
+    style SAFE3 fill:#91e5a3,color:#000
+    style SAFE4 fill:#91e5a3,color:#000
+    style UNSAFE1 fill:#ff6b6b,color:#000
+    style UNSAFE2 fill:#ff6b6b,color:#000
+</pre>
+
+<h1 id="rust-错误处理-1"><a class="header" href="#rust-错误处理-1">Rust 错误处理</a></h1>
+<ul>
+<li>Rust 使用 <code>enum Result&lt;T, E&gt;</code> 枚举进行可恢复的错误处理
+<ul>
+<li><code>Ok&lt;T&gt;</code> 变体在成功时包含结果，<code>Err&lt;E&gt;</code> 包含错误</li>
+</ul>
+</li>
+</ul>
+<pre class="playground"><code class="language-rust">fn main() {
+    let x = "1234x".parse::&lt;u32&gt;();
+    match x {
+        Ok(x) =&gt; println!("Parsed number {x}"),
+        Err(e) =&gt; println!("Parsing error {e:?}"),
+    }
+    let x  = "1234".parse::&lt;u32&gt;();
+    // 与上面相同，但使用有效数字
+    if let Ok(x) = &amp;x {
+        println!("Parsed number {x}")
+    } else if let Err(e) = &amp;x {
+        println!("Error: {e:?}");
+    }
+}</code></pre>
+<h1 id="rust-错误处理-2"><a class="header" href="#rust-错误处理-2">Rust 错误处理</a></h1>
+<ul>
+<li>try 运算符 <code>?</code> 是 <code>match</code> <code>Ok</code> / <code>Err</code> 模式的便捷简写
+<ul>
+<li>注意方法必须返回 <code>Result&lt;T, E&gt;</code> 才能使用 <code>?</code></li>
+<li><code>Result&lt;T, E&gt;</code> 的类型可以更改。在下面的示例中，我们返回与 <code>str::parse()</code> 返回的相同错误类型（<code>std::num::ParseIntError</code>）</li>
+</ul>
+</li>
+</ul>
+<pre class="playground"><code class="language-rust">fn double_string_number(s : &amp;str) -&gt; Result&lt;u32, std::num::ParseIntError&gt; {
+   let x = s.parse::&lt;u32&gt;()?; // 出错时立即返回
+   Ok(x*2)
+}
+fn main() {
+    let result = double_string_number("1234");
+    println!("{result:?}");
+    let result = double_string_number("1234x");
+    println!("{result:?}");
+}</code></pre>
+<h1 id="rust-错误处理-3"><a class="header" href="#rust-错误处理-3">Rust 错误处理</a></h1>
+<ul>
+<li>错误可以映射为其他类型，或映射为默认值（https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap_or_default）</li>
+</ul>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// 在出错时将错误类型更改为 ()
+fn double_string_number(s : &amp;str) -&gt; Result&lt;u32, ()&gt; {
+   let x = s.parse::&lt;u32&gt;().map_err(|_|())?; // 出错时立即返回
+   Ok(x*2)
+}
+<span class="boring">}</span></code></pre>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn double_string_number(s : &amp;str) -&gt; Result&lt;u32, ()&gt; {
+   let x = s.parse::&lt;u32&gt;().unwrap_or_default(); // 解析出错时默认为 0
+   Ok(x*2)
+}
+<span class="boring">}</span></code></pre>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn double_optional_number(x : Option&lt;u32&gt;) -&gt; Result&lt;u32, ()&gt; {
+    // ok_or 将 Option&lt;None&gt; 转换为 Result&lt;u32, ()&gt;
+    x.ok_or(()).map(|x|x*2) // .map() 仅在 Ok(u32) 上应用
+}
+<span class="boring">}</span></code></pre>
+<h1 id="练习错误处理"><a class="header" href="#练习错误处理">练习：错误处理</a></h1>
+<p>🟡 <strong>中级</strong></p>
+<ul>
+<li>实现一个带有单个 u32 参数的 <code>log()</code> 函数。如果参数不是 42，返回一个错误。成功和错误类型的 <code>Result&lt;&gt;</code> 都是 <code>()</code></li>
+<li>调用 <code>log()</code> 函数，如果 <code>log()</code> 返回错误则以相同的 <code>Result&lt;&gt;</code> 类型退出。否则打印一条消息说 log 被成功调用</li>
+</ul>
+<pre class="playground"><code class="language-rust">fn log(x: u32) -&gt; ?? {
+
+}
+
+fn call_log(x: u32) -&gt; ?? {
+    // 调用 log(x)，如果返回错误则立即退出
+    println!("log was successfully called");
+}
+
+fn main() {
+    call_log(42);
+    call_log(43);
+}</code></pre>
+<details><summary>答案（点击展开）</summary>
+<pre class="playground"><code class="language-rust">fn log(x: u32) -&gt; Result&lt;(), ()&gt; {
+    if x == 42 {
+        Ok(())
+    } else {
+        Err(())
+    }
+}
+
+fn call_log(x: u32) -&gt; Result&lt;(), ()&gt; {
+    log(x)?;  // 如果 log() 返回错误则立即退出
+    println!("log was successfully called with {x}");
+    Ok(())
+}
+
+fn main() {
+    let _ = call_log(42);  // 打印：log was successfully called with 42
+    let _ = call_log(43);  // 返回 Err(())，不打印任何内容
+}
+// 输出：
+// log was successfully called with 42</code></pre>
+</details>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="ch08-1-testing-patterns.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="ch09-1-error-handling-best-practices.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="ch08-1-testing-patterns.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="ch09-1-error-handling-best-practices.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+        <script>
+            window.playground_line_numbers = true;
+        </script>
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+        <script src="ace-2a3cd908.js"></script>
+        <script src="mode-rust-2c9d5c9a.js"></script>
+        <script src="editor-16ca416c.js"></script>
+        <script src="theme-dawn-4493f9c8.js"></script>
+        <script src="theme-tomorrow_night-9dbe62a9.js"></script>
+
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-09f2665d.js"></script>
+
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid-eefea253.min.js"></script>
+        <script src="mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

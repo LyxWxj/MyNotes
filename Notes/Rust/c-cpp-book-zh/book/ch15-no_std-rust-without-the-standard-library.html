@@ -1,0 +1,544 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>15. no_std — 无标准库的 Rust - 面向 C/C++ 程序员的 Rust 教程</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-e96d0476.css">
+        <link rel="stylesheet" href="css/chrome-d279d366.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "ayu";
+            window.path_to_searchindex_js = "searchindex-9ea38209.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc-aabbbd7a.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">面向 C/C++ 程序员的 Rust 教程</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/microsoft/RustTraining" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="no_std--没有标准库的-rust"><a class="header" href="#no_std--没有标准库的-rust"><code>no_std</code> —— 没有标准库的 Rust</a></h1>
+<blockquote>
+<p><strong>你将学到：</strong> 如何使用 <code>#![no_std]</code> 为裸机和嵌入式目标编写 Rust —— <code>core</code> 和 <code>alloc</code> crate 的划分、panic 处理程序，以及与不使用 <code>libc</code> 的嵌入式 C 的对比。</p>
+</blockquote>
+<p>如果你来自嵌入式 C 背景，你已经习惯了在没有 <code>libc</code> 或只有最小运行时的环境下工作。Rust 有一个一流的等价方案：<strong><code>#![no_std]</code></strong> 属性。</p>
+<h2 id="什么是-no_std"><a class="header" href="#什么是-no_std">什么是 <code>no_std</code>？</a></h2>
+<p>当你在 crate 根部添加 <code>#![no_std]</code> 时，编译器会移除隐式的 <code>extern crate std;</code>，只链接 <strong><code>core</code></strong>（以及可选的 <strong><code>alloc</code></strong>）。</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>层级</th><th>提供什么</th><th>需要操作系统/堆？</th></tr>
+</thead>
+<tbody>
+<tr><td><code>core</code></td><td>基本类型、<code>Option</code>、<code>Result</code>、<code>Iterator</code>、数学运算、<code>slice</code>、<code>str</code>、原子操作、<code>fmt</code></td><td><strong>不需要</strong> —— 可在裸机上运行</td></tr>
+<tr><td><code>alloc</code></td><td><code>Vec</code>、<code>String</code>、<code>Box</code>、<code>Rc</code>、<code>Arc</code>、<code>BTreeMap</code></td><td>需要全局分配器，但<strong>不需要操作系统</strong></td></tr>
+<tr><td><code>std</code></td><td><code>HashMap</code>、<code>fs</code>、<code>net</code>、<code>thread</code>、<code>io</code>、<code>env</code>、<code>process</code></td><td><strong>需要</strong> —— 需要操作系统</td></tr>
+</tbody>
+</table>
+</div>
+<blockquote>
+<p><strong>嵌入式开发者经验法则：</strong> 如果你的 C 项目链接了 <code>-lc</code> 并使用 <code>malloc</code>，你大概可以使用 <code>core</code> + <code>alloc</code>。如果它在裸机上运行且不使用 <code>malloc</code>，就只使用 <code>core</code>。</p>
+</blockquote>
+<h2 id="声明-no_std"><a class="header" href="#声明-no_std">声明 <code>no_std</code></a></h2>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// src/lib.rs  (or src/main.rs for a binary with #![no_main])
+#![no_std]
+
+// You still get everything in `core`:
+use core::fmt;
+use core::result::Result;
+use core::option::Option;
+
+// If you have an allocator, opt in to heap types:
+extern crate alloc;
+use alloc::vec::Vec;
+use alloc::string::String;
+<span class="boring">}</span></code></pre>
+<p>对于裸机二进制文件，你还需要 <code>#![no_main]</code> 和一个 panic 处理程序：</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span>#![no_std]
+#![no_main]
+
+<span class="boring">fn main() {
+</span>use core::panic::PanicInfo;
+
+#[panic_handler]
+fn panic(_info: &amp;PanicInfo) -&gt; ! {
+    loop {} // hang on panic — replace with your board's reset/LED blink
+}
+
+// Entry point depends on your HAL / linker script
+<span class="boring">}</span></code></pre>
+<h2 id="你会失去什么以及替代方案"><a class="header" href="#你会失去什么以及替代方案">你会失去什么（以及替代方案）</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th><code>std</code> 功能</th><th><code>no_std</code> 替代方案</th></tr>
+</thead>
+<tbody>
+<tr><td><code>println!</code></td><td><code>core::write!</code> 输出到 UART / <code>defmt</code></td></tr>
+<tr><td><code>HashMap</code></td><td><code>heapless::FnvIndexMap</code>（固定容量）或 <code>BTreeMap</code>（需要 <code>alloc</code>）</td></tr>
+<tr><td><code>Vec</code></td><td><code>heapless::Vec</code>（栈分配，固定容量）</td></tr>
+<tr><td><code>String</code></td><td><code>heapless::String</code> 或 <code>&amp;str</code></td></tr>
+<tr><td><code>std::io::Read/Write</code></td><td><code>embedded_io::Read/Write</code></td></tr>
+<tr><td><code>thread::spawn</code></td><td>中断处理程序、RTIC 任务</td></tr>
+<tr><td><code>std::time</code></td><td>硬件定时器外设</td></tr>
+<tr><td><code>std::fs</code></td><td>Flash / EEPROM 驱动</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="嵌入式常用-no_std-crate"><a class="header" href="#嵌入式常用-no_std-crate">嵌入式常用 <code>no_std</code> crate</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Crate</th><th>用途</th><th>备注</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="https://crates.io/crates/heapless"><code>heapless</code></a></td><td>固定容量的 <code>Vec</code>、<code>String</code>、<code>Queue</code>、<code>Map</code></td><td>不需要分配器 —— 全部在栈上</td></tr>
+<tr><td><a href="https://crates.io/crates/defmt"><code>defmt</code></a></td><td>通过探针/ITM 进行高效日志记录</td><td>类似 <code>printf</code> 但在主机端延迟格式化</td></tr>
+<tr><td><a href="https://crates.io/crates/embedded-hal"><code>embedded-hal</code></a></td><td>硬件抽象特征（SPI、I2C、GPIO、UART）</td><td>实现一次，在任何 MCU 上运行</td></tr>
+<tr><td><a href="https://crates.io/crates/cortex-m"><code>cortex-m</code></a></td><td>ARM Cortex-M 内部函数和寄存器访问</td><td>底层，类似 CMSIS</td></tr>
+<tr><td><a href="https://crates.io/crates/cortex-m-rt"><code>cortex-m-rt</code></a></td><td>Cortex-M 的运行时/启动代码</td><td>替代你的 <code>startup.s</code></td></tr>
+<tr><td><a href="https://crates.io/crates/rtic"><code>rtic</code></a></td><td>实时中断驱动并发</td><td>编译时任务调度，零开销</td></tr>
+<tr><td><a href="https://crates.io/crates/embassy-executor"><code>embassy</code></a></td><td>嵌入式异步执行器</td><td>裸机上的 <code>async/await</code></td></tr>
+<tr><td><a href="https://crates.io/crates/postcard"><code>postcard</code></a></td><td><code>no_std</code> serde 序列化（二进制）</td><td>当你承担不起字符串开销时替代 <code>serde_json</code></td></tr>
+<tr><td><a href="https://crates.io/crates/thiserror"><code>thiserror</code></a></td><td><code>Error</code> 特征的派生宏</td><td>自 v2 起支持 <code>no_std</code>；优先于 <code>anyhow</code></td></tr>
+<tr><td><a href="https://crates.io/crates/smoltcp"><code>smoltcp</code></a></td><td><code>no_std</code> TCP/IP 协议栈</td><td>当你需要无操作系统的网络功能时</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="c-vs-rust裸机对比"><a class="header" href="#c-vs-rust裸机对比">C vs Rust：裸机对比</a></h2>
+<p>典型的嵌入式 C 闪灯程序：</p>
+<pre><code class="language-c">// C — bare metal, vendor HAL
+#include "stm32f4xx_hal.h"
+
+void SysTick_Handler(void) {
+    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+}
+
+int main(void) {
+    HAL_Init();
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    GPIO_InitTypeDef gpio = { .Pin = GPIO_PIN_5, .Mode = GPIO_MODE_OUTPUT_PP };
+    HAL_GPIO_Init(GPIOA, &amp;gpio);
+    HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq() / 1000);
+    while (1) {}
+}
+</code></pre>
+<p>Rust 等价写法（使用 <code>embedded-hal</code> + 板级 crate）：</p>
+<pre class="playground"><code class="language-rust">#![no_std]
+#![no_main]
+
+use cortex_m_rt::entry;
+use panic_halt as _; // panic handler: infinite loop
+use stm32f4xx_hal::{pac, prelude::*};
+
+#[entry]
+fn main() -&gt; ! {
+    let dp = pac::Peripherals::take().unwrap();
+    let gpioa = dp.GPIOA.split();
+    let mut led = gpioa.pa5.into_push_pull_output();
+
+    let rcc = dp.RCC.constrain();
+    let clocks = rcc.cfgr.freeze();
+    let mut delay = dp.TIM2.delay_ms(&amp;clocks);
+
+    loop {
+        led.toggle();
+        delay.delay_ms(500u32);
+    }
+}</code></pre>
+<p><strong>C 开发者需要注意的关键区别：</strong></p>
+<ul>
+<li><code>Peripherals::take()</code> 返回 <code>Option</code> —— 在编译期确保单例模式（没有重复初始化 bug）</li>
+<li><code>.split()</code> 移动单个引脚的所有权 —— 不会有两个模块驱动同一引脚的风险</li>
+<li>所有寄存器访问都经过类型检查 —— 你不能意外写入只读寄存器</li>
+<li>借用检查器防止 <code>main</code> 和中断处理程序之间的数据竞争（配合 RTIC）</li>
+</ul>
+<h2 id="何时使用-no_std-vs-std"><a class="header" href="#何时使用-no_std-vs-std">何时使用 <code>no_std</code> vs <code>std</code></a></h2>
+<pre class="mermaid">flowchart TD
+    A[Does your target have an OS?] --&gt;|Yes| B[Use std]
+    A --&gt;|No| C[Do you have a heap allocator?]
+    C --&gt;|Yes| D["Use #![no_std] + extern crate alloc"]
+    C --&gt;|No| E["Use #![no_std] with core only"]
+    B --&gt; F[Full Vec, HashMap, threads, fs, net]
+    D --&gt; G[Vec, String, Box, BTreeMap — no fs/net/threads]
+    E --&gt; H[Fixed-size arrays, heapless collections, no allocation]
+</pre>
+
+<h1 id="练习no_std-环形缓冲区"><a class="header" href="#练习no_std-环形缓冲区">练习：<code>no_std</code> 环形缓冲区</a></h1>
+<p>🔴 <strong>挑战</strong> —— 在 <code>no_std</code> 上下文中结合泛型、<code>MaybeUninit</code> 和 <code>#[cfg(test)]</code></p>
+<p>在嵌入式系统中，你经常需要一个永远不会分配内存的固定大小环形缓冲区（循环缓冲区）。使用仅 <code>core</code>（不使用 <code>alloc</code>，不使用 <code>std</code>）来实现一个。</p>
+<p><strong>要求：</strong></p>
+<ul>
+<li>对元素类型 <code>T: Copy</code> 泛型</li>
+<li>固定容量 <code>N</code>（const 泛型）</li>
+<li><code>push(&amp;mut self, item: T)</code> —— 满时覆盖最旧的元素</li>
+<li><code>pop(&amp;mut self) -&gt; Option&lt;T&gt;</code> —— 返回最旧的元素</li>
+<li><code>len(&amp;self) -&gt; usize</code></li>
+<li><code>is_empty(&amp;self) -&gt; bool</code></li>
+<li>必须使用 <code>#![no_std]</code> 编译</li>
+</ul>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Starter code
+#![no_std]
+
+use core::mem::MaybeUninit;
+
+pub struct RingBuffer&lt;T: Copy, const N: usize&gt; {
+    buf: [MaybeUninit&lt;T&gt;; N],
+    head: usize,  // next write position
+    tail: usize,  // next read position
+    count: usize,
+}
+
+impl&lt;T: Copy, const N: usize&gt; RingBuffer&lt;T, N&gt; {
+    pub const fn new() -&gt; Self {
+        todo!()
+    }
+    pub fn push(&amp;mut self, item: T) {
+        todo!()
+    }
+    pub fn pop(&amp;mut self) -&gt; Option&lt;T&gt; {
+        todo!()
+    }
+    pub fn len(&amp;self) -&gt; usize {
+        todo!()
+    }
+    pub fn is_empty(&amp;self) -&gt; bool {
+        todo!()
+    }
+}
+<span class="boring">}</span></code></pre>
+<details>
+<summary>解答</summary>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span>#![no_std]
+
+<span class="boring">fn main() {
+</span>use core::mem::MaybeUninit;
+
+pub struct RingBuffer&lt;T: Copy, const N: usize&gt; {
+    buf: [MaybeUninit&lt;T&gt;; N],
+    head: usize,
+    tail: usize,
+    count: usize,
+}
+
+impl&lt;T: Copy, const N: usize&gt; RingBuffer&lt;T, N&gt; {
+    pub const fn new() -&gt; Self {
+        Self {
+            // SAFETY: MaybeUninit does not require initialization
+            buf: unsafe { MaybeUninit::uninit().assume_init() },
+            head: 0,
+            tail: 0,
+            count: 0,
+        }
+    }
+
+    pub fn push(&amp;mut self, item: T) {
+        self.buf[self.head] = MaybeUninit::new(item);
+        self.head = (self.head + 1) % N;
+        if self.count == N {
+            // Buffer is full — overwrite oldest, advance tail
+            self.tail = (self.tail + 1) % N;
+        } else {
+            self.count += 1;
+        }
+    }
+
+    pub fn pop(&amp;mut self) -&gt; Option&lt;T&gt; {
+        if self.count == 0 {
+            return None;
+        }
+        // SAFETY: We only read positions that were previously written via push()
+        let item = unsafe { self.buf[self.tail].assume_init() };
+        self.tail = (self.tail + 1) % N;
+        self.count -= 1;
+        Some(item)
+    }
+
+    pub fn len(&amp;self) -&gt; usize {
+        self.count
+    }
+
+    pub fn is_empty(&amp;self) -&gt; bool {
+        self.count == 0
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn basic_push_pop() {
+        let mut rb = RingBuffer::&lt;u32, 4&gt;::new();
+        assert!(rb.is_empty());
+
+        rb.push(10);
+        rb.push(20);
+        rb.push(30);
+        assert_eq!(rb.len(), 3);
+
+        assert_eq!(rb.pop(), Some(10));
+        assert_eq!(rb.pop(), Some(20));
+        assert_eq!(rb.pop(), Some(30));
+        assert_eq!(rb.pop(), None);
+    }
+
+    #[test]
+    fn overwrite_on_full() {
+        let mut rb = RingBuffer::&lt;u8, 3&gt;::new();
+        rb.push(1);
+        rb.push(2);
+        rb.push(3);
+        // Buffer full: [1, 2, 3]
+
+        rb.push(4); // Overwrites 1 → [4, 2, 3], tail advances
+        assert_eq!(rb.len(), 3);
+        assert_eq!(rb.pop(), Some(2)); // oldest surviving
+        assert_eq!(rb.pop(), Some(3));
+        assert_eq!(rb.pop(), Some(4));
+        assert_eq!(rb.pop(), None);
+    }
+}
+<span class="boring">}</span></code></pre>
+<p><strong>对嵌入式 C 开发者的意义：</strong></p>
+<ul>
+<li><code>MaybeUninit</code> 是 Rust 中未初始化内存的等价物 —— 编译器不会插入零填充，就像 C 中的 <code>char buf[N];</code></li>
+<li><code>unsafe</code> 块是最小化的（2 行），每个都有 <code>// SAFETY:</code> 注释</li>
+<li><code>const fn new()</code> 意味着你可以在 <code>static</code> 变量中创建环形缓冲区，无需运行时构造函数</li>
+<li>即使代码是 <code>no_std</code> 的，测试也能在主机上用 <code>cargo test</code> 运行</li>
+</ul>
+</details>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="ch14-unsafe-rust-and-ffi.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="ch15-1-embedded-deep-dive.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="ch14-unsafe-rust-and-ffi.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="ch15-1-embedded-deep-dive.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+        <script>
+            window.playground_line_numbers = true;
+        </script>
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+        <script src="ace-2a3cd908.js"></script>
+        <script src="mode-rust-2c9d5c9a.js"></script>
+        <script src="editor-16ca416c.js"></script>
+        <script src="theme-dawn-4493f9c8.js"></script>
+        <script src="theme-tomorrow_night-9dbe62a9.js"></script>
+
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-09f2665d.js"></script>
+
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid-eefea253.min.js"></script>
+        <script src="mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>

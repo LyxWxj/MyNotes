@@ -1,0 +1,1006 @@
+<!DOCTYPE HTML>
+<html lang="zh" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>18. C++ → Rust 语义深入对比 - 面向 C/C++ 程序员的 Rust 教程</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-e96d0476.css">
+        <link rel="stylesheet" href="css/chrome-d279d366.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "ayu";
+            window.path_to_searchindex_js = "searchindex-9ea38209.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc-aabbbd7a.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">面向 C/C++ 程序员的 Rust 教程</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/microsoft/RustTraining" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h2 id="c--rust-语义深度对比"><a class="header" href="#c--rust-语义深度对比">C++ → Rust 语义深度对比</a></h2>
+<blockquote>
+<p><strong>你将学到：</strong> C++ 概念到 Rust 的详细映射，这些概念没有显而易见的 Rust 等价物 —— 四种命名类型转换、SFINAE vs 特征约束、CRTP vs 关联类型，以及翻译过程中的其他常见摩擦点。</p>
+</blockquote>
+<p>以下各节映射了那些没有明显 1:1 Rust 等价物的 C++ 概念。这些差异在翻译工作中经常让 C++ 程序员感到困惑。</p>
+<h3 id="类型转换层次c-的四种命名转换--rust-等价物"><a class="header" href="#类型转换层次c-的四种命名转换--rust-等价物">类型转换层次：C++ 的四种命名转换 → Rust 等价物</a></h3>
+<p>C++ 有四种命名类型转换。Rust 用不同的、更明确的机制来替代它们：</p>
+<pre><code class="language-cpp">// C++ 类型转换层次
+int i = static_cast&lt;int&gt;(3.14);            // 1. 数值 / 向上转换
+Derived* d = dynamic_cast&lt;Derived*&gt;(base); // 2. 运行时向下转换
+int* p = const_cast&lt;int*&gt;(cp);              // 3. 去除 const
+auto* raw = reinterpret_cast&lt;char*&gt;(&amp;obj); // 4. 位级重新解释
+</code></pre>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>C++ 转换</th><th>Rust 等价物</th><th>安全性</th><th>说明</th></tr>
+</thead>
+<tbody>
+<tr><td><code>static_cast</code>（数值）</td><td><code>as</code> 关键字</td><td>安全但可能截断/回绕</td><td><code>let i = 3.14_f64 as i32;</code> —— 截断为 3</td></tr>
+<tr><td><code>static_cast</code>（数值，带检查）</td><td><code>From</code>/<code>Into</code></td><td>安全，编译时验证</td><td><code>let i: i32 = 42_u8.into();</code> —— 仅扩展</td></tr>
+<tr><td><code>static_cast</code>（数值，可失败）</td><td><code>TryFrom</code>/<code>TryInto</code></td><td>安全，返回 <code>Result</code></td><td><code>let i: u8 = 300_u16.try_into()?;</code> —— 返回 Err</td></tr>
+<tr><td><code>dynamic_cast</code>（向下转换）</td><td><code>match</code> 枚举 / <code>Any::downcast_ref</code></td><td>安全</td><td>枚举用模式匹配；特征对象用 <code>Any</code></td></tr>
+<tr><td><code>const_cast</code></td><td>无等价物</td><td></td><td>Rust 在安全代码中无法将 <code>&amp;</code> 转为 <code>&amp;mut</code>。使用 <code>Cell</code>/<code>RefCell</code> 实现内部可变性</td></tr>
+<tr><td><code>reinterpret_cast</code></td><td><code>std::mem::transmute</code></td><td><strong><code>unsafe</code></strong></td><td>重新解释位模式。几乎总是错误的 —— 优先使用 <code>from_le_bytes()</code> 等方法</td></tr>
+</tbody>
+</table>
+</div>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Rust 等价写法：
+
+// 1. 数值转换 —— 优先使用 From/Into 而非 `as`
+let widened: u32 = 42_u8.into();             // 不可失败的扩展 —— 始终优先
+let truncated = 300_u16 as u8;                // ⚠ 回绕为 44！静默数据丢失
+let checked: Result&lt;u8, _&gt; = 300_u16.try_into(); // Err —— 安全的可失败转换
+
+// 2. 向下转换：枚举（首选）或 Any（需要类型擦除时使用）
+use std::any::Any;
+
+fn handle_any(val: &amp;dyn Any) {
+    if let Some(s) = val.downcast_ref::&lt;String&gt;() {
+        println!("Got string: {s}");
+    } else if let Some(n) = val.downcast_ref::&lt;i32&gt;() {
+        println!("Got int: {n}");
+    }
+}
+
+// 3. "const_cast" → 内部可变性（无需 unsafe）
+use std::cell::Cell;
+struct Sensor {
+    read_count: Cell&lt;u32&gt;,  // 通过 &amp;self 进行修改
+}
+impl Sensor {
+    fn read(&amp;self) -&gt; f64 {
+        self.read_count.set(self.read_count.get() + 1); // &amp;self，而非 &amp;mut self
+        42.0
+    }
+}
+
+// 4. reinterpret_cast → transmute（几乎永远不需要）
+// 优先使用安全的替代方案：
+let bytes: [u8; 4] = 0x12345678_u32.to_ne_bytes();  // ✅ 安全
+let val = u32::from_ne_bytes(bytes);                   // ✅ 安全
+// unsafe { std::mem::transmute::&lt;u32, [u8; 4]&gt;(val) } // ❌ 避免使用
+<span class="boring">}</span></code></pre>
+<blockquote>
+<p><strong>指导原则</strong>：在惯用 Rust 中，<code>as</code> 应该很少使用（扩展用 <code>From</code>/<code>Into</code>，
+收窄用 <code>TryFrom</code>/<code>TryInto</code>），<code>transmute</code> 应该是例外情况，
+而 <code>const_cast</code> 没有等价物，因为内部可变性类型使其变得不必要。</p>
+</blockquote>
+<hr>
+<h3 id="预处理器--cfgfeature-flag-和-macro_rules"><a class="header" href="#预处理器--cfgfeature-flag-和-macro_rules">预处理器 → <code>cfg</code>、Feature Flag 和 <code>macro_rules!</code></a></h3>
+<p>C++ 严重依赖预处理器来进行条件编译、常量定义和代码生成。
+Rust 用一等语言特性替代了所有这些功能。</p>
+<h4 id="define-常量--const-或-const-fn"><a class="header" href="#define-常量--const-或-const-fn"><code>#define</code> 常量 → <code>const</code> 或 <code>const fn</code></a></h4>
+<pre><code class="language-cpp">// C++
+#define MAX_RETRIES 5
+#define BUFFER_SIZE (1024 * 64)
+#define SQUARE(x) ((x) * (x))  // 宏 —— 文本替换，无类型安全
+</code></pre>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Rust —— 类型安全、有作用域、无文本替换
+const MAX_RETRIES: u32 = 5;
+const BUFFER_SIZE: usize = 1024 * 64;
+const fn square(x: u32) -&gt; u32 { x * x }  // 编译时求值
+
+// 可在 const 上下文中使用：
+const AREA: u32 = square(12);  // 编译时计算
+static BUFFER: [u8; BUFFER_SIZE] = [0; BUFFER_SIZE];
+<span class="boring">}</span></code></pre>
+<h4 id="ifdef--if--cfg-和-cfg"><a class="header" href="#ifdef--if--cfg-和-cfg"><code>#ifdef</code> / <code>#if</code> → <code>#[cfg()]</code> 和 <code>cfg!()</code></a></h4>
+<pre><code class="language-cpp">// C++
+#ifdef DEBUG
+    log_verbose("Step 1 complete");
+#endif
+
+#if defined(LINUX) &amp;&amp; !defined(ARM)
+    use_x86_path();
+#else
+    use_generic_path();
+#endif
+</code></pre>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Rust —— 基于属性的条件编译
+#[cfg(debug_assertions)]
+fn log_verbose(msg: &amp;str) { eprintln!("[VERBOSE] {msg}"); }
+
+#[cfg(not(debug_assertions))]
+fn log_verbose(_msg: &amp;str) { /* release 模式下被编译移除 */ }
+
+// 组合条件：
+#[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+fn use_x86_path() { /* ... */ }
+
+#[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
+fn use_generic_path() { /* ... */ }
+
+// 运行时检查（条件仍然是编译时的，但可在表达式中使用）：
+if cfg!(target_os = "windows") {
+    println!("Running on Windows");
+}
+<span class="boring">}</span></code></pre>
+<h4 id="cargotoml-中的-feature-flag"><a class="header" href="#cargotoml-中的-feature-flag"><code>Cargo.toml</code> 中的 Feature Flag</a></h4>
+<pre><code class="language-toml"># Cargo.toml —— 替代 #ifdef FEATURE_FOO
+[features]
+default = ["json"]
+json = ["dep:serde_json"]       # 可选依赖
+verbose-logging = []            # 无额外依赖的标志
+gpu-support = ["dep:cuda-sys"]  # 可选 GPU 支持
+</code></pre>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// 基于 feature flag 的条件代码：
+#[cfg(feature = "json")]
+pub fn parse_config(data: &amp;str) -&gt; Result&lt;Config, Error&gt; {
+    serde_json::from_str(data).map_err(Error::from)
+}
+
+#[cfg(feature = "verbose-logging")]
+macro_rules! verbose {
+    ($($arg:tt)*) =&gt; { eprintln!("[VERBOSE] {}", format!($($arg)*)); }
+}
+#[cfg(not(feature = "verbose-logging"))]
+macro_rules! verbose {
+    ($($arg:tt)*) =&gt; { }; // 编译为空
+}
+<span class="boring">}</span></code></pre>
+<h4 id="define-macrox--macro_rules"><a class="header" href="#define-macrox--macro_rules"><code>#define MACRO(x)</code> → <code>macro_rules!</code></a></h4>
+<pre><code class="language-cpp">// C++ —— 文本替换，出了名的容易出错
+#define DIAG_CHECK(cond, msg) \
+    do { if (!(cond)) { log_error(msg); return false; } } while(0)
+</code></pre>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Rust —— 卫生的、类型检查的、操作语法树
+macro_rules! diag_check {
+    ($cond:expr, $msg:expr) =&gt; {
+        if !($cond) {
+            log_error($msg);
+            return Err(DiagError::CheckFailed($msg.to_string()));
+        }
+    };
+}
+
+fn run_test() -&gt; Result&lt;(), DiagError&gt; {
+    diag_check!(temperature &lt; 85.0, "GPU too hot");
+    diag_check!(voltage &gt; 0.8, "Rail voltage too low");
+    Ok(())
+}
+<span class="boring">}</span></code></pre>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>C++ 预处理器</th><th>Rust 等价物</th><th>优势</th></tr>
+</thead>
+<tbody>
+<tr><td><code>#define PI 3.14</code></td><td><code>const PI: f64 = 3.14;</code></td><td>有类型、有作用域、调试器可见</td></tr>
+<tr><td><code>#define MAX(a,b) ((a)&gt;(b)?(a):(b))</code></td><td><code>macro_rules!</code> 或泛型 <code>fn max&lt;T: Ord&gt;</code></td><td>无重复求值 bug</td></tr>
+<tr><td><code>#ifdef DEBUG</code></td><td><code>#[cfg(debug_assertions)]</code></td><td>编译器检查，无拼写错误风险</td></tr>
+<tr><td><code>#ifdef FEATURE_X</code></td><td><code>#[cfg(feature = "x")]</code></td><td>Cargo 管理 feature；感知依赖</td></tr>
+<tr><td><code>#include "header.h"</code></td><td><code>mod module;</code> + <code>use module::Item;</code></td><td>无 include 守卫，无循环包含</td></tr>
+<tr><td><code>#pragma once</code></td><td>不需要</td><td>每个 <code>.rs</code> 文件都是模块 —— 只包含一次</td></tr>
+</tbody>
+</table>
+</div>
+<hr>
+<h3 id="头文件和-include--模块和-use"><a class="header" href="#头文件和-include--模块和-use">头文件和 <code>#include</code> → 模块和 <code>use</code></a></h3>
+<p>在 C++ 中，编译模型围绕文本包含展开：</p>
+<pre><code class="language-cpp">// widget.h —— 每个使用 Widget 的翻译单元都要包含这个
+#pragma once
+#include &lt;string&gt;
+#include &lt;vector&gt;
+
+class Widget {
+public:
+    Widget(std::string name);
+    void activate();
+private:
+    std::string name_;
+    std::vector&lt;int&gt; data_;
+};
+</code></pre>
+<pre><code class="language-cpp">// widget.cpp —— 单独的定义
+#include "widget.h"
+Widget::Widget(std::string name) : name_(std::move(name)) {}
+void Widget::activate() { /* ... */ }
+</code></pre>
+<p>在 Rust 中，<strong>没有头文件、没有前向声明、没有 include 守卫</strong>：</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// src/widget.rs —— 声明和定义在同一个文件中
+pub struct Widget {
+    name: String,         // 默认私有
+    data: Vec&lt;i32&gt;,
+}
+
+impl Widget {
+    pub fn new(name: String) -&gt; Self {
+        Widget { name, data: Vec::new() }
+    }
+    pub fn activate(&amp;self) { /* ... */ }
+}
+<span class="boring">}</span></code></pre>
+<pre class="playground"><code class="language-rust">// src/main.rs —— 通过模块路径导入
+mod widget;  // 告诉编译器包含 src/widget.rs
+use widget::Widget;
+
+fn main() {
+    let w = Widget::new("sensor".to_string());
+    w.activate();
+}</code></pre>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>C++</th><th>Rust</th><th>为什么更好</th></tr>
+</thead>
+<tbody>
+<tr><td><code>#include "foo.h"</code></td><td>在父模块中 <code>mod foo;</code> + <code>use foo::Item;</code></td><td>无文本包含，无 ODR 违规</td></tr>
+<tr><td><code>#pragma once</code> / include 守卫</td><td>不需要</td><td>每个 <code>.rs</code> 文件都是模块 —— 只编译一次</td></tr>
+<tr><td>前向声明</td><td>不需要</td><td>编译器看到整个 crate；顺序无关</td></tr>
+<tr><td><code>class Foo;</code>（不完整类型）</td><td>不需要</td><td>无声明/定义分离</td></tr>
+<tr><td>每个类对应 <code>.h</code> + <code>.cpp</code></td><td>单个 <code>.rs</code> 文件</td><td>无声明/定义不匹配 bug</td></tr>
+<tr><td><code>using namespace std;</code></td><td><code>use std::collections::HashMap;</code></td><td>始终显式 —— 无全局命名空间污染</td></tr>
+<tr><td>嵌套 <code>namespace a::b</code></td><td>嵌套 <code>mod a { mod b { } }</code> 或 <code>a/b.rs</code></td><td>文件系统映射模块树</td></tr>
+</tbody>
+</table>
+</div>
+<hr>
+<h3 id="friend-和访问控制--模块可见性"><a class="header" href="#friend-和访问控制--模块可见性"><code>friend</code> 和访问控制 → 模块可见性</a></h3>
+<p>C++ 使用 <code>friend</code> 来授予特定类或函数对私有成员的访问权限。
+Rust 没有 <code>friend</code> 关键字 —— 取而代之的是，<strong>隐私以模块为作用域</strong>：</p>
+<pre><code class="language-cpp">// C++
+class Engine {
+    friend class Car;   // Car 可以访问私有成员
+    int rpm_;
+    void set_rpm(int r) { rpm_ = r; }
+public:
+    int rpm() const { return rpm_; }
+}
+</code></pre>
+<pre class="playground"><code class="language-rust">// Rust —— 同一模块中的项可以访问所有字段，无需 `friend`
+mod vehicle {
+    pub struct Engine {
+        rpm: u32,  // 对模块私有（不是对结构体私有！）
+    }
+
+    impl Engine {
+        pub fn new() -&gt; Self { Engine { rpm: 0 } }
+        pub fn rpm(&amp;self) -&gt; u32 { self.rpm }
+    }
+
+    pub struct Car {
+        engine: Engine,
+    }
+
+    impl Car {
+        pub fn new() -&gt; Self { Car { engine: Engine::new() } }
+        pub fn accelerate(&amp;mut self) {
+            self.engine.rpm = 3000; // ✅ 同一模块 —— 直接访问字段
+        }
+        pub fn rpm(&amp;self) -&gt; u32 {
+            self.engine.rpm  // ✅ 同一模块 —— 可以读取私有字段
+        }
+    }
+}
+
+fn main() {
+    let mut car = vehicle::Car::new();
+    car.accelerate();
+    // car.engine.rpm = 9000;  // ❌ 编译错误：`engine` 是私有的
+    println!("RPM: {}", car.rpm()); // ✅ Car 的公开方法
+}</code></pre>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>C++ 访问控制</th><th>Rust 等价物</th><th>作用域</th></tr>
+</thead>
+<tbody>
+<tr><td><code>private</code></td><td>（默认，无需关键字）</td><td>仅在同一模块内可访问</td></tr>
+<tr><td><code>protected</code></td><td>无直接等价物</td><td>使用 <code>pub(super)</code> 访问父模块</td></tr>
+<tr><td><code>public</code></td><td><code>pub</code></td><td>任何地方都可访问</td></tr>
+<tr><td><code>friend class Foo</code></td><td>将 <code>Foo</code> 放在同一模块中</td><td>模块级隐私替代 friend</td></tr>
+<tr><td>—</td><td><code>pub(crate)</code></td><td>在 crate 内可见，但对外部依赖者不可见</td></tr>
+<tr><td>—</td><td><code>pub(super)</code></td><td>仅对父模块可见</td></tr>
+<tr><td>—</td><td><code>pub(in crate::path)</code></td><td>在特定模块子树内可见</td></tr>
+</tbody>
+</table>
+</div>
+<blockquote>
+<p><strong>关键洞察</strong>：C++ 的隐私是按类的。Rust 的隐私是按模块的。
+这意味着你通过选择哪些类型放在同一模块中来控制访问 ——
+同处一个模块的类型可以完全访问彼此的私有字段。</p>
+</blockquote>
+<hr>
+<h3 id="volatile--原子操作和-read_volatilewrite_volatile"><a class="header" href="#volatile--原子操作和-read_volatilewrite_volatile"><code>volatile</code> → 原子操作和 <code>read_volatile</code>/<code>write_volatile</code></a></h3>
+<p>在 C++ 中，<code>volatile</code> 告诉编译器不要优化掉读写操作 —— 通常用于内存映射的硬件寄存器。<strong>Rust 没有 <code>volatile</code> 关键字。</strong></p>
+<pre><code class="language-cpp">// C++：用 volatile 访问硬件寄存器
+volatile uint32_t* const GPIO_REG = reinterpret_cast&lt;volatile uint32_t*&gt;(0x4002'0000);
+*GPIO_REG = 0x01;              // 写操作不会被优化掉
+uint32_t val = *GPIO_REG;     // 读操作不会被优化掉
+</code></pre>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Rust：显式的 volatile 操作 —— 仅在 unsafe 代码中
+use std::ptr;
+
+const GPIO_REG: *mut u32 = 0x4002_0000 as *mut u32;
+
+// SAFETY: GPIO_REG 是一个有效的内存映射 I/O 地址。
+unsafe {
+    ptr::write_volatile(GPIO_REG, 0x01);   // 写操作不会被优化掉
+    let val = ptr::read_volatile(GPIO_REG); // 读操作不会被优化掉
+}
+<span class="boring">}</span></code></pre>
+<p>对于<strong>并发共享状态</strong>（C++ <code>volatile</code> 的另一个常见用途），Rust 使用原子操作：</p>
+<pre><code class="language-cpp">// C++：volatile 不足以保证线程安全（常见错误！）
+volatile bool stop_flag = false;  // ❌ 数据竞争 —— C++11+ 中的未定义行为
+
+// 正确的 C++ 写法：
+std::atomic&lt;bool&gt; stop_flag{false};
+</code></pre>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Rust：原子操作是跨线程共享可变状态的唯一方式
+use std::sync::atomic::{AtomicBool, Ordering};
+
+static STOP_FLAG: AtomicBool = AtomicBool::new(false);
+
+// 从另一个线程：
+STOP_FLAG.store(true, Ordering::Release);
+
+// 检查：
+if STOP_FLAG.load(Ordering::Acquire) {
+    println!("Stopping");
+}
+<span class="boring">}</span></code></pre>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>C++ 用法</th><th>Rust 等价物</th><th>说明</th></tr>
+</thead>
+<tbody>
+<tr><td><code>volatile</code> 用于硬件寄存器</td><td><code>ptr::read_volatile</code> / <code>ptr::write_volatile</code></td><td>需要 <code>unsafe</code> —— 对 MMIO 是正确的</td></tr>
+<tr><td><code>volatile</code> 用于线程信号</td><td><code>AtomicBool</code> / <code>AtomicU32</code> 等</td><td>C++ 的 <code>volatile</code> 用于此场景也是错误的！</td></tr>
+<tr><td><code>std::atomic&lt;T&gt;</code></td><td><code>std::sync::atomic::AtomicT</code></td><td>相同语义，相同内存序</td></tr>
+<tr><td><code>std::atomic&lt;T&gt;::load(memory_order_acquire)</code></td><td><code>AtomicT::load(Ordering::Acquire)</code></td><td>1:1 映射</td></tr>
+</tbody>
+</table>
+</div>
+<hr>
+<h3 id="static-变量--staticconstlazylockoncelock"><a class="header" href="#static-变量--staticconstlazylockoncelock"><code>static</code> 变量 → <code>static</code>、<code>const</code>、<code>LazyLock</code>、<code>OnceLock</code></a></h3>
+<h4 id="基本的-static-和-const"><a class="header" href="#基本的-static-和-const">基本的 <code>static</code> 和 <code>const</code></a></h4>
+<pre><code class="language-cpp">// C++
+const int MAX_RETRIES = 5;                    // 编译时常量
+static std::string CONFIG_PATH = "/etc/app";  // 静态初始化 —— 顺序未定义！
+</code></pre>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Rust
+const MAX_RETRIES: u32 = 5;                   // 编译时常量，会被内联
+static CONFIG_PATH: &amp;str = "/etc/app";         // 'static 生命周期，固定地址
+<span class="boring">}</span></code></pre>
+<h4 id="静态初始化顺序问题"><a class="header" href="#静态初始化顺序问题">静态初始化顺序问题</a></h4>
+<p>C++ 有一个众所周知的问题：不同翻译单元中的全局构造函数以<strong>未指定的顺序</strong>执行。
+Rust 完全避免了这个问题 —— <code>static</code> 值必须是编译时常量（没有构造函数）。</p>
+<p>对于需要运行时初始化的全局变量，使用 <code>LazyLock</code>（Rust 1.80+）或 <code>OnceLock</code>：</p>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use std::sync::LazyLock;
+
+// 等同于 C++ 的 `static std::regex` —— 首次访问时初始化，线程安全
+static CONFIG_REGEX: LazyLock&lt;regex::Regex&gt; = LazyLock::new(|| {
+    regex::Regex::new(r"^[a-z]+_diag$").expect("invalid regex")
+});
+
+fn is_valid_diag(name: &amp;str) -&gt; bool {
+    CONFIG_REGEX.is_match(name)  // 首次调用初始化；后续调用很快
+}
+<span class="boring">}</span></code></pre>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use std::sync::OnceLock;
+
+// OnceLock：初始化一次，可以从运行时数据设置
+static DB_CONN: OnceLock&lt;String&gt; = OnceLock::new();
+
+fn init_db(connection_string: &amp;str) {
+    DB_CONN.set(connection_string.to_string())
+        .expect("DB_CONN already initialized");
+}
+
+fn get_db() -&gt; &amp;'static str {
+    DB_CONN.get().expect("DB not initialized")
+}
+<span class="boring">}</span></code></pre>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>C++</th><th>Rust</th><th>说明</th></tr>
+</thead>
+<tbody>
+<tr><td><code>const int X = 5;</code></td><td><code>const X: i32 = 5;</code></td><td>都是编译时。Rust 需要类型标注</td></tr>
+<tr><td><code>constexpr int X = 5;</code></td><td><code>const X: i32 = 5;</code></td><td>Rust 的 <code>const</code> 始终是 constexpr</td></tr>
+<tr><td><code>static int count = 0;</code>（文件作用域）</td><td><code>static COUNT: AtomicI32 = AtomicI32::new(0);</code></td><td>可变 static 需要 <code>unsafe</code> 或原子操作</td></tr>
+<tr><td><code>static std::string s = "hi";</code></td><td><code>static S: &amp;str = "hi";</code> 或 <code>LazyLock&lt;String&gt;</code></td><td>简单情况无运行时构造函数</td></tr>
+<tr><td><code>static MyObj obj;</code>（复杂初始化）</td><td><code>static OBJ: LazyLock&lt;MyObj&gt; = LazyLock::new(|| { ... });</code></td><td>线程安全、惰性、无初始化顺序问题</td></tr>
+<tr><td><code>thread_local</code></td><td><code>thread_local! { static X: Cell&lt;u32&gt; = Cell::new(0); }</code></td><td>相同语义</td></tr>
+</tbody>
+</table>
+</div>
+<hr>
+<h3 id="constexpr--const-fn"><a class="header" href="#constexpr--const-fn"><code>constexpr</code> → <code>const fn</code></a></h3>
+<p>C++ 的 <code>constexpr</code> 将函数和变量标记为可在编译时求值。
+Rust 使用 <code>const fn</code> 和 <code>const</code> 实现相同目的：</p>
+<pre><code class="language-cpp">// C++
+constexpr int factorial(int n) {
+    return n &lt;= 1 ? 1 : n * factorial(n - 1);
+}
+constexpr int val = factorial(5);  // 编译时计算 → 120
+</code></pre>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Rust
+const fn factorial(n: u32) -&gt; u32 {
+    if n &lt;= 1 { 1 } else { n * factorial(n - 1) }
+}
+const VAL: u32 = factorial(5);  // 编译时计算 → 120
+
+// 也可用于数组大小和 match 模式：
+const LOOKUP: [u32; 5] = [factorial(1), factorial(2), factorial(3),
+                           factorial(4), factorial(5)];
+<span class="boring">}</span></code></pre>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>C++</th><th>Rust</th><th>说明</th></tr>
+</thead>
+<tbody>
+<tr><td><code>constexpr int f()</code></td><td><code>const fn f() -&gt; i32</code></td><td>相同意图 —— 可在编译时求值</td></tr>
+<tr><td><code>constexpr</code> 变量</td><td><code>const</code> 变量</td><td>Rust 的 <code>const</code> 始终是编译时</td></tr>
+<tr><td><code>consteval</code>（C++20）</td><td>无等价物</td><td><code>const fn</code> 也可以在运行时执行</td></tr>
+<tr><td><code>if constexpr</code>（C++17）</td><td>无等价物（使用 <code>cfg!</code> 或泛型）</td><td>特征特化可以填补部分用例</td></tr>
+<tr><td><code>constinit</code>（C++20）</td><td>带 const 初始化器的 <code>static</code></td><td>Rust 的 <code>static</code> 默认必须是 const 初始化的</td></tr>
+</tbody>
+</table>
+</div>
+<blockquote>
+<p><strong><code>const fn</code> 的当前限制</strong>（截至 Rust 1.82 已稳定）：</p>
+<ul>
+<li>不支持特征方法（不能在 const 上下文中对 <code>Vec</code> 调用 <code>.len()</code>）</li>
+<li>不支持堆分配（<code>Box::new</code>、<code>Vec::new</code> 不是 const）</li>
+<li><del>不支持浮点运算</del> —— <strong>已在 Rust 1.82 中稳定</strong></li>
+<li>不能使用 <code>for</code> 循环（使用递归或带手动索引的 <code>while</code>）</li>
+</ul>
+</blockquote>
+<hr>
+<h3 id="sfinae-和-enable_if--特征约束和-where-子句"><a class="header" href="#sfinae-和-enable_if--特征约束和-where-子句">SFINAE 和 <code>enable_if</code> → 特征约束和 <code>where</code> 子句</a></h3>
+<p>在 C++ 中，SFINAE（替换失败不是错误）是条件泛型编程背后的机制。
+它功能强大但出了名的难以阅读。Rust 用<strong>特征约束</strong>完全替代了它：</p>
+<pre><code class="language-cpp">// C++：基于 SFINAE 的条件函数（C++20 之前）
+template&lt;typename T,
+         std::enable_if_t&lt;std::is_integral_v&lt;T&gt;, int&gt; = 0&gt;
+T double_it(T val) { return val * 2; }
+
+template&lt;typename T,
+         std::enable_if_t&lt;std::is_floating_point_v&lt;T&gt;, int&gt; = 0&gt;
+T double_it(T val) { return val * 2.0; }
+
+// C++20 concepts —— 更清晰但仍然冗长：
+template&lt;std::integral T&gt;
+T double_it(T val) { return val * 2; }
+</code></pre>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Rust：特征约束 —— 可读、可组合、错误信息优秀
+use std::ops::Mul;
+
+fn double_it&lt;T: Mul&lt;Output = T&gt; + From&lt;u8&gt;&gt;(val: T) -&gt; T {
+    val * T::from(2)
+}
+
+// 或用 where 子句处理复杂约束：
+fn process&lt;T&gt;(val: T) -&gt; String
+where
+    T: std::fmt::Display + Clone + Send,
+{
+    format!("Processing: {}", val)
+}
+
+// 通过独立 impl 实现条件行为（替代 SFINAE 重载）：
+trait Describable {
+    fn describe(&amp;self) -&gt; String;
+}
+
+impl Describable for u32 {
+    fn describe(&amp;self) -&gt; String { format!("integer: {self}") }
+}
+
+impl Describable for f64 {
+    fn describe(&amp;self) -&gt; String { format!("float: {self:.2}") }
+}
+<span class="boring">}</span></code></pre>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>C++ 模板元编程</th><th>Rust 等价物</th><th>可读性</th></tr>
+</thead>
+<tbody>
+<tr><td><code>std::enable_if_t&lt;cond&gt;</code></td><td><code>where T: Trait</code></td><td>🟢 清晰的英语</td></tr>
+<tr><td><code>std::is_integral_v&lt;T&gt;</code></td><td>对数值特征或特定类型的约束</td><td>🟢 无 <code>_v</code> / <code>_t</code> 后缀</td></tr>
+<tr><td>SFINAE 重载集</td><td>独立的 <code>impl Trait for ConcreteType</code> 块</td><td>🟢 每个 impl 独立存在</td></tr>
+<tr><td><code>if constexpr (std::is_same_v&lt;T, int&gt;)</code></td><td>通过特征 impl 实现特化</td><td>🟢 编译时分发</td></tr>
+<tr><td>C++20 <code>concept</code></td><td><code>trait</code></td><td>🟢 几乎相同的意图</td></tr>
+<tr><td><code>requires</code> 子句</td><td><code>where</code> 子句</td><td>🟢 相同位置，类似语法</td></tr>
+<tr><td>编译失败深藏在模板内部</td><td>编译失败在调用点，提示特征不匹配</td><td>🟢 无 200 行错误级联</td></tr>
+</tbody>
+</table>
+</div>
+<blockquote>
+<p><strong>关键洞察</strong>：C++20 的 concepts 是最接近 Rust 特征的东西。
+如果你熟悉 C++20 concepts，可以把 Rust 特征看作是从 1.0 起就是
+一等语言特性的 concepts，具有一致的实现模型（特征 impl）
+而非鸭子类型。</p>
+</blockquote>
+<hr>
+<h3 id="stdfunction--函数指针impl-fn-和-boxdyn-fn"><a class="header" href="#stdfunction--函数指针impl-fn-和-boxdyn-fn"><code>std::function</code> → 函数指针、<code>impl Fn</code> 和 <code>Box&lt;dyn Fn&gt;</code></a></h3>
+<p>C++ 的 <code>std::function&lt;R(Args...)&gt;</code> 是类型擦除的可调用对象。
+Rust 有三种选择，各有不同的权衡：</p>
+<pre><code class="language-cpp">// C++：一刀切（堆分配、类型擦除）
+#include &lt;functional&gt;
+std::function&lt;int(int)&gt; make_adder(int n) {
+    return [n](int x) { return x + n; };
+}
+</code></pre>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Rust 选项 1：fn 指针 —— 简单、无捕获、无分配
+fn add_one(x: i32) -&gt; i32 { x + 1 }
+let f: fn(i32) -&gt; i32 = add_one;
+println!("{}", f(5)); // 6
+
+// Rust 选项 2：impl Fn —— 单态化、零开销、可捕获
+fn apply(val: i32, f: impl Fn(i32) -&gt; i32) -&gt; i32 { f(val) }
+let n = 10;
+let result = apply(5, |x| x + n);  // 闭包捕获 `n`
+
+// Rust 选项 3：Box&lt;dyn Fn&gt; —— 类型擦除、堆分配（类似 std::function）
+fn make_adder(n: i32) -&gt; Box&lt;dyn Fn(i32) -&gt; i32&gt; {
+    Box::new(move |x| x + n)
+}
+let adder = make_adder(10);
+println!("{}", adder(5));  // 15
+
+// 存储异构可调用对象（类似 vector&lt;function&lt;int(int)&gt;&gt;）：
+let callbacks: Vec&lt;Box&lt;dyn Fn(i32) -&gt; i32&gt;&gt; = vec![
+    Box::new(|x| x + 1),
+    Box::new(|x| x * 2),
+    Box::new(make_adder(100)),
+];
+for cb in &amp;callbacks {
+    println!("{}", cb(5));  // 6, 10, 105
+}
+<span class="boring">}</span></code></pre>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>使用场景</th><th>C++ 等价物</th><th>Rust 选择</th></tr>
+</thead>
+<tbody>
+<tr><td>顶层函数，无捕获</td><td>函数指针</td><td><code>fn(Args) -&gt; Ret</code></td></tr>
+<tr><td>接受可调用对象的泛型函数</td><td>模板参数</td><td><code>impl Fn(Args) -&gt; Ret</code>（静态分发）</td></tr>
+<tr><td>泛型中的特征约束</td><td><code>template&lt;typename F&gt;</code></td><td><code>F: Fn(Args) -&gt; Ret</code></td></tr>
+<tr><td>存储的可调用对象，类型擦除</td><td><code>std::function&lt;R(Args)&gt;</code></td><td><code>Box&lt;dyn Fn(Args) -&gt; Ret&gt;</code></td></tr>
+<tr><td>会修改状态的回调</td><td>带可变 lambda 的 <code>std::function</code></td><td><code>Box&lt;dyn FnMut(Args) -&gt; Ret&gt;</code></td></tr>
+<tr><td>一次性回调（被消耗）</td><td><code>std::function</code>（移动）</td><td><code>Box&lt;dyn FnOnce(Args) -&gt; Ret&gt;</code></td></tr>
+</tbody>
+</table>
+</div>
+<blockquote>
+<p><strong>性能说明</strong>：<code>impl Fn</code> 零开销（单态化，类似 C++ 模板）。
+<code>Box&lt;dyn Fn&gt;</code> 与 <code>std::function</code> 开销相同（虚表 + 堆分配）。
+除非需要存储异构可调用对象，否则优先使用 <code>impl Fn</code>。</p>
+</blockquote>
+<hr>
+<h3 id="容器映射c-stl--rust-stdcollections"><a class="header" href="#容器映射c-stl--rust-stdcollections">容器映射：C++ STL → Rust <code>std::collections</code></a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>C++ STL 容器</th><th>Rust 等价物</th><th>说明</th></tr>
+</thead>
+<tbody>
+<tr><td><code>std::vector&lt;T&gt;</code></td><td><code>Vec&lt;T&gt;</code></td><td>API 几乎相同。Rust 默认检查边界</td></tr>
+<tr><td><code>std::array&lt;T, N&gt;</code></td><td><code>[T; N]</code></td><td>栈分配的固定大小数组</td></tr>
+<tr><td><code>std::deque&lt;T&gt;</code></td><td><code>std::collections::VecDeque&lt;T&gt;</code></td><td>环形缓冲区。两端高效 push/pop</td></tr>
+<tr><td><code>std::list&lt;T&gt;</code></td><td><code>std::collections::LinkedList&lt;T&gt;</code></td><td>在 Rust 中很少使用 —— <code>Vec</code> 几乎总是更快</td></tr>
+<tr><td><code>std::forward_list&lt;T&gt;</code></td><td>无等价物</td><td>使用 <code>Vec</code> 或 <code>VecDeque</code></td></tr>
+<tr><td><code>std::unordered_map&lt;K, V&gt;</code></td><td><code>std::collections::HashMap&lt;K, V&gt;</code></td><td>默认使用 <code>SipHash</code>（抗 DoS）</td></tr>
+<tr><td><code>std::map&lt;K, V&gt;</code></td><td><code>std::collections::BTreeMap&lt;K, V&gt;</code></td><td>B 树；键有序；需要 <code>K: Ord</code></td></tr>
+<tr><td><code>std::unordered_set&lt;T&gt;</code></td><td><code>std::collections::HashSet&lt;T&gt;</code></td><td>需要 <code>T: Hash + Eq</code></td></tr>
+<tr><td><code>std::set&lt;T&gt;</code></td><td><code>std::collections::BTreeSet&lt;T&gt;</code></td><td>有序集合；需要 <code>T: Ord</code></td></tr>
+<tr><td><code>std::priority_queue&lt;T&gt;</code></td><td><code>std::collections::BinaryHeap&lt;T&gt;</code></td><td>默认最大堆（与 C++ 相同）</td></tr>
+<tr><td><code>std::stack&lt;T&gt;</code></td><td><code>Vec&lt;T&gt;</code> 配合 <code>.push()</code> / <code>.pop()</code></td><td>无需单独的栈类型</td></tr>
+<tr><td><code>std::queue&lt;T&gt;</code></td><td><code>VecDeque&lt;T&gt;</code> 配合 <code>.push_back()</code> / <code>.pop_front()</code></td><td>无需单独的队列类型</td></tr>
+<tr><td><code>std::string</code></td><td><code>String</code></td><td>保证 UTF-8，非空终止</td></tr>
+<tr><td><code>std::string_view</code></td><td><code>&amp;str</code></td><td>借用的 UTF-8 切片</td></tr>
+<tr><td><code>std::span&lt;T&gt;</code>（C++20）</td><td><code>&amp;[T]</code> / <code>&amp;mut [T]</code></td><td>Rust 切片从 1.0 起就是一等类型</td></tr>
+<tr><td><code>std::tuple&lt;A, B, C&gt;</code></td><td><code>(A, B, C)</code></td><td>一等语法，可解构</td></tr>
+<tr><td><code>std::pair&lt;A, B&gt;</code></td><td><code>(A, B)</code></td><td>就是 2 元素元组</td></tr>
+<tr><td><code>std::bitset&lt;N&gt;</code></td><td>标准库无等价物</td><td>使用 <code>bitvec</code> crate 或 <code>[u8; N/8]</code></td></tr>
+</tbody>
+</table>
+</div>
+<p><strong>关键区别</strong>：</p>
+<ul>
+<li>Rust 的 <code>HashMap</code>/<code>HashSet</code> 要求 <code>K: Hash + Eq</code> —— 编译器在类型层面强制执行，不像 C++ 中使用不可哈希的键会在 STL 深处给出模板错误</li>
+<li><code>Vec</code> 索引（<code>v[i]</code>）默认在越界时 panic。使用 <code>.get(i)</code> 获取 <code>Option&lt;&amp;T&gt;</code>，或使用迭代器完全避免边界检查</li>
+<li>没有 <code>std::multimap</code> 或 <code>std::multiset</code> —— 使用 <code>HashMap&lt;K, Vec&lt;V&gt;&gt;</code> 或 <code>BTreeMap&lt;K, Vec&lt;V&gt;&gt;</code></li>
+</ul>
+<hr>
+<h3 id="异常安全--panic-安全"><a class="header" href="#异常安全--panic-安全">异常安全 → Panic 安全</a></h3>
+<p>C++ 定义了三个级别的异常安全（Abrahams 保证）：</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>C++ 级别</th><th>含义</th><th>Rust 等价物</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>不抛出</strong></td><td>函数永不抛出异常</td><td>函数永不 panic（返回 <code>Result</code>）</td></tr>
+<tr><td><strong>强保证</strong>（提交或回滚）</td><td>如果抛出异常，状态不变</td><td>所有权模型使这变得自然 —— 如果 <code>?</code> 提前返回，部分构建的值会被丢弃</td></tr>
+<tr><td><strong>基本保证</strong></td><td>如果抛出异常，不变量得到保持</td><td>Rust 的默认行为 —— <code>Drop</code> 运行，无泄漏</td></tr>
+</tbody>
+</table>
+</div>
+<h4 id="rust-的所有权模型如何帮助"><a class="header" href="#rust-的所有权模型如何帮助">Rust 的所有权模型如何帮助</a></h4>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// 免费获得强保证 —— 如果 file.write() 失败，config 不变
+fn update_config(config: &amp;mut Config, path: &amp;str) -&gt; Result&lt;(), Error&gt; {
+    let new_data = fetch_from_network()?; // Err → 提前返回，config 不变
+    let validated = validate(new_data)?;   // Err → 提前返回，config 不变
+    *config = validated;                   // 仅在成功时到达（提交）
+    Ok(())
+}
+<span class="boring">}</span></code></pre>
+<p>在 C++ 中，实现强保证需要手动回滚或复制并交换惯用法。在 Rust 中，<code>?</code> 传播默认为大多数代码提供了强保证。</p>
+<h4 id="catch_unwind--rust-的-catch-等价物"><a class="header" href="#catch_unwind--rust-的-catch-等价物"><code>catch_unwind</code> —— Rust 的 <code>catch(...)</code> 等价物</a></h4>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use std::panic;
+
+// 捕获 panic（类似 C++ 的 catch(...)）—— 很少需要
+let result = panic::catch_unwind(|| {
+    // 可能 panic 的代码
+    let v = vec![1, 2, 3];
+    v[10]  // Panic！（索引越界）
+});
+
+match result {
+    Ok(val) =&gt; println!("Got: {val}"),
+    Err(_) =&gt; eprintln!("Caught a panic — cleaned up"),
+}
+<span class="boring">}</span></code></pre>
+<h4 id="unwindsafe--标记类型为-panic-安全"><a class="header" href="#unwindsafe--标记类型为-panic-安全"><code>UnwindSafe</code> —— 标记类型为 panic 安全</a></h4>
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use std::panic::UnwindSafe;
+
+// &amp;mut 背后的类型默认不是 UnwindSafe 的 —— panic 可能使它们
+// 处于部分修改的状态
+fn safe_execute&lt;F: FnOnce() + UnwindSafe&gt;(f: F) {
+    let _ = std::panic::catch_unwind(f);
+}
+
+// 当你已审计代码时，使用 AssertUnwindSafe 来覆盖：
+use std::panic::AssertUnwindSafe;
+let mut data = vec![1, 2, 3];
+let _ = std::panic::catch_unwind(AssertUnwindSafe(|| {
+    data.push(4);
+}));
+<span class="boring">}</span></code></pre>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>C++ 异常模式</th><th>Rust 等价物</th></tr>
+</thead>
+<tbody>
+<tr><td><code>throw MyException()</code></td><td><code>return Err(MyError::...)</code>（首选）或 <code>panic!("...")</code></td></tr>
+<tr><td><code>try { } catch (const E&amp; e)</code></td><td><code>match result { Ok(v) =&gt; ..., Err(e) =&gt; ... }</code> 或 <code>?</code></td></tr>
+<tr><td><code>catch (...)</code></td><td><code>std::panic::catch_unwind(...)</code></td></tr>
+<tr><td><code>noexcept</code></td><td><code>-&gt; Result&lt;T, E&gt;</code>（错误是值，不是异常）</td></tr>
+<tr><td>栈展开中的 RAII 清理</td><td><code>Drop::drop()</code> 在 panic 展开期间运行</td></tr>
+<tr><td><code>std::uncaught_exceptions()</code></td><td><code>std::thread::panicking()</code></td></tr>
+<tr><td><code>-fno-exceptions</code> 编译标志</td><td><code>Cargo.toml</code> [profile] 中的 <code>panic = "abort"</code></td></tr>
+</tbody>
+</table>
+</div>
+<blockquote>
+<p><strong>总结</strong>：在 Rust 中，大多数代码使用 <code>Result&lt;T, E&gt;</code> 而非异常，
+使错误路径显式且可组合。<code>panic!</code> 保留给 bug
+（如 <code>assert!</code> 失败），而非常规错误。这意味着“异常安全“
+在很大程度上不是问题 —— 所有权系统自动处理清理工作。</p>
+</blockquote>
+<hr>
+<h2 id="c-到-rust-迁移模式"><a class="header" href="#c-到-rust-迁移模式">C++ 到 Rust 迁移模式</a></h2>
+<h3 id="快速参考c--rust-惯用法映射"><a class="header" href="#快速参考c--rust-惯用法映射">快速参考：C++ → Rust 惯用法映射</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th><strong>C++ 模式</strong></th><th><strong>Rust 惯用法</strong></th><th><strong>说明</strong></th></tr>
+</thead>
+<tbody>
+<tr><td><code>class Derived : public Base</code></td><td><code>enum Variant { A {...}, B {...} }</code></td><td>封闭集合优先使用枚举</td></tr>
+<tr><td><code>virtual void method() = 0</code></td><td><code>trait MyTrait { fn method(&amp;self); }</code></td><td>用于开放/可扩展接口</td></tr>
+<tr><td><code>dynamic_cast&lt;Derived*&gt;(ptr)</code></td><td><code>match value { Variant::A(data) =&gt; ..., }</code></td><td>穷举匹配，无运行时失败</td></tr>
+<tr><td><code>vector&lt;unique_ptr&lt;Base&gt;&gt;</code></td><td><code>Vec&lt;Box&lt;dyn Trait&gt;&gt;</code></td><td>仅在真正需要多态时使用</td></tr>
+<tr><td><code>shared_ptr&lt;T&gt;</code></td><td><code>Rc&lt;T&gt;</code> 或 <code>Arc&lt;T&gt;</code></td><td>优先使用 <code>Box&lt;T&gt;</code> 或拥有的值</td></tr>
+<tr><td><code>enable_shared_from_this&lt;T&gt;</code></td><td>Arena 模式（<code>Vec&lt;T&gt;</code> + 索引）</td><td>完全消除引用循环</td></tr>
+<tr><td>每个类中的 <code>Base* m_pFramework</code></td><td><code>fn execute(&amp;mut self, ctx: &amp;mut Context)</code></td><td>传递上下文，不要存储指针</td></tr>
+<tr><td><code>try { } catch (...) { }</code></td><td><code>match result { Ok(v) =&gt; ..., Err(e) =&gt; ... }</code></td><td>或使用 <code>?</code> 传播</td></tr>
+<tr><td><code>std::optional&lt;T&gt;</code></td><td><code>Option&lt;T&gt;</code></td><td>必须 <code>match</code>，不会遗忘 None</td></tr>
+<tr><td><code>const std::string&amp;</code> 参数</td><td><code>&amp;str</code> 参数</td><td>同时接受 <code>String</code> 和 <code>&amp;str</code></td></tr>
+<tr><td><code>enum class Foo { A, B, C }</code></td><td><code>enum Foo { A, B, C }</code></td><td>Rust 枚举还可以携带数据</td></tr>
+<tr><td><code>auto x = std::move(obj)</code></td><td><code>let x = obj;</code></td><td>移动是默认行为，无需 <code>std::move</code></td></tr>
+<tr><td>CMake + make + lint</td><td><code>cargo build / test / clippy / fmt</code></td><td>一个工具搞定一切</td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="迁移策略"><a class="header" href="#迁移策略">迁移策略</a></h3>
+<ol>
+<li><strong>从数据类型开始</strong>：先翻译结构体和枚举 —— 这会迫使你思考所有权</li>
+<li><strong>将工厂转换为枚举</strong>：如果工厂创建不同的派生类型，它应该变成 <code>enum</code> + <code>match</code></li>
+<li><strong>将上帝对象转换为组合结构体</strong>：将相关字段分组到专注的结构体中</li>
+<li><strong>用借用替换指针</strong>：将存储的 <code>Base*</code> 指针转换为带生命周期约束的 <code>&amp;'a T</code> 借用</li>
+<li><strong>谨慎使用 <code>Box&lt;dyn Trait&gt;</code></strong>：仅用于插件系统和测试模拟</li>
+<li><strong>让编译器引导你</strong>：Rust 的错误信息非常优秀 —— 仔细阅读它们</li>
+</ol>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="ch17-4-logging-and-tracing-ecosystem.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="ch19-macros.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="ch17-4-logging-and-tracing-ecosystem.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="ch19-macros.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+        <script>
+            window.playground_line_numbers = true;
+        </script>
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+        <script src="ace-2a3cd908.js"></script>
+        <script src="mode-rust-2c9d5c9a.js"></script>
+        <script src="editor-16ca416c.js"></script>
+        <script src="theme-dawn-4493f9c8.js"></script>
+        <script src="theme-tomorrow_night-9dbe62a9.js"></script>
+
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-09f2665d.js"></script>
+
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid-eefea253.min.js"></script>
+        <script src="mermaid-init-ccf746f1.js"></script>
+
+
+
+    </div>
+    </body>
+</html>
