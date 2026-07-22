@@ -104,3 +104,6 @@ Thumbs.db
 
 # Generated PDFs
 Slides/pdfs
+
+# Slides moved to separate repository
+Slides/
