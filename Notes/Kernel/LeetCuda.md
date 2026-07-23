@@ -1,5 +1,233 @@
 # LeetCUDA 学习笔记
 
+## 前置知识：Grid、Block、Warp、Thread 的关系
+
+### 层级结构
+
+```
+Grid（整个 kernel 启动）
+├── Block (0,0)        Block (1,0)        Block (2,0)  ...
+│   ├── Warp 0 (线程 0~31)
+│   ├── Warp 1 (线程 32~63)
+│   ├── Warp 2 (线程 64~95)
+│   └── ...
+├── Block (0,1)        Block (1,1)        ...
+└── ...
+```
+
+| 概念 | 包含 | 共享内存？ | 可同步？ | 最大数量 |
+|---|---|---|---|---|
+| **Grid** | 多个 Block | ✗ block 间不共享 | ✗ 不能跨 block 同步 | 2³¹-1 个 block |
+| **Block** | 多个 Warp | ✓ shared memory | ✓ `__syncthreads()` | 1024 线程/block |
+| **Warp** | 32 个 Thread | ✓ 隐式（同周期执行） | ✓ 隐式（lockstep） | 32 线程/warp |
+| **Thread** | 1 个执行单元 | 寄存器 + 局部变量 | — | — |
+
+### Grid 和 Block 都可以是 1D、2D 或 3D
+
+```cpp
+// 1D：<<<gridDim.x, blockDim.x>>>
+kernel<<<256, 256>>>();  // 256 个 block，每 block 256 线程
+
+// 2D：<<<(gridDim.x, gridDim.y), (blockDim.x, blockDim.y)>>>
+kernel<<<dim3(16, 16), dim3(32, 32)>>>();  // 16×16 个 block，每 block 32×32 线程
+
+// 3D：<<<(gx, gy, gz), (bx, by, bz)>>>
+kernel<<<dim3(8, 8, 8), dim3(4, 4, 4)>>>();  // 8×8×8 个 block，每 block 4×4×4 线程
+```
+
+### 线程索引计算
+
+```cpp
+// 全局线程 ID（1D）
+int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+// 全局线程 ID（2D）
+int gx = blockIdx.x * blockDim.x + threadIdx.x;  // 列
+int gy = blockIdx.y * blockDim.y + threadIdx.y;  // 行
+
+// Warp 内的 lane 编号
+int lane = threadIdx.x % 32;  // 当 blockDim.x ≥ 32 时，lane = threadIdx.x
+
+// Warp 编号（block 内）
+int warp = threadIdx.x / 32;
+```
+
+### Warp：硬件调度的基本单位
+
+```
+一个 Warp = 32 个线程，SIMT（单指令多线程）执行
+
+所有 32 个线程在同一条指令上同步执行：
+  ┌────────────────────────────────────────┐
+  │ T0: add r1, r2, r3                     │
+  │ T1: add r1, r2, r3     ← 同一条指令    │
+  │ T2: add r1, r2, r3                     │
+  │ ...                                    │
+  │ T31: add r1, r2, r3                    │
+  └────────────────────────────────────────┘
+  → 1 个周期发射 1 条指令，32 个线程同时执行
+```
+
+> [!important] Warp Divergence（分支分歧）
+> 如果 warp 内的线程走了不同的分支：
+> ```cpp
+> if (lane < 16)  // T0~T15 走 if，T16~T31 走 else
+>     do_A();
+> else
+>     do_B();
+> ```
+> GPU 会 **串行执行两条路径**：先执行 T0~T15 的 `do_A()`（T16~31 空转），再执行 T16~T31 的 `do_B()`（T0~15 空转）。性能减半。
+
+### SM（Streaming Multiprocessor）与 Occupancy
+
+```
+GPU 芯片
+├── SM 0
+│   ├── Warp Scheduler 0 ──→ 从 active warps 池中选一个 warp 发射指令
+│   ├── Warp Scheduler 1
+│   ├── CUDA Cores (FP32/INT32)
+│   ├── Special Function Units (sin/cos/exp)
+│   ├── Register File（所有 active warp 共享）
+│   └── Shared Memory / L1 Cache
+├── SM 1
+└── ...
+```
+
+**Occupancy = SM 上 active warp 数 / SM 最大 warp 数**
+
+影响 occupancy 的因素：
+
+| 因素 | 影响 |
+|---|---|
+| 每线程寄存器数 | 用越多 → SM 能容纳的 warp 越少 |
+| Shared Memory 用量 | 用越多 → SM 能容纳的 block 越少 |
+| Block 大小 | 太小（<64 线程）浪费 SM 资源；太大（1024）限制并发 block 数 |
+
+> [!tip] Occupancy 不是越高越好
+> Occupancy 低不代表性能差。计算密集型 kernel 只需 2~3 个 warp 就能隐藏计算延迟。
+> 但 occupancy 太低（<25%）通常意味着 latency hiding 不足。
+
+### Latency Hiding（延迟隐藏）
+
+GPU 的核心优化策略：当一个 warp 等待内存时，调度器切换到另一个 ready warp 执行。
+
+```
+只有 1 个 warp：
+  warp 0: [加载] → [等待内存 400 cycles] → [计算] → [等待内存] → [计算]
+                    ↑ SM 空转 400 周期
+
+4 个 warp：
+  warp 0: [加载] → [等待] → [计算] → [等待] → [计算]
+  warp 1:          [加载] → [等待] → [计算] → [等待]
+  warp 2:                   [加载] → [等待] → [计算]
+  warp 3:                            [加载] → [等待]
+  → SM 始终有 warp 在执行，内存延迟被"隐藏"
+```
+
+> [!note] 延迟类型与所需 warp 数
+> - **计算延迟** ~4-8 cycles → 2~3 个 warp 即可隐藏
+> - **内存延迟** ~200-400 cycles → 需要 10+ 个 active warp 才能完全隐藏
+> - **公式**：所需 warp 数 ≥ `latency × issue_rate / throughput`
+
+### 常见 Block 大小选择
+
+| Block 大小 | 适用场景 |
+|---|---|
+| 32 | 极简单 kernel（每线程工作量大，如 SGEMV 每 warp 一行） |
+| 128 | 通用，occupancy 好 |
+| 256 | 最常用，平衡 occupancy 和每线程寄存器数 |
+| 512~1024 | 需要 block 内大量 reduce 时（如 softmax 每行归约） |
+
+> [!tip] 实用规则
+> 1. Block 大小通常是 32 的倍数（warp 对齐）
+> 2. 256 是安全的默认值
+> 3. 用 `__launch_bounds__(256, 4)` 告诉编译器"最多 256 线程/block，至少 4 个 block/SM"，编译器会优化寄存器分配
+
+---
+
+## 向量化加载：x4、x2、x8、x8_pack 是什么？
+
+CUDA kernel 名字里的 `f32x4`、`f16x2`、`f16x8_pack` 表示 **每线程处理多少个元素**，核心目的是最大化内存带宽。
+
+### 为什么需要向量化？
+
+```
+标量加载 (f32):
+  每线程 1 条 LD.32 指令 → 4 bytes
+  32 线程 × 4B = 128B = 1 个 cache line ✓
+
+标量加载 (f16):
+  每线程 1 条 LD.32 指令 → 2 bytes (浪费一半)
+  32 线程 × 2B = 64B = 半个 cache line ✗
+
+f16x2 加载:
+  每线程 1 条 LD.32 指令 → 4 bytes (2 个 half)
+  32 线程 × 4B = 128B = 1 个 cache line ✓
+
+f16x8_pack 加载:
+  每线程 1 条 LD.128 指令 → 16 bytes (8 个 half)
+  32 线程 × 16B = 512B = 4 个 cache lines ✓
+```
+
+### 各种向量类型的含义
+
+| 名称 | 类型 | 每线程字节 | 加载指令 | 32 线程总访问 |
+|---|---|---|---|---|
+| f32 | `float` | 4B | `LD.32` | 128B |
+| f32x4 | `float4` | 16B | `LD.128` | 512B |
+| f16 | `half` | 2B | `LD.32`（浪费） | 64B |
+| f16x2 | `half2` | 4B | `LD.32` | 128B |
+| f16x8 | `half2×4` | 16B | 4×`LD.32` | 512B |
+| f16x8_pack | `half[8]` | 16B | `LD.128` | 512B |
+
+### f16x8 vs f16x8_pack 的区别
+
+```
+f16x8:
+  half2 r0 = HALF2(x[idx+0]);  // 2 个 half，LD.32
+  half2 r1 = HALF2(x[idx+2]);  // 2 个 half，LD.32
+  half2 r2 = HALF2(x[idx+4]);  // 2 个 half，LD.32
+  half2 r3 = HALF2(x[idx+6]);  // 2 个 half，LD.32
+  → 4 条独立的 32-bit 加载指令
+
+f16x8_pack:
+  half pack[8];
+  LDST128BITS(pack[0]) = LDST128BITS(x[idx]);  // 1 条 128-bit 加载
+  → 1 条 LD.E.128 指令，把 16 字节一次搬进寄存器
+```
+
+> [!tip] pack 版本更快
+> `f16x8` 用 4 条 32-bit 指令，`f16x8_pack` 用 1 条 128-bit 指令。
+> 同样搬运 16 字节，指令数少 4 倍 → 指令调度开销更低。
+> 但要求地址 **16 字节对齐**，否则会段错误。
+
+### 向量化不影响计算语义
+
+```cpp
+// 标量：每线程算 1 个元素
+float val = x[idx];
+float result = op(val);
+y[idx] = result;
+
+// f32x4：每线程算 4 个元素，但每个元素独立处理
+float4 v = FLOAT4(x[idx]);
+float4 r;
+r.x = op(v.x);
+r.y = op(v.y);
+r.z = op(v.z);
+r.w = op(v.w);
+FLOAT4(y[idx]) = r;
+```
+
+> [!note] Grid 配置要跟着变
+> 如果每线程处理 4 个元素，grid 大小要除以 4：
+> ```
+> 标量:  <<<ceil(N/256), 256>>>
+> f32x4: <<<ceil(N/(256*4)), 256>>>  → 每线程处理 4 个，block 数少 4 倍
+> ```
+
+---
+
 ## 矩阵转置 (Matrix Transpose)
 
 矩阵转置 `x[row][col] → y[col][row]`，本质是 `x[r][c]` 写到 `y[c][r]`。
@@ -632,6 +860,7 @@ final = __shfl_sync(0xffffffff, final, 0);    // broadcast 给所有线程
 ### Softmax Per Token Kernel
 
 ```cpp
+// launch: <<<(N/K, 1, 1), (K, 1, 1)>>>
 template <const int NUM_THREADS = 256>
 __global__ void softmax_f32_per_token_kernel(float* x, float* y, int N) {
   const int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -736,6 +965,10 @@ dot(RoPE(Q, pos_q), RoPE(K, pos_k))
 
 #### v1: 扁平索引（每线程处理一对元素）
 
+```
+launch: <<<(N/256, 1, 1), (256, 1, 1)>>>  N = seq_len * head_dim/2
+```
+
 ```cpp
 __global__ void rope_f32_kernel(float* x, float* out, int seq_len, int N) {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -762,15 +995,19 @@ __global__ void rope_f32_kernel(float* x, float* out, int seq_len, int N) {
 ```
 idx:  0    1    2    3    4    5    6    7
 x:   x0   x1   x2   x3   x4   x5   x6   x7
-      ─pair─  ─pair─  ─pair─  ─pair─
+      ─pair─    ─pair─    ─pair─    ─pair─
 pos:  0     0     1     1     2     2     3     3
 dim:  0     0     0     0     1     1     1     1
 ```
 
 #### v2: block per token（更自然的索引）
 
+```
+launch: <<<(seq_len, 1, 1), (N=head_dim/2, 1, 1)>>>
+```
+
 ```cpp
-__global__ void rope_f32_v2_kernel(float* x, float* out, int seq_len, int N) {
+__global__ void rope_f32_v2_kernel(float* x, float* out, int seq_len, int N) { // N = head_dim / 2
   int token_pos = blockIdx.x;   // 每个 block 处理一个 token
   int tid = threadIdx.x;        // 每个线程处理该 token 的一对元素
 
@@ -793,6 +1030,10 @@ Grid: `<<<seq_len, N>>>` — 每个 block 处理一个 token 的 `N` 对元素�
 > - v2: `blockIdx.x` 直接就是 token 位置 → 无需除法，coalesced 更好
 
 #### v3: float4 向量化（每线程处理 4 个元素 = 2 对）
+
+```
+launch: <<<(N/256, 1, 1), (256, 1, 1)>>>  N = seq_len * head_dim/8
+```
 
 ```cpp
 __global__ void rope_f32x4_pack_kernel(float* x, float* out, int seq_len, int N) {
@@ -870,6 +1111,13 @@ b: scalar 或 (K,) — bias
 
 ### Kernel 流程
 
+```
+launch: f32      → <<<(N, 1, 1), (K, 1, 1)>>>
+        f32x4    → <<<(N, 1, 1), (K/4, 1, 1)>>>
+        f16      → <<<(N, 1, 1), (K, 1, 1)>>>
+        f16x8    → <<<(N, 1, 1), (K/8, 1, 1)>>>
+```
+
 ```cpp
 // 每个 block 处理一行，每线程处理一个元素
 float value = x[idx];
@@ -942,6 +1190,13 @@ RMSNorm(x) = x / sqrt(mean(x²) + eps) * g
 
 ### Kernel 流程
 
+```
+launch: f32      → <<<(N, 1, 1), (K, 1, 1)>>>
+        f32x4    → <<<(N, 1, 1), (K/4, 1, 1)>>>
+        f16      → <<<(N, 1, 1), (K, 1, 1)>>>
+        f16x8    → <<<(N, 1, 1), (K/8, 1, 1)>>>
+```
+
 ```cpp
 float value = x[idx];
 
@@ -1013,6 +1268,10 @@ IoU = inter_area / (area_i + area_j - inter_area)
 
 ### Kernel 实现
 
+```
+launch: <<<(num_boxes/256, 1, 1), (256, 1, 1)>>>
+```
+
 ```cpp
 __global__ void nms_kernel(const float* boxes, const float* scores, int* keep,
                            int num_boxes, float iou_threshold) {
@@ -1044,3 +1303,961 @@ __global__ void nms_kernel(const float* boxes, const float* scores, int* keep,
 > - 每个线程串行遍历所有更高分的框 → O(N²) 复杂度
 > - `keep[i]` 的读取有数据依赖（前面的框是否被抑制会影响后面的判断）
 > - 实际部署中通常在 CPU 上做 NMS（框数量通常 < 1000），GPU NMS 主要用于训练
+
+---
+
+## SGEMV (Single-precision General Matrix-Vector multiply)
+
+### 数学公式
+
+```
+y = A * x
+
+A: (M, K)  矩阵
+x: (K, 1)  向量
+y: (M, 1)  向量
+
+y[m] = Σ(k=0..K-1) A[m][k] * x[k]
+```
+
+每行的点积是独立的 → 每行分配给一组线程，组内用 warp reduce 求和。
+
+### Kernel 1: sgemv_k32 — K≥32，每行一个 warp
+
+```
+launch: <<<(M/4, 1, 1), (32, 4, 1)>>>
+```
+
+```
+Block: (32, 4) = 128 线程 = 4 个 warp
+  tx (0~31) = lane = 列索引 k
+  ty (0~3)  = warp 编号 = 行偏移
+Grid: M/4 个 block → 每 block 处理 4 行
+
+每 warp 处理 1 行，32 线程各算 1 个乘积，warp reduce 求和：
+```
+
+```
+A 的一行 (K=32):
+┌────────────────────────────────────────┐
+│ T0   T1   T2   ...           T31      │  ← 32 线程各算 A[m][k]*x[k]
+└────────────────────────────────────────┘
+         ↓ warp reduce sum
+         y[m]
+```
+
+```cpp
+int m = bx * blockDim.y + ty;  // 每个 ty 处理一行
+float sum = 0.f;
+for (int w = 0; w < NUM_WARPS; ++w) {  // K>32 时循环多轮
+    int k = w * WARP_SIZE + lane;
+    sum += a[m * K + k] * x[k];
+}
+sum = warp_reduce_sum_f32<WARP_SIZE>(sum);
+if (lane == 0) y[m] = sum;
+```
+
+> [!tip] 为什么 blockDim.y=4？
+> 一个 warp 32 线程只处理 1 行太浪费（每线程 1 个乘加）。
+> 用 `blockDim.y=4` 让 4 个 warp 各处理 1 行，提高利用率。
+
+> [!note] lane = tx 的原因
+> `blockDim.x = 32 = WARP_SIZE`，所以 `lane = (tx + ty*32) % 32 = tx`。
+> ty 决定 warp 编号（哪一行），tx 决定 lane（哪一列）。
+
+### Kernel 2: sgemv_k128_f32x4 — K≥128，float4 向量化
+
+```
+launch: <<<(M/4, 1, 1), (32, 4, 1)>>>
+```
+
+每行 K=128 个元素，用 float4 向量化：每线程加载 4 个 float → 每 warp 一轮处理 32×4=128 个元素。
+
+```
+A 的一行 (K=128):
+┌────────────────────────────────────────────────────────┐
+│ T0×4   T1×4   T2×4   ... T31×4                        │
+│ [f f f f] [f f f f] [f f f f]     [f f f f]           │
+└────────────────────────────────────────────────────────┘
+  32 线程 × 4 元素/线程 = 128 元素 = 1 行
+```
+
+```cpp
+int k = (w * WARP_SIZE + lane) * 4;  // 每线程起始列
+float4 regx = FLOAT4(x[k]);          // 加载 x 的 4 个元素
+float4 rega = FLOAT4(a[m * K + k]);  // 加载 A 的 4 个元素
+sum += rega.x * regx.x + rega.y * regx.y +
+       rega.z * regx.z + rega.w * regx.w;  // 4 次乘加
+```
+
+> [!tip] 向量化的好处
+> 一次 `FLOAT4` 加载 = 1 条 `LD.E.128` 指令搬运 16 字节。
+> 标量需要 4 条 `LD.E.32` 指令。指令数少 4 倍。
+
+### Kernel 3: sgemv_k16 — K 很小（< 32），一个 warp 处理多行
+
+```
+launch: <<<(M/NUM_ROWS, 1, 1), (32, NUM_WARPS, 1)>>>
+```
+
+K=16 < 32，如果每 warp 只处理 1 行，有 16 个线程闲置。解决方案：每个 warp 处理 2 行，每行 16 个线程。
+
+```
+Block: (32, NUM_WARPS)
+一个 warp (32 线程) 处理 2 行：
+
+lane 0~15  → 处理行 m 的 16 个元素
+lane 16~31 → 处理行 m+1 的 16 个元素
+
+┌──────────────────┬──────────────────┐
+│  lane 0~15       │  lane 16~31      │
+│  行 m, k=0..15   │  行 m+1, k=0..15 │
+└──────────────────┴──────────────────┘
+```
+
+```cpp
+constexpr int K_WARP_SIZE = 16;  // 32 / 2 行
+int k = lane % K_WARP_SIZE;      // 0~15
+int m = ... + lane / K_WARP_SIZE; // lane<16 → 行m, lane>=16 → 行m+1
+
+float sum = A[m * K + k] * x[k];
+sum = warp_reduce_sum_f32<K_WARP_SIZE>(sum);  // 只在 16 个线程内 reduce
+if (k == 0) y[m] = sum;  // 注意：k==0，不是 lane==0
+```
+
+> [!important] reduce 宽度的选择
+> `warp_reduce_sum_f32<16>` 只做 4 轮 shuffle（log2(16)=4），不是 5 轮。
+> 因为每行只有 16 个有效线程，不需要和另外 16 个线程通信。
+> 写结果的条件是 `k == 0`（每行的第 0 列），不是 `lane == 0`（warp 的第 0 线程）。
+
+---
+
+## HGEMV (Half-precision General Matrix-Vector multiply)
+
+HGEMV 和 SGEMV 结构完全相同，只是数据类型从 `float` 换成 `half`。
+
+### 区别
+
+| | SGEMV | HGEMV |
+|---|---|---|
+| 数据类型 | `float` (32-bit) | `half` (16-bit) |
+| 向量化 | `float4` (128-bit, 4 元素) | `half2×2` (64-bit, 4 元素) |
+| reduce | `warp_reduce_sum_f32` (float 累加) | `warp_reduce_sum_f16` (half 累加) |
+| 精度 | 无损 | 有精度损失（half 只有 ~3 位十进制精度） |
+
+> [!note] 为什么 HGEMV 用 half 累加而不是 float？
+> 这里的实现用 half 累加（精度较低）。更好的做法是加载 half、累加用 float、最后转回 half。
+> 但 half 累加的优势是：reduce 时 `__shfl_xor_sync` 传输的数据量减半（16-bit vs 32-bit）。
+
+### Kernel 1: hgemv_k32 — K≥32，每行一个 warp
+
+```
+launch: <<<(M/4, 1, 1), (32, 4, 1)>>>
+```
+
+和 SGEMV 的 k32 版本完全同构，只是类型换成 half：
+
+```cpp
+half sum = 0.0f;
+for (int w = 0; w < NUM_WARPS; ++w) {
+    int k = w * WARP_SIZE + lane;
+    sum += a[m * K + k] * x[k];  // half × half = half
+}
+sum = warp_reduce_sum_f16<WARP_SIZE>(sum);  // half 累加
+if (lane == 0) y[m] = sum;
+```
+
+### Kernel 2: hgemv_k128_f16x4 — K≥128，half2 向量化
+
+```
+launch: <<<(M/4, 1, 1), (32, 4, 1)>>>
+```
+
+每线程处理 4 个 half 元素，用 `half2` 加载（2 个 half = 32-bit）：
+
+```cpp
+int k = (w * WARP_SIZE + lane) * 4;
+half2 reg_x_0 = HALF2(x[k + 0]);      // 加载 2 个 half
+half2 reg_x_1 = HALF2(x[k + 2]);      // 再加载 2 个 half
+half2 reg_a_0 = HALF2(a[m * K + k + 0]);
+half2 reg_a_1 = HALF2(a[m * K + k + 2]);
+
+// 4 次乘加
+sum += reg_x_0.x * reg_a_0.x + reg_x_0.y * reg_a_0.y +
+       reg_x_1.x * reg_a_1.x + reg_x_1.y * reg_a_1.y;
+```
+
+> [!tip] half2 向量化
+> `HALF2(ptr)` 一次加载 32-bit（2 个 half），等价于 SGEMV 的 `FLOAT4` 思路。
+> 但 half2 只有 32-bit，不是 128-bit。要达到 128-bit 需要 `LDST128BITS` 加载 8 个 half。
+
+### Kernel 3: hgemv_k16 — K<16，一个 warp 处理多行
+
+```
+launch: <<<(M/NUM_ROWS, 1, 1), (32, NUM_WARPS, 1)>>>
+```
+
+和 SGEMV 的 k16 版本同构，reduce 宽度 = 16，写条件 `k == 0`：
+
+```cpp
+half sum = A[m * K + k] * x[k];
+sum = warp_reduce_sum_f16<K_WARP_SIZE>(sum);  // 16 个线程内 reduce
+if (k == 0) y[m] = sum;
+```
+
+> [!note] SGEMV vs HGEMV 的代码复用
+> 三个 kernel 的逻辑和 SGEMV 完全一致，只是：
+> - `float` → `half`
+> - `float4` → `half2 × 2`
+> - `warp_reduce_sum_f32` → `warp_reduce_sum_f16`
+>
+> 可以用模板统一（`template<typename T>`），但分开写更清晰、更容易针对 half 做特殊优化。
+
+---
+
+## SGEMM (Single-precision General Matrix Multiply)
+
+SGEMM 是 CUDA 优化的经典课题：`C[M×N] = A[M×K] × B[K×N]`。
+
+### 优化路线总览
+
+```
+Naive         → Block Tile       → Thread Tile      → Double Buffer    → cp.async
+每线程1元素    → smem缓存tile     → 每线程TM×TN元素   → 计算/搬运重叠     → 异步拷贝
+O(MNK)条指令   → 减少GMEM访问     → 提高计算密度      → 隐藏延迟         → 释放warp
+```
+
+### Level 0: Naive SGEMM
+
+```
+launch: <<<(N/16, M/16, 1), (16, 16, 1)>>>
+```
+
+每线程计算 C 的一个元素：`c[m][n] = Σ_k a[m][k] * b[k][n]`
+
+```cpp
+int n = blockIdx.x * blockDim.x + threadIdx.x;
+int m = blockIdx.y * blockDim.y + threadIdx.y;
+float psum = 0.0;
+for (int k = 0; k < K; k++) {
+    psum += a[m * K + k] * b[k * N + n];  // 每次循环访问 GMEM 两次
+}
+c[m * N + n] = psum;
+```
+
+> [!warning] Naive 的问题
+> 每个元素做 K 次乘加，每次都要访问 GMEM（~400 cycles 延迟）。
+> 计算/访存比极低 → 完全被内存延迟瓶颈限制。
+
+### Level 1: Block Tile + K Tile + Shared Memory
+
+```
+launch: <<<(N/BN, M/BM, 1), (BN, BM, 1)>>>
+BM=BN=32, BK=32
+```
+
+**核心思想**：把 A 和 B 的 tile 加载到 shared memory，block 内所有线程复用。
+
+```
+C 的一个 BM×BN tile 需要 A 的 BM×K 行 和 B 的 K×BN 列
+
+K 方向分块（K Tile）：
+  for bk in 0..K/BK:
+    加载 A[BM×BK] → s_a (smem)
+    加载 B[BK×BN] → s_b (smem)
+    __syncthreads()
+    每线程计算: sum += s_a[m][k] * s_b[k][n]  for k in 0..BK
+    __syncthreads()
+```
+
+```
+A[M×K]                          B[K×N]
+┌──────────────────┐            ┌──────────────────┐
+│                  │            │                  │
+│  ┌────┐          │            │  ┌────────────┐  │
+│  │s_a │ BM×BK    │            │  │   s_b      │  │
+│  │    │ → smem   │            │  │  BK×BN     │  │
+│  └────┘          │            │  │  → smem    │  │
+│                  │            │  └────────────┘  │
+└──────────────────┘            └──────────────────┘
+         ↓ K方向循环 BK 步
+    C[BM×BN] tile 累加完成
+```
+
+> [!tip] Shared Memory 的作用
+> GMEM 访问 ~400 cycles，SMEM 访问 ~20 cycles。
+> 把数据搬到 SMEM 后，block 内 1024 个线程复用 → GMEM 访问次数减少 1024 倍。
+
+### Level 2: Thread Tile (TM×TN)
+
+```
+launch: <<<(N/BN, M/BM, 1), (BN/TN, BM/TM, 1)>>>
+BM=BN=128, BK=8, TM=TN=8, blockDim=(16,16)=256 threads
+```
+
+**核心思想**：每线程不只算 1 个元素，而是算 TM×TN = 8×8 = 64 个元素。
+
+```
+C 的一个 BM×BN = 128×128 tile：
+┌────────────────────────────────┐
+│  T(0,0)  │  T(1,0)  │ ... │15,0│   每个 T = 8×8 子块
+│  8×8     │  8×8     │     │8×8 │
+├──────────┼──────────┤     │    │
+│  T(0,1)  │  T(1,1)  │     │    │
+│  8×8     │  8×8     │     │    │
+├──────────┼──────────┤     │    │
+│  ...     │  ...     │     │    │
+│  T(0,15) │  T(1,15) │     │15,15│
+└──────────┴──────────┴─────┴────┘
+  16×16 = 256 线程，每线程 8×8 = 64 元素
+```
+
+**Thread Tile 的索引映射**：
+
+```cpp
+// blockDim = (BN/TN, BM/TM) = (16, 16)
+// tx = threadIdx.x (0~15) → N 方向
+// ty = threadIdx.y (0~15) → M 方向
+
+// 线程 (tx, ty) 负责 C 的第 (ty*TM ~ ty*TM+TM-1) 行, (tx*TN ~ tx*TN+TN-1) 列
+// 即 C[ty*8 .. ty*8+7][tx*8 .. tx*8+7]
+
+// 从 smem 读取 A 的一行和 B 的一列，做外积：
+for (int k = 0; k < BK; k++) {
+    // A 的第 (ty*TM + m) 行, 第 k 列 → r_comp_a[m]
+    for (int m = 0; m < TM; m++)
+        r_comp_a[m] = s_a[ty * TM + m][k];
+
+    // B 的第 k 行, 第 (tx*TN + n) 列 → r_comp_b[n]
+    for (int n = 0; n < TN; n++)
+        r_comp_b[n] = s_b[k][tx * TN + n];
+
+    // 外积：TM×1 × 1×TN = TM×TN
+    for (int m = 0; m < TM; m++)
+        for (int n = 0; n < TN; n++)
+            r_c[m][n] += r_comp_a[m] * r_comp_b[n];
+}
+```
+
+**Shared Memory 加载索引**（256 线程加载 128×8 + 8×128 的 tile）：
+
+```cpp
+// s_a[BM][BK] = s_a[128][8]：128 行 × 8 列
+// 每行 8 个 float = 2 个 float4，需要 2 个线程加载
+// 128 行 × 2 线程/行 = 256 线程 → 刚好
+int load_smem_a_m = tid / 2;              // 行号 0~127
+int load_smem_a_k = (tid % 2 == 0) ? 0 : 4;  // 列号 0 或 4
+// tid 为偶数加载 s_a[m][0..3]，tid 为奇数加载 s_a[m][4..7]
+
+// s_b[BK][BN] = s_b[8][128]：8 行 × 128 列
+// 每行 128 个 float = 32 个 float4，需要 32 个线程加载
+// 8 行 × 32 线程/行 = 256 线程 → 刚好
+int load_smem_b_k = tid / 32;       // 行号 0~7
+int load_smem_b_n = (tid % 32) * 4; // 列号 0,4,8,...,124
+// 每线程加载 4 个连续 float (float4)
+```
+
+**结果写回**（float4 向量化存储）：
+
+```cpp
+// 每线程写 TM=8 行，每行 TN=8 列 → 每行 2 个 float4
+for (int m = 0; m < TM; m++) {
+    int store_c_m = by * BM + ty * TM + m;       // 全局行号
+    for (int n = 0; n < TN; n += 4) {
+        int store_c_n = bx * BN + tx * TN + n;    // 全局列号
+        FLOAT4(c[store_c_m * N + store_c_n]) = FLOAT4(r_c[m][n]);
+    }
+}
+```
+
+> [!important] Thread Tile 的意义
+> Naive 版本：每线程做 K 次乘加，2K 次 GMEM 访问 → 计算/访存比 = K/2K = 0.5
+> Thread Tile 版本：每线程做 BK×TM×TN 次乘加，TM+TN 次 SMEM 访问 → 比值大幅提升
+>
+> 更大的 TM×TN → 更高的计算密度 → 更好的性能（直到寄存器溢出）。
+> TM=TN=8 时每线程 64 个 float 累加器 = 256B 寄存器，通常不会溢出。
+
+### Level 3: Bank Conflict Free (BCF)
+
+```
+smem 布局: s_a[BK][BM + OFFSET]  ← 转置了！原来是 s_a[BM][BK]
+```
+
+**原始布局 `s_a[BM][BK] = s_a[128][8]` 的 bank conflict 分析**：
+
+```
+smem 有 32 个 bank，每个 bank 4 字节（1 个 float）。
+s_a[128][8] 的内存布局：
+
+行 0:  [b0] [b1] [b2] [b3] [b4] [b5] [b6] [b7]     ← bank 0~7
+行 1:  [b8] [b9] [b10][b11][b12][b13][b14][b15]      ← bank 8~15
+行 2:  [b16][b17][b18][b19][b20][b21][b22][b23]       ← bank 16~23
+行 3:  [b24][b25][b26][b27][b28][b29][b30][b31]       ← bank 24~31
+行 4:  [b0] [b1] [b2] [b3] [b4] [b5] [b6] [b7]       ← bank 0~7（重复！）
+...
+行 31: [b24][b25][b26][b27][b28][b29][b30][b31]       ← bank 24~31
+
+读同一列 k 时（比如 k=0）：
+  线程 0 读 s_a[0][0]  → bank 0
+  线程 1 读 s_a[1][0]  → bank 8
+  线程 2 读 s_a[2][0]  → bank 16
+  线程 3 读 s_a[3][0]  → bank 24
+  线程 4 读 s_a[4][0]  → bank 0  ← 和线程 0 冲突！
+  线程 5 读 s_a[5][0]  → bank 8  ← 和线程 1 冲突！
+  ...
+  → 4-way bank conflict
+```
+
+**转置布局 `s_a[BK][BM + OFFSET] = s_a[8][129]`**：
+
+```
+加 OFFSET=1 后每行 129 个 float，129 % 32 = 1 → 每行起始 bank 错开 1 个。
+
+行 0:  [b0] [b1] ... [b31] [b0] ...     ← 从 bank 0 开始
+行 1:  [b1] [b2] ... [b0]  [b1] ...     ← 从 bank 1 开始（错开！）
+行 2:  [b2] [b3] ... [b1]  [b2] ...     ← 从 bank 2 开始
+...
+
+读同一行的不同列时 → 每个线程访问不同 bank → 无冲突。
+```
+
+> [!note] BCF 的代价
+> A 矩阵是行主序，但 smem 按列存储 → 写入时需要"在线转置"：
+> `s_a[k][m] = a[m][k]` 而不是 `s_a[m][k] = a[m][k]`
+> 即：从 GMEM 读取一行 A，逐元素写入 smem 的不同行。
+
+### Level 4: Double Buffering
+
+```
+smem 布局: s_a[2][BK][BM]  ← 2 个 buffer
+```
+
+**单缓冲的问题**：
+
+```
+bk=0: [加载 s_a/s_b] → [sync] → [计算] → [sync]
+bk=1: [加载 s_a/s_b] → [sync] → [计算] → [sync]
+      ↑ 加载时计算单元空闲            ↑ 计算时加载单元空闲
+```
+
+**双缓冲：加载和计算重叠**：
+
+```
+bk=0: [加载 buf0] → [sync] → [计算 buf0 + 加载 buf1] → [sync]
+bk=1:                                [计算 buf1 + 加载 buf0] → [sync]
+bk=2:                                [计算 buf0 + 加载 buf1] → [sync]
+...
+最后一次:                              [计算 buf_last]
+```
+
+**双缓冲的主循环结构**：
+
+```cpp
+// 预加载第一个 tile 到 buf[0]
+FLOAT4(r_load_a) = FLOAT4(a[...]);
+s_a[0][...] = r_load_a;
+FLOAT4(s_b[0][...]) = FLOAT4(b[...]);
+__syncthreads();
+
+// 主循环从 bk=1 开始
+for (int bk = 1; bk < num_tiles; bk++) {
+    int sel = (bk - 1) & 1;      // 当前计算的 buffer
+    int sel_next = bk & 1;       // 下一个加载的 buffer
+
+    // ① 从 GMEM 加载到寄存器（和下面的计算并行）
+    FLOAT4(r_load_a) = FLOAT4(a[...]);
+    FLOAT4(r_load_b) = FLOAT4(b[...]);
+
+    // ② 从 buf[sel] 计算（和上面的加载并行）
+    for (int tk = 0; tk < BK; tk++) {
+        FLOAT4(r_comp_a) = FLOAT4(s_a[sel][tk][...]);
+        FLOAT4(r_comp_b) = FLOAT4(s_b[sel][tk][...]);
+        // ... TM×TN 外积累加到 r_c
+    }
+
+    // ③ 把寄存器中的数据写入 buf[sel_next]
+    s_a[sel_next][...] = r_load_a;
+    FLOAT4(s_b[sel_next][...]) = FLOAT4(r_load_b);
+
+    __syncthreads();  // 确保 buf[sel_next] 写完
+}
+
+// 计算最后一个 tile（buf[1]）
+for (int tk = 0; tk < BK; tk++) {
+    FLOAT4(r_comp_a) = FLOAT4(s_a[1][tk][...]);
+    FLOAT4(r_comp_b) = FLOAT4(s_b[1][tk][...]);
+    // ... TM×TN 外积
+}
+```
+
+> [!tip] 为什么 Double Buffering 能减少 __syncthreads__？
+> 单缓冲版本：每次迭代需要 2 次 sync（加载后 + 计算后）
+> 双缓冲版本：每次迭代只需 1 次 sync（因为加载和计算用不同的 buffer，无依赖）
+>
+> 总共节省 `(K/BK) - 1` 次 sync。对于 K=1024, BK=8 → 节省 127 次 sync。
+
+### Level 5: cp.async（异步拷贝）
+
+```cpp
+// 普通加载：warp 发出 load 指令后等待数据到达
+FLOAT4(s_b[...]) = FLOAT4(b[...]);  // warp 阻塞直到数据到达
+
+// cp.async：warp 发出异步请求后立即去做其他事
+CP_ASYNC_CA(smem_ptr, &b[...], 16);  // 发出请求，不等待
+CP_ASYNC_COMMIT_GROUP();               // 提交一组请求
+
+// ... 在等待期间可以做计算 ...
+
+CP_ASYNC_WAIT_GROUP(0);  // 等待所有请求完成
+```
+
+```
+cp.async 指令:
+  cp.async.ca.shared.global  → 从 GMEM 异步拷贝到 SMEM
+  .L2::128B                  → 经过 L2 cache，128B 对齐
+  支持 4/8/16 字节
+
+优势：
+  - warp 不需要等待数据到达 → 可以去做计算
+  - 数据直接从 GMEM → SMEM，不经过寄存器 → 节省 RF 带宽
+  - 和 Double Buffering 配合 → 计算和搬运完全重叠
+```
+
+> [!important] cp.async 的架构要求
+> `cp.async` 需要 SM80+（Ampere 及以上）。
+> 在 SM75（Turing）上不可用，需要退回到普通加载。
+
+### SGEMM 优化路线总结
+
+| Level | 技术 | 关键改进 | 性能 |
+|---|---|---|---|
+| 0 | Naive | — | ~5% cuBLAS |
+| 1 | Block Tile + smem | 减少 GMEM 访问 | ~20% |
+| 2 | Thread Tile (TM×TN) | 提高计算密度 | ~50% |
+| 3 | BCF (转置 smem) | 消除 bank conflict | ~60% |
+| 4 | Double Buffering | 计算/搬运重叠 | ~80% |
+| 5 | cp.async | 异步搬运，释放 warp | ~90% |
+
+> [!note] SGEMM kernel 的命名规则
+> `sgemm_t_8x8_sliced_k16_f32x4_bcf_dbuf_async` 含义：
+> - `t_8x8`：Thread Tile = 8×8
+> - `sliced_k16`：K 方向分块 BK=16
+> - `f32x4`：float4 向量化加载
+> - `bcf`：Bank Conflict Free（转置 smem）
+> - `dbuf`：Double Buffering
+> - `async`：cp.async 异步拷贝
+
+---
+
+## HGEMM (Half-precision General Matrix Multiply)
+
+HGEMM 和 SGEMM 结构完全相同，只是数据类型从 `float` 换成 `half`。优化路线一致：Naive → Thread Tile → BCF → Double Buffer → cp.async。
+
+### HGEMM vs SGEMM 的关键区别
+
+| | SGEMM | HGEMM |
+|---|---|---|
+| 数据类型 | `float` (32-bit) | `half` (16-bit) |
+| 向量化 | `float4` (128-bit, 4 元素) | `half2` (32-bit, 2 元素) / `LDST128BITS` (128-bit, 8 元素) |
+| smem 占用 | 128×8×4 = 4KB | 128×8×2 = 2KB（减半） |
+| 计算指令 | `__fmaf_rn` (FMA) | `__hfma2` (half2 FMA) 或 `__hmul` + `__hadd` |
+| smem bank | 4B/bank, 32 banks | 2B/bank, 32 banks → bank conflict 更严重 |
+
+> [!important] half 的 bank conflict 更严重
+> half 只有 2 字节，而 smem bank 是 4 字节宽。所以：
+> - 2 个 half 占 1 个 bank → 同一 bank 内有 2 个 half
+> - 读同一个 half2 的两个元素 → 可能冲突
+> - 需要更仔细的 padding 或转置来避免冲突
+
+### 向量化策略对比
+
+```
+SGEMM:
+  float4 加载 = 4 × 4B = 128-bit → 1 条 LD.E.128
+
+HGEMM:
+  half2 加载  = 2 × 2B = 32-bit  → 1 条 LD.E.32   (f16x2)
+  half4 加载  = 4 × 2B = 64-bit  → 1 条 LD.E.64   (f16x4)
+  half8 加载  = 8 × 2B = 128-bit → 1 条 LD.E.128  (f16x8_pack)
+```
+
+> [!tip] f16x8_pack 的含义
+> 8 个 half = 16 字节 = 128 bit，正好一条 `LD.E.128` 指令。
+> 用 `LDST128BITS(pack[0]) = LDST128BITS(a[idx])` 实现。
+> 这是 HGEMM 最高效的加载方式，和 SGEMM 的 `float4` 等价。
+
+### HGEMM Kernel 清单
+
+```
+hgemm.cu:
+  hgemm_naive_f16_kernel                    → Level 0: Naive
+  hgemm_sliced_k_f16_kernel                 → Level 1: Block Tile + smem
+  hgemm_t_8x8_sliced_k_f16x4_kernel         → Level 2: Thread Tile + half2
+  hgemm_t_8x8_sliced_k_f16x4_pack_kernel    → Level 2: Thread Tile + half4 pack
+  hgemm_t_8x8_sliced_k_f16x4_bcf_kernel     → Level 3: BCF
+  hgemm_t_8x8_sliced_k_f16x4_pack_bcf_kernel→ Level 3: BCF + pack
+  hgemm_t_8x8_sliced_k_f16x8_pack_bcf_kernel→ Level 3: BCF + 128-bit pack
+  hgemm_t_8x8_sliced_k_f16x8_pack_bcf_dbuf_kernel → Level 4: Double Buffer
+
+hgemm_async.cu:
+  hgemm_t_8x8_sliced_k16_f16x8_pack_dbuf_kernel   → Level 4: BK=16 + dbuf
+  hgemm_t_8x8_sliced_k16_f16x8_pack_dbuf_async_kernel → Level 5: cp.async
+  hgemm_t_8x8_sliced_k32_f16x8_pack_dbuf_kernel   → Level 4: BK=32 + dbuf
+  hgemm_t_8x8_sliced_k32_f16x8_pack_dbuf_async_kernel → Level 5: BK=32 + async
+  hgemm_t_16x8_sliced_k32_f16x8_pack_dbuf_kernel   → Level 4: TM=16,TN=8
+  hgemm_t_16x8_sliced_k32_f16x8_pack_dbuf_async_kernel → Level 5: TM=16,TN=8 + async
+```
+
+### Thread Tile 的选择：8×8 vs 16×8
+
+```
+8×8:  TM=8, TN=8 → 每线程 64 个 half 累加器 = 128B 寄存器
+16×8: TM=16, TN=8 → 每线程 128 个 half 累加器 = 256B 寄存器
+
+16×8 的优势：更大的 tile → 更高的计算密度
+16×8 的劣势：寄存器压力更大 → occupancy 可能下降
+```
+
+> [!note] BK 的选择对 HGEMM 的影响
+> SGEMM 通常用 BK=8 或 BK=16。
+> HGEMM 可以用更大的 BK（如 BK=32），因为 half 只占 2B：
+> - BK=32, BM=128 → s_a = 32×128×2 = 8KB
+> - BK=16, BM=128 → s_a = 16×128×2 = 4KB
+>
+> 更大的 BK → 更少的 K 方向迭代 → 更少的 __syncthreads__
+> 但 smem 占用更大 → 可能降低 occupancy。
+
+### cp.async 在 HGEMM 中的使用
+
+和 SGEMM 完全相同，只是数据量减半：
+
+```cpp
+// SGEMM: 16 字节 = 4 个 float
+CP_ASYNC_CA(smem_ptr, &b[addr], 16);
+
+// HGEMM: 16 字节 = 8 个 half（同样 128-bit）
+CP_ASYNC_CA(smem_ptr, &b[addr], 16);
+```
+
+> [!tip] cp.async 对 HGEMM 的收益更大
+> half 的 GMEM 带宽需求是 float 的一半，但延迟相同（~400 cycles）。
+> 所以 HGEMM 比 SGEMM 更容易受内存延迟限制 → cp.async 的异步特性收益更大。
+
+---
+
+## SGEMM with Tensor Cores (WMMA TF32)
+
+前面的 SGEMM 全部用 **CUDA Core**（标量 FMA）。Tensor Core 可以一条指令算一个小矩阵乘，吞吐量高得多。
+
+### TF32 是什么？
+
+```
+FP32:  1 sign + 8 exponent + 23 mantissa = 32 bit
+TF32:  1 sign + 8 exponent + 10 mantissa = 19 bit（截断尾数）
+FP16:  1 sign + 5 exponent + 10 mantissa = 16 bit
+
+TF32 = FP32 的范围 + FP16 的精度
+→ 可以直接从 FP32 截断得到，不需要重新训练
+→ Ampere Tensor Core 原生支持
+```
+
+> [!tip] TF32 的优势
+> - 输入输出都是 FP32 指针 → 不需要类型转换
+> - 计算用 TF32（19-bit）→ Tensor Core 加速
+> - 累加用 FP32 → 精度损失可控
+> - PyTorch 默认的 `torch.matmul` 在 Ampere 上就用 TF32
+
+### WMMA API
+
+WMMA (Warp Matrix Multiply Accumulate) 是 NVIDIA 提供的高级 Tensor Core API：
+
+```cpp
+#include <mma.h>
+using namespace nvcuda;
+
+// 定义 fragment（每个 warp 线程持有的数据）
+wmma::fragment<wmma::matrix_a, 16, 16, 8, wmma::precision::tf32, wmma::row_major> A_frag;
+wmma::fragment<wmma::matrix_b, 16, 16, 8, wmma::precision::tf32, wmma::row_major> B_frag;
+wmma::fragment<wmma::accumulator, 16, 16, 8, float> C_frag;
+
+// 初始化累加器
+wmma::fill_fragment(C_frag, 0.0f);
+
+// 从 smem 加载到 fragment
+wmma::load_matrix_sync(A_frag, &s_a[row][0], smem_stride);
+wmma::load_matrix_sync(B_frag, &s_b[row][0], smem_stride);
+
+// 矩阵乘累加：C += A × B
+wmma::mma_sync(C_frag, A_frag, B_frag, C_frag);
+
+// 从 fragment 写回 smem
+wmma::store_matrix_sync(&s_c[row][0], C_frag, smem_stride);
+```
+
+> [!note] WMMA 的 tile 大小
+> `mma.sync.m16n16k8.tf32`：一次计算 16×16×8 的矩阵乘。
+> - A fragment: 16×8 = 128 个 TF32 元素，32 线程 → 每线程 4 个
+> - B fragment: 8×16 = 128 个 TF32 元素，32 线程 → 每线程 4 个
+> - C fragment: 16×16 = 256 个 FP32 元素，32 线程 → 每线程 8 个
+
+### WMMA SGEMM Kernel 结构
+
+```
+launch: <<<(N/BN, M/BM, 1), (32, WMMA_TILE_M * WMMA_TILE_N, 1)>>>
+BM=128, BN=128, BK=8, WMMA_M=16, WMMA_N=16, WMMA_K=8
+```
+
+```cpp
+// 每个 warp 负责一个 WMMA tile (16×16)
+// block 内有 WMMA_TILE_M × WMMA_TILE_N 个 warp
+// 每个 warp 做 WARP_TILE_M × WARP_TILE_N 次 WMMA
+
+wmma::fragment<wmma::accumulator, M, N, K, float> C_frag[TILE_M][TILE_N];
+for (int i = 0; i < TILE_M; i++)
+    for (int j = 0; j < TILE_N; j++)
+        wmma::fill_fragment(C_frag[i][j], 0.0f);
+
+for (int k = 0; k < K_TILES; k++) {
+    // 加载 A 和 B 的 fragment
+    for (int i = 0; i < TILE_M; i++)
+        wmma::load_matrix_sync(A_frag[i], &s_a[...], stride);
+    for (int j = 0; j < TILE_N; j++)
+        wmma::load_matrix_sync(B_frag[j], &s_b[...], stride);
+
+    // WMMA: C[i][j] += A[i] × B[j]
+    for (int i = 0; i < TILE_M; i++)
+        for (int j = 0; j < TILE_N; j++)
+            wmma::mma_sync(C_frag[i][j], A_frag[i], B_frag[j], C_frag[i][j]);
+}
+
+// 写回结果
+for (int i = 0; i < TILE_M; i++)
+    for (int j = 0; j < TILE_N; j++)
+        wmma::store_matrix_sync(&s_c[...], C_frag[i][j], stride);
+```
+
+> [!important] WMMA 的 smem 布局要求
+> `wmma::load_matrix_sync` 要求 smem 的 stride 满足对齐要求。
+> 对于 TF32（4B 元素），stride 必须是 4 的倍数（16 字节对齐）。
+> 不需要手动处理 swizzle — WMMA 内部处理了 bank conflict。
+
+---
+
+## HGEMM with MMA PTX Instructions
+
+WMMA 是高级 API，MMA PTX 是底层指令。手写 MMA PTX 可以更精细地控制寄存器分配和指令调度。
+
+### MMA PTX 指令
+
+```cpp
+// mma.sync.aligned.m16n8k16.row.col.f16.f16.f16.f16
+// D[16×8] = A[16×16] × B[16×8] + C[16×8]
+// A: row_major, B: col_major, 所有类型 f16
+asm volatile(
+    "mma.sync.aligned.m16n8k16.row.col.f16.f16.f16.f16 "
+    "{%0, %1}, {%2, %3, %4, %5}, {%6, %7}, {%8, %9};\n"
+    : "=r"(RD0), "=r"(RD1)           // 输出 D (2 个 32-bit reg = 4 个 half)
+    : "r"(RA0), "r"(RA1), "r"(RA2), "r"(RA3),  // 输入 A (4 个 32-bit reg = 8 个 half)
+      "r"(RB0), "r"(RB1),                       // 输入 B (2 个 32-bit reg = 4 个 half)
+      "r"(RC0), "r"(RC1)                         // 输入 C (2 个 32-bit reg = 4 个 half)
+);
+```
+
+> [!note] MMA m16n8k16 的寄存器布局
+> - A: 4 个 32-bit 寄存器 = 8 个 half → 16×16 的 A 矩阵
+> - B: 2 个 32-bit 寄存器 = 4 个 half → 16×8 的 B 矩阵
+> - C/D: 2 个 32-bit 寄存器 = 4 个 half → 16×8 的输出
+> - 32 个线程协作完成一个 16×8×16 的矩阵乘
+
+### ldmatrix 指令
+
+`ldmatrix` 是专门为 Tensor Core 设计的 SMEM→RF 加载指令：
+
+```cpp
+// ldmatrix.sync.aligned.x4.m8n8.shared.b16
+// 从 smem 加载 4 个 8×8 矩阵到寄存器（按 MMA fragment 布局排列）
+asm volatile(
+    "ldmatrix.sync.aligned.x4.m8n8.shared.b16 {%0, %1, %2, %3}, [%4];\n"
+    : "=r"(R0), "=r"(R1), "=r"(R2), "=r"(R3)
+    : "r"(smem_addr)
+);
+```
+
+**ldmatrix 的加载语义**：
+
+```
+ldmatrix.x4 加载 4 个 8×8 的 half 子矩阵：
+
+smem 中的布局（以 A 矩阵为例）：
+  地址 = &s_a[lane_id % 16][(lane_id / 16) * 8]
+  → lane 0~15 读 s_a[0..15][0..7]   (第一个 8×8)
+  → lane 16~31 读 s_a[0..15][8..15]  (第二个 8×8)
+  → 但实际布局由 MMA fragment 决定
+
+每线程获得 4 个 32-bit 寄存器 = 8 个 half = 该线程负责的 A fragment
+→ 直接可以喂给 mma.sync 指令
+```
+
+**实际代码中的 ldmatrix 调用**：
+
+```cpp
+// 计算 smem 地址
+uint32_t load_smem_a_ptr =
+    __cvta_generic_to_shared(&s_a[lane_id % 16][(lane_id / 16) * 8]);
+// lane_id % 16 → 行号 (0~15)
+// (lane_id / 16) * 8 → 列号 (0 或 8)
+
+// 加载 A fragment（4 个寄存器 = 8 个 half）
+LDMATRIX_X4(RA[0], RA[1], RA[2], RA[3], load_smem_a_ptr);
+
+// 加载 B fragment（2 个寄存器 = 4 个 half）
+uint32_t load_smem_b_ptr = __cvta_generic_to_shared(&s_b[lane_id % 16][0]);
+LDMATRIX_X2_T(RB[0], RB[1], load_smem_b_ptr);
+//                 ↑ .trans = 加载时转置
+```
+
+> [!tip] ldmatrix vs 普通加载
+> 普通加载：连续读 smem → 寄存器中的数据是线性排列的
+> ldmatrix：按 MMA fragment 布局读 smem → 寄存器中的数据直接可以喂给 MMA 指令
+>
+> 如果用普通加载，需要额外的 shuffle 指令来重排数据 → 浪费指令和寄存器。
+
+### MMA m16n8k16 的寄存器布局
+
+```
+mma.sync.aligned.m16n8k16.row.col.f16.f16.f16.f16 {d0,d1}, {a0,a1,a2,a3}, {b0,b1}, {c0,c1}
+
+A fragment (16×16, row_major):
+  每线程 4 个 32-bit 寄存器 = 8 个 half
+  线程 0:  A[0][0:1], A[0][2:3], A[8][0:1], A[8][2:3]
+  线程 1:  A[0][4:5], A[0][6:7], A[8][4:5], A[8][6:7]
+  ...
+  线程 15: A[7][4:5], A[7][6:7], A[15][4:5], A[15][6:7]
+  线程 16: A[0][8:9], A[0][10:11], A[8][8:9], A[8][10:11]
+  ...
+
+B fragment (16×8, col_major):
+  每线程 2 个 32-bit 寄存器 = 4 个 half
+  线程 0:  B[0][0:1], B[8][0:1]
+  线程 1:  B[0][2:3], B[8][2:3]
+  ...
+
+C/D fragment (16×8):
+  每线程 2 个 32-bit 寄存器 = 4 个 half
+  线程 0:  C[0][0:1], C[8][0:1]
+  线程 1:  C[0][2:3], C[8][2:3]
+  ...
+```
+
+> [!important] 为什么 B 要用 ldmatrix.trans？
+> MMA 指令要求 B 是 **col_major**（列主序）。
+> 但我们的 B 矩阵在 GMEM 和 smem 中都是 **row_major**（行主序）。
+> `ldmatrix.trans` 在加载时自动转置，一步完成 row_major → col_major 的转换。
+> 如果 B 已经是 col_major 存储，直接用普通 `ldmatrix`。
+
+### ldmatrix.trans（转置加载）
+
+```cpp
+// ldmatrix.trans: 加载时同时转置
+// B 矩阵是 col_major 存储，但 MMA 要求 row_major 输入
+// 用 ldmatrix.trans 一步完成加载+转置
+asm volatile(
+    "ldmatrix.sync.aligned.x2.trans.m8n8.shared.b16 {%0, %1}, [%2];\n"
+    : "=r"(R0), "=r"(R1)
+    : "r"(smem_addr)
+);
+```
+
+> [!note] 为什么 B 需要 trans？
+> MMA 指令的 B 矩阵是 `col_major`（列主序）。
+> 如果 smem 中 B 是 `row_major`（行主序），就需要 `ldmatrix.trans` 来转置。
+> 如果 smem 中 B 已经是 `col_major`，直接用普通 `ldmatrix`。
+
+### MMA HGEMM Kernel 结构
+
+```cpp
+// 每个 warp 处理一个 MMA tile (16×8)
+// block 内有 (BM/16) × (BN/8) 个 warp
+
+for (int k = 0; k < K_TILES; k++) {
+    // GMEM → SMEM (cp.async)
+    CP_ASYNC_CA(smem_a_ptr, &a[...], 16);
+    CP_ASYNC_CA(smem_b_ptr, &b[...], 16);
+
+    // SMEM → RF (ldmatrix)
+    LDMATRIX_X4(RA[0], RA[1], RA[2], RA[3], smem_a_ptr);  // 加载 A fragment
+    LDMATRIX_X2_T(RB[0], RB[1], smem_b_ptr);               // 加载 B fragment (转置)
+
+    // MMA: D = A × B + C
+    HMMA16816(RD[0], RD[1], RA[0], RA[1], RA[2], RA[3], RB[0], RB[1], RC[0], RC[1]);
+}
+```
+
+### Multi-Stage Pipelining with MMA
+
+```
+smem 布局: s_a[NUM_STAGE][BK][BM], s_b[NUM_STAGE][BK][BN]
+
+Stage 0: [加载 stage 0] [计算 stage 0] [加载 stage 1] [计算 stage 1] ...
+         ↑ cp.async                 ↑ ldmatrix + MMA
+```
+
+```cpp
+// 预加载前几个 stage
+for (int s = 0; s < NUM_STAGE - 1; s++) {
+    CP_ASYNC_CA(s_a[s]..., &a[...], 16);
+    CP_ASYNC_CA(s_b[s]..., &b[...], 16);
+    CP_ASYNC_COMMIT_GROUP();
+}
+
+// 主循环：计算当前 stage + 预加载下一个 stage
+for (int k = NUM_STAGE - 1; k < K_TILES; k++) {
+    int stage = k % NUM_STAGE;
+    int stage_next = (k + 1) % NUM_STAGE;
+
+    // 预加载下一个 stage
+    CP_ASYNC_CA(s_a[stage_next]..., &a[...], 16);
+    CP_ASYNC_COMMIT_GROUP();
+
+    // 计算当前 stage
+    for (int bk = 0; bk < BK; bk++) {
+        LDMATRIX_X4(RA..., &s_a[stage][bk][...]);
+        LDMATRIX_X2_T(RB..., &s_b[stage][bk][...]);
+        HMMA16816(RD..., RA..., RB..., RC...);
+    }
+
+    CP_ASYNC_WAIT_GROUP(0);
+    __syncthreads();
+}
+```
+
+> [!important] WMMA vs MMA PTX 的选择
+> | | WMMA API | MMA PTX |
+> |---|---|---|
+> | 易用性 | 高（C++ API） | 低（内联汇编） |
+> | 灵活性 | 低（固定 tile 大小） | 高（可自由组合） |
+> | 性能 | 好 | 更好（精细控制） |
+> | 适用场景 | 快速原型 | 极致优化 |
+>
+> WMMA 适合入门和快速验证。MMA PTX 适合生产环境的极致优化。
+
+### Tensor Core GEMM vs CUDA Core GEMM 性能对比
+
+```
+SGEMM (CUDA Core, 256 threads, 128×128 tile):
+  ~500 GFLOPS (RTX 3080)
+
+SGEMM WMMA TF32 (Tensor Core):
+  ~150 GFLOPS (TF32 精度较低，但吞吐量高)
+
+HGEMM MMA PTX (Tensor Core):
+  ~300 GFLOPS (half 精度，2x 吞吐量 vs TF32)
+
+cuBLAS:
+  ~350 GFLOPS (HGEMM)
+```
+
+> [!note] Tensor Core 不是万能的
+> - 小矩阵（M,N < 64）：CUDA Core 可能更快（Tensor Core 的启动开销大）
+> - 矩阵形状不规则：Tensor Core 的 tile 对齐要求导致浪费
+> - 需要高精度：TF32 有精度损失，FP32 CUDA Core 更准

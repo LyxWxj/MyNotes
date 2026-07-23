@@ -112,7 +112,8 @@
 | **BiWM** | 2026 | 双向自回归范式，DMD 蒸馏，支持 Wan2.1-1.3B 到 LTX-2.3-22B | 待补充 | [arXiv](https://arxiv.org/abs/2606.10135) | [PDF](https://arxiv.org/pdf/2606.10135) |
 | **minWM** | 2026 | 全栈开源框架，相机控制，因果一致性蒸馏 | [笔记](10-minWM.md) | [arXiv](https://arxiv.org/abs/2605.30263) | [PDF](https://arxiv.org/pdf/2605.30263) |
 | **DreamX-World 1.0** | 2026 | 通用交互模型，E-PRoPE 相机控制，8×RTX 5090 达 16 FPS | [笔记](09-DreamX-World.md) | [arXiv](https://arxiv.org/abs/2606.16993) | [PDF](https://arxiv.org/pdf/2606.16993) |
-| **LingBot-World** | 2026 | 开源世界模拟器，分钟级长程一致性，<1s 延迟 | 待补充 | [arXiv](http://arxiv.org/abs/2601.20540) | [PDF](http://arxiv.org/pdf/2601.20540) |
+| **LingBot-World** | 2026 | 开源世界模拟器，分钟级长程一致性，<1s 延迟 | [笔记](12-LingBot-World-v2.md) | [arXiv](http://arxiv.org/abs/2601.20540) | [PDF](http://arxiv.org/pdf/2601.20540) |
+| **LingBot-Video** | 2026 | MoE 视频预训练，单流 DiT，120B 参数 | [笔记](13-LingBot-Video.md) | [arXiv](https://arxiv.org/abs/2607.07675) | [PDF](https://arxiv.org/pdf/2607.07675) |
 | **Multiplayer Interactive WM** | 2026 | 首个多玩家世界模型，Rocket League，5B 参数，20 FPS | 待补充 | [arXiv](https://arxiv.org/abs/2607.05352) | [PDF](https://arxiv.org/pdf/2607.05352) |
 
 ### 机器人操控 (Robotic Manipulation)

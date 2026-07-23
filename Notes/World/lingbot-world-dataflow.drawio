@@ -1,0 +1,230 @@
+<mxfile>
+  <diagram id="lingbot-dataflow" name="LingBot-World Data Flow">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- Title -->
+        <mxCell id="title" value="LingBot-World 整体数据流" style="text;html=1;fontSize=20;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="500" y="20" width="400" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- === Input Layer === -->
+        <!-- Input Image -->
+        <mxCell id="input_img" value="输入图像&#xa;(PIL Image)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="120" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Noise Latent -->
+        <mxCell id="noise" value="噪声 latent x&#xa;[B, 16, F, H, W]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="200" width="140" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Text Prompt -->
+        <mxCell id="text" value="文本 prompt&#xa;(string)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="320" width="120" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Camera Trajectory -->
+        <mxCell id="camera" value="摄像机轨迹&#xa;(poses.npy)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="440" width="140" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Timestep -->
+        <mxCell id="timestep" value="时间步 t&#xa;(scalar)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="560" width="120" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- === Processing Layer === -->
+        <!-- VAE Encode -->
+        <mxCell id="vae" value="VAE.encode()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="240" y="100" width="130" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Plucker -->
+        <mxCell id="plucker" value="Plücker 编码&#xa;get_plucker_embeddings()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="230" y="440" width="170" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- T5 Encoder -->
+        <mxCell id="t5" value="T5 Encoder&#xa;(umt5-xxl)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="240" y="320" width="130" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- Sinusoidal -->
+        <mxCell id="sin" value="sinusoidal_embedding" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="230" y="560" width="160" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- === Intermediate tensors === -->
+        <!-- y tensor -->
+        <mxCell id="y_tensor" value="y [B, 20, F, H, W]&#xa;(4ch mask + 16ch VAE)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="440" y="100" width="170" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- context tensor -->
+        <mxCell id="ctx_tensor" value="context [L, 4096]&#xa;(T5 文本嵌入)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="440" y="320" width="160" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- c2ws tensor -->
+        <mxCell id="c2ws_tensor" value="c2ws_plucker_emb&#xa;[B, 384, F, hp, wp]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="450" y="440" width="170" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- time embedding -->
+        <mxCell id="time_emb" value="time_embedding&#xa;[B, F, dim]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="440" y="560" width="140" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- time projection -->
+        <mxCell id="time_proj" value="time_projection&#xa;→ 6D 调制信号&#xa;[B, F, 6, dim]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="640" y="560" width="150" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- === Merge Layer === -->
+        <!-- Channel Concat -->
+        <mxCell id="concat" value="torch.cat([x, y], dim=0)&#xa;→ [B, 36, F, H, W]" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="670" y="140" width="200" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- Patch Embedding -->
+        <mxCell id="patch_emb" value="patch_embedding&#xa;Conv3d(36, dim, k=(1,2,2))&#xa;→ [B, F*hp*wp, dim]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="930" y="150" width="180" height="70" as="geometry"/>
+        </mxCell>
+
+        <!-- Text Embedding -->
+        <mxCell id="text_emb" value="text_embedding&#xa;Linear-GELU-Linear&#xa;→ [B, L, dim]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="670" y="310" width="160" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- Cam Embedding -->
+        <mxCell id="cam_emb" value="patch_embedding_wancamctrl&#xa;Linear&#xa;→ [B, F*hp*wp, dim]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="680" y="430" width="190" height="60" as="geometry"/>
+        </mxCell>
+
+        <!-- === Transformer Blocks === -->
+        <mxCell id="blocks" value="CausalWanAttentionBlock × N&#xa;────────────────────────&#xa;AdaLN → Self-Attn (RoPE+KV Cache)&#xa;→ Cam Injection (scale/shift)&#xa;→ Cross-Attn (text K/V cache)&#xa;→ FFN" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;fontSize=12;fontStyle=1;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="900" y="330" width="280" height="120" as="geometry"/>
+        </mxCell>
+
+        <!-- Output -->
+        <mxCell id="output" value="预测 velocity&#xa;[B, 16, F, H, W]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="960" y="520" width="160" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- === Arrows === -->
+        <!-- Input Image → VAE -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="input_img" target="vae" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Noise → Concat -->
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="noise" target="concat" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- VAE → y -->
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="vae" target="y_tensor" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- y → Concat -->
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="y_tensor" target="concat" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Concat → Patch Emb -->
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="concat" target="patch_emb" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Text → T5 -->
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="text" target="t5" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- T5 → ctx -->
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="t5" target="ctx_tensor" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ctx → text_emb -->
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="ctx_tensor" target="text_emb" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Camera → Plucker -->
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="camera" target="plucker" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Plucker → c2ws -->
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="plucker" target="c2ws_tensor" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- c2ws → cam_emb -->
+        <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="c2ws_tensor" target="cam_emb" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Timestep → sin -->
+        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="timestep" target="sin" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- sin → time_emb -->
+        <mxCell id="e13" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="sin" target="time_emb" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- time_emb → time_proj -->
+        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="time_emb" target="time_proj" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- patch_emb → blocks -->
+        <mxCell id="e15" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="patch_emb" target="blocks" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- text_emb → blocks -->
+        <mxCell id="e16" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="text_emb" target="blocks" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- cam_emb → blocks -->
+        <mxCell id="e17" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="cam_emb" target="blocks" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- time_proj → blocks -->
+        <mxCell id="e18" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="time_proj" target="blocks" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- blocks → output -->
+        <mxCell id="e19" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="blocks" target="output" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Labels on injection points -->
+        <mxCell id="label_visual" value="视觉 latent" style="text;html=1;fontSize=10;fontColor=#6c8ebf;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="340" width="70" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="label_text" value="Cross-Attn&#xa;(K/V 缓存)" style="text;html=1;fontSize=10;fontColor=#82b366;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="370" width="70" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="label_cam" value="scale/shift&#xa;调制" style="text;html=1;fontSize=10;fontColor=#d6b656;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="410" width="70" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="label_time" value="AdaLN&#xa;调制" style="text;html=1;fontSize=10;fontColor=#9673a6;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1120" y="450" width="70" height="30" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

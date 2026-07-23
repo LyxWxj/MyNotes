@@ -1,5 +1,7 @@
 # Cosmos: World Foundation Model Platform for Physical AI (2025)
 
+> 📖 **架构深度解析**（面向推理优化）见 → [07-Cosmos3-Architecture-Deep-Dive.md](07-Cosmos3-Architecture-Deep-Dive.md)
+
 > **论文**: Cosmos World Foundation Model Platform for Physical AI
 > **作者**: NVIDIA (77 人)
 > **来源**: arXiv 2501.03575v3
