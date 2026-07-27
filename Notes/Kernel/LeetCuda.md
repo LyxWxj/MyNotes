@@ -2,6 +2,92 @@
 
 ## 前置知识：Grid、Block、Warp、Thread 的关系
 
+### GPU 内存层次：Register、L1、Shared Memory、L2、HBM
+
+GPU 的存储空间可以先按“离计算单元越近，容量越小、延迟越低、带宽越高”来理解：
+
+```
+Thread
+  │
+  ├── Register（每线程私有，最快）
+  │
+  ├── L1 Cache / Shared Memory（每 SM 的片上存储）
+  │       ├── L1 Cache：硬件自动缓存，线程通常通过 global memory 访问
+  │       └── Shared Memory：程序显式管理，block 内线程共享
+  │
+  ├── L2 Cache（整个 GPU 共享）
+  │
+  └── HBM / GDDR（片外显存，容量大、带宽高，但延迟最高）
+```
+
+| 存储层次 | 所属范围 | 谁管理 | 典型用途 | 关键特点 |
+|---|---|---|---|---|
+| **Register** | 单个 thread | 编译器 | 临时变量、累加器、thread tile | 访问最快；使用过多会降低 occupancy |
+| **L1 Cache** | 单个 SM，多个 resident block 共享 | 硬件 | 缓存 global/local memory 的近期访问 | 命中无需访问 L2/HBM；容量有限、线程不能直接控制内容 |
+| **Shared Memory** | 单个 block，驻留在一个 SM 上 | 程序员 | block 内线程复用数据、tile、归约 | 低延迟、可显式读写；生命周期通常覆盖 kernel 中该 block 的执行 |
+| **L2 Cache** | 整个 GPU，所有 SM 共享 | 硬件 | 缓存来自 HBM/GDDR 的全局数据 | 能在不同 SM 之间复用数据；比 L1 慢但容量更大 |
+| **HBM / GDDR** | 整个 GPU | 程序通过 global memory 使用 | 输入、输出和大规模模型/矩阵数据 | 容量大、显存带宽高；访问延迟最高 |
+
+> [!note] L1 与 Shared Memory 的关系
+> 在许多 NVIDIA 架构中，L1 和 shared memory 使用同一片 SM 片上存储，容量可以按架构和配置进行 carveout。两者的**编程模型不同**：L1 是硬件自动管理的 cache，shared memory 是 kernel 显式管理的 scratchpad。因此不要把“shared memory 是 L1 的一部分”当作所有 GPU 上都成立的固定事实；更准确的说法是它们常常共享片上资源。
+
+#### 一次 global memory 访问可能经过什么路径？
+
+```text
+thread 的 load/store
+        │
+        ├── 命中 L1：直接由 SM 返回
+        │
+        └── L1 未命中
+                │
+                ├── 命中 L2：由 GPU 片上 cache 返回
+                │
+                └── L2 未命中：访问 HBM/GDDR，再填充 L2（以及可能的 L1）
+```
+
+这条路径适用于通过指针访问的 global memory；shared memory 不会因为一次普通的 global load 自动变成 shared memory。要让多个线程显式复用数据，通常需要先把数据从 global memory 搬到 shared memory，再通过同步让 block 内其他线程读取。
+
+#### HBM、L2、L1 的优化重点
+
+- **HBM/GDDR 访问**：关注 warp 内线程是否连续访问，即 memory coalescing。连续访问更容易合并成较少的内存事务，充分利用显存带宽。
+- **L2/L1 cache**：关注数据重用和工作集大小。相邻线程或相邻迭代重复访问同一数据时，cache 可能减少 HBM 流量，但不能假设数据一定命中。
+- **Shared memory 访问**：关注 bank conflict。它和 global memory 的 coalescing 是两套规则：global memory 主要看访问能否合并，shared memory 主要看同一 warp 的 lane 是否访问了冲突的 bank。
+
+### Shared Memory 与 Block、Warp 的关系
+
+```text
+GPU
+├── SM 0
+│   ├── Block A 的 shared memory（只对 Block A 可见）
+│   │   ├── Warp 0：32 个 lane 共同访问 Block A 的 shared memory
+│   │   └── Warp 1：32 个 lane 共同访问 Block A 的 shared memory
+│   └── Block B 的 shared memory（只对 Block B 可见）
+└── SM 1
+    └── Block C 的 shared memory
+```
+
+1. **Shared memory 按 block 分配**：一个 block 被调度到某个 SM 后，会获得自己声明的 shared memory。block 内所有 thread 和所有 warp 都能访问这块区域；不同 block 即使同时驻留在同一个 SM，也不能直接访问彼此的 shared memory。
+2. **一个 block 只驻留在一个 SM 上**：这样 block 内线程才能共享同一份 shared memory，并使用 `__syncthreads()` 做 block 级同步。grid 中的 block 可以并行运行，也可能分批运行在不同 SM 上，因此不能用 shared memory 做 block 间通信。
+3. **Warp 是 shared memory 指令的执行粒度**：shared memory 不是“每个 warp 一份”，而是 block 的一块存储；执行 load/store 时，warp 的 32 个 lane 通常同时发起访问，每个 lane 可以访问不同地址。
+4. **同步解决顺序，bank 解决吞吐**：一个 warp 把数据写入 shared memory 后，其他 warp 读取前通常需要 `__syncthreads()`；即使已经同步，如果同一 warp 的 lane 访问模式造成 bank conflict，访问仍可能被拆成多次执行。
+
+#### Shared memory 的 bank conflict
+
+Shared memory 被划分为多个 bank。同一 warp 的多个 lane 在同一条指令中访问不同地址时，如果这些地址落到同一个 bank，就会发生 bank conflict，硬件需要串行处理这些访问。访问同一个地址时通常可以进行 broadcast，不应简单地把它当作 conflict。
+
+```cpp
+__shared__ float tile[32][32];
+
+// 可能产生 bank conflict：同一列的元素在 bank 映射上容易冲突
+float x = tile[threadIdx.x][threadIdx.y];
+
+// 常见做法：增加 padding，改变行跨度
+__shared__ float padded_tile[32][33];
+float y = padded_tile[threadIdx.x][threadIdx.y];
+```
+
+矩阵转置中经常使用 `tile[32][33]`，目的就是减少按列读取时的 bank conflict；这和从 HBM 读取矩阵时追求连续、合并访问是不同层次的优化。
+
 ### 层级结构
 
 ```
@@ -1522,9 +1608,9 @@ SGEMM 是 CUDA 优化的经典课题：`C[M×N] = A[M×K] × B[K×N]`。
 ### 优化路线总览
 
 ```
-Naive         → Block Tile       → Thread Tile      → Double Buffer    → cp.async
-每线程1元素    → smem缓存tile     → 每线程TM×TN元素   → 计算/搬运重叠     → 异步拷贝
-O(MNK)条指令   → 减少GMEM访问     → 提高计算密度      → 隐藏延迟         → 释放warp
+Naive      → Block Tile    → Thread Tile  → Double Buffer  → cp.async
+每线程1元素  → smem缓存tile  → 每线程TM×TN元素 → 计算/搬运重叠  → 异步拷贝
+O(MNK)条指令 → 减少GMEM访问  → 提高计算密度    → 隐藏延迟       → 释放warp
 ```
 
 ### Level 0: Naive SGEMM
