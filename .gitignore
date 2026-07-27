@@ -82,8 +82,7 @@ Notes/Diffusion/papers
 Notes/MathFoundationRL/Book-Mathmatical-Foundation-of-Reinforcement-Learning
 Notes/CPP/Cpp-Templates-2nd
 Notes/learn-world-model
-Notes/流式视频生成
-Notes/流式语音生成
+Notes/IDEAS
 Notes/.python-version
 Notes/main.py
 Notes/Mark.md
@@ -107,3 +106,6 @@ Slides/pdfs
 
 # Slides moved to separate repository
 Slides/
+
+# Symlink to shared lecture materials
+MachineLearningLectures
