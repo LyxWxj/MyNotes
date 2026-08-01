@@ -227,7 +227,7 @@ GPU 的核心优化策略：当一个 warp 等待内存时，调度器切换到�
 > [!tip] 实用规则
 > 1. Block 大小通常是 32 的倍数（warp 对齐）
 > 2. 256 是安全的默认值
-> 3. 用 `__launch_bounds__(256, 4)` 告诉编译器"最多 256 线程/block，至少 4 个 block/SM"，编译器会优化寄存器分配
+> 3. 用 `__launch_bounds__(256, 4)` 告诉编译器 " 最多 256 线程/block，至少 4 个 block/SM"，编译器会优化寄存器分配
 
 ---
 
@@ -1639,7 +1639,6 @@ c[m * N + n] = psum;
 
 ```
 launch: <<<(N/BN, M/BM, 1), (BN, BM, 1)>>>
-BM=BN=32, BK=32
 ```
 
 **核心思想**：把 A 和 B 的 tile 加载到 shared memory，block 内所有线程复用。
@@ -1674,6 +1673,55 @@ A[M×K]                          B[K×N]
 > GMEM 访问 ~400 cycles，SMEM 访问 ~20 cycles。
 > 把数据搬到 SMEM 后，block 内 1024 个线程复用 → GMEM 访问次数减少 1024 倍。
 
+一个 Block(BM, BN) 一共有 BM\*BN 个线程，一共要 load BM\* BK + BK\*BN 个元素，对于 smem_a 这个子矩阵，一个线程要 load BK / BN 个元素，对于 smem_b 这子矩阵一个线程要 load BK/BM 个元素（向上取整）。
+
+主循环：
+
+```cpp
+for (int bk = 0; bk < num_k_blocks; ++bk) {
+    // load a[by * BM : by * BM + BM][bk * BK : bk*BK + BK] -> s_a
+    // load b[bk * BK : bk * BK + BK][bx * BN : bx * BN + BN] -> s_b;
+    __syncthreads();
+#pragma unroll
+    for (int k = 0; k < BK; ++k) {
+      psum += s_a[ty][k] * s_b[k][tx];
+    }
+    __syncthreads();
+  }
+```
+
+load a:
+
+```cpp
+for (int idx = tid; idx < BM * BK; idx += num_threads) {
+  int sa_m = idx / BK;
+  int sa_k = idx % BK;
+  int a_m = by * BM + sa_m;
+  int a_k = bk * BK + sa_k;
+  s_a[sa_m][sa_k] = (a_m < M && a_k < K) ? a[a_m * K + a_k] : 0.0f;
+}
+```
+
+load b:
+
+```cpp
+for (int idx = tid; idx < BK * BN; idx += num_threads) {
+  int sb_k = idx / BN;              // 0..BK-1
+  int sb_n = idx % BN;              // 0..BN-1
+  int b_k = bk * BK + sb_k;
+  int b_n = bx * BN + sb_n;
+  s_b[sb_k][sb_n] = (b_k < K && b_n < N) ? b[b_k * N + b_n] : 0.0f;
+}
+```
+
+最后写入操作：
+
+```cpp
+int cm = by * BM + ty;
+int cn = bx * BN + tx;
+if (cm < M && cn < N) c[cm * M + cn] = psum;
+```
+
 ### Level 2: Thread Tile (TM×TN)
 
 ```
@@ -1697,7 +1745,7 @@ C 的一个 BM×BN = 128×128 tile：
 └──────────┴──────────┴─────┴────┘
   16×16 = 256 线程，每线程 8×8 = 64 元素
 ```
-
+我们需要扩大了4倍的BM和BN,作为代价是我们必须缩小4倍BK，这样我们使用的smem大小就与之前一致了。
 **Thread Tile 的索引映射**：
 
 ```cpp
@@ -1808,7 +1856,7 @@ s_a[128][8] 的内存布局：
 ```
 
 > [!note] BCF 的代价
-> A 矩阵是行主序，但 smem 按列存储 → 写入时需要"在线转置"：
+> A 矩阵是行主序，但 smem 按列存储 → 写入时需要 " 在线转置 "：
 > `s_a[k][m] = a[m][k]` 而不是 `s_a[m][k] = a[m][k]`
 > 即：从 GMEM 读取一行 A，逐元素写入 smem 的不同行。
 
@@ -2318,6 +2366,7 @@ for (int k = NUM_STAGE - 1; k < K_TILES; k++) {
 ```
 
 > [!important] WMMA vs MMA PTX 的选择
+>
 > | | WMMA API | MMA PTX |
 > |---|---|---|
 > | 易用性 | 高（C++ API） | 低（内联汇编） |
