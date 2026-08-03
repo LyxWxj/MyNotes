@@ -1,4 +1,4 @@
-# obsrepo
+### obsrepo
 
 个人知识库，基于 [Tolaria](https://github.com/refactoringhq/tolaria) 构建的 Markdown 笔记仓库，同时兼容 [Obsidian](https://obsidian.md/) 编辑。
 
