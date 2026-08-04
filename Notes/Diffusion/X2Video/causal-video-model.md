@@ -13,27 +13,29 @@ status: Active
 # 因果视频模型：基本流程与蒸馏方法
 
 > [!info] 概念定位
-> 因果视频模型是一种**自回归序列生成**框架，通过因果分解和因果注意力机制，实现可变长度、逐步生成的视频生成。从Full Sequence Diffusion模型蒸馏为因果模型，需要解决架构差距和帧级注入性问题。
+> 因果视频模型是一种**自回归序列生成**框架，通过因果分解和因果注意力机制，实现可变长度、逐步生成的视频生成。从 Full Sequence Diffusion 模型蒸馏为因果模型，需要解决架构差距和帧级注入性问题。
 
 ## 🎯 核心定义
 
 > [!important] 因果视频模型的关键特征
 > - **自回归分解**：将联合分布分解为条件分布的乘积
-> - **因果注意力**：每个token只能关注过去的token，不能关注未来
+> - **因果注意力**：每个 token 只能关注过去的 token，不能关注未来
 > - **可变长度**：可以生成任意长度的序列
-> - **逐步生成**：逐帧或逐chunk生成，支持实时交互
-> - **KV缓存**：利用键值缓存提高生成效率
+> - **逐步生成**：逐帧或逐 chunk 生成，支持实时交互
+> - **KV 缓存**：利用键值缓存提高生成效率
 
 ## 📐 数学基础：自回归分解
 
 ### 联合分布分解
 
 **Full Sequence Diffusion**：
+
 ```
 p(x₁:N) = 直接建模整个序列的联合分布
 ```
 
 **因果视频模型**：
+
 ```
 p(x₁:N) = ∏ᵢ₌₁ᴺ p(xᵢ|x<ᵢ)
          = p(x₁) · p(x₂|x₁) · p(x₃|x₁:₂) · ... · p(xN|x₁:N-1)
@@ -42,11 +44,12 @@ p(x₁:N) = ∏ᵢ₌₁ᴺ p(xᵢ|x<ᵢ)
 > [!note] 分解的意义
 > - 将复杂的联合分布分解为简单的条件分布
 > - 每个条件分布可以独立建模
-> - 支持逐步生成，每步只预测下一个token
+> - 支持逐步生成，每步只预测下一个 token
 
 ### 扩散过程的因果化
 
 **标准扩散（Full Sequence）**：
+
 ```python
 # 所有帧使用相同噪声级别
 t = uniform(0, T)
@@ -55,6 +58,7 @@ noise_pred = model(x_t, t)
 ```
 
 **因果扩散（Causal Diffusion）**：
+
 ```python
 # 每帧独立采样噪声级别
 for i in range(num_frames):
@@ -70,14 +74,15 @@ noise_pred = model(x_t, t, causal_mask=True)
 ### 1. 整体架构
 
 > [!abstract] 因果视频模型的组件
-> 1. **因果VAE**：将视频编码为潜在表示，保持时间因果性
-> 2. **因果Transformer**：使用因果注意力机制的Transformer
-> 3. **KV缓存**：存储已生成帧的键值对，避免重复计算
+> 1. **因果 VAE**：将视频编码为潜在表示，保持时间因果性
+> 2. **因果 Transformer**：使用因果注意力机制的 Transformer
+> 3. **KV 缓存**：存储已生成帧的键值对，避免重复计算
 > 4. **自回归采样器**：逐帧生成视频
 
 ### 2. 训练阶段
 
-**Teacher Forcing训练**：
+**Teacher Forcing 训练**：
+
 ```python
 # 基于真实上下文训练
 for i in range(num_frames):
@@ -86,7 +91,8 @@ for i in range(num_frames):
     loss = model(x_real_<i, x_i)
 ```
 
-**Diffusion Forcing训练**：
+**Diffusion Forcing 训练**：
+
 ```python
 # 基于噪声上下文训练
 for i in range(num_frames):
@@ -103,6 +109,7 @@ for i in range(num_frames):
 ### 3. 推理阶段
 
 **自回归生成**：
+
 ```python
 # 逐帧生成
 generated_frames = []
@@ -124,37 +131,40 @@ for i in range(num_frames):
     generated_frames.append(x_i)
 ```
 
-> [!important] KV缓存机制
+> [!important] KV 缓存机制
 > - **目的**：避免重复计算历史帧的键值
-> - **结构**：存储每一层的键(K)和值(V)张量
-> - **更新**：每生成一帧，追加新的KV到缓存
-> - **淘汰**：当缓存过大时，移除最早的KV（滚动缓存）
+> - **结构**：存储每一层的键 (K) 和值 (V) 张量
+> - **更新**：每生成一帧，追加新的 KV 到缓存
+> - **淘汰**：当缓存过大时，移除最早的 KV（滚动缓存）
 
 ### 4. 注意力机制
 
-**Full Sequence注意力**：
+**Full Sequence 注意力**：
+
 ```
 Attention(Q, K, V) = softmax(QKᵀ/√d)V
 # 每个token可以关注所有token
 ```
 
 **因果注意力**：
+
 ```
 CausalAttention(Q, K, V) = softmax(mask(QKᵀ/√d))V
 # mask: 下三角矩阵，防止关注未来token
 ```
 
 > [!note] 因果掩码示例
+>
 > ```
 > [[1, 0, 0, 0],
 >  [1, 1, 0, 0],
 >  [1, 1, 1, 0],
 >  [1, 1, 1, 1]]
 > ```
-> - 第i行只能关注前i个token
-> - 确保生成时不会"偷看"未来信息
+> - 第 i 行只能关注前 i 个 token
+> - 确保生成时不会 " 偷看 " 未来信息
 
-## 🔧 从Full Sequence Diffusion蒸馏为因果模型
+## 🔧 从 Full Sequence Diffusion 蒸馏为因果模型
 
 ### 1. 核心挑战：架构差距
 
@@ -163,7 +173,8 @@ CausalAttention(Q, K, V) = softmax(mask(QKᵀ/√d))V
 > - **因果模型**：因果注意力，只能看到过去帧
 > - **差距**：直接转换会导致性能显著下降
 
-**实验证据（来自Causal Forcing论文）**：
+**实验证据（来自 Causal Forcing 论文）**：
+
 ```
 标准DMD（双向学生）: 性能高
 Self Forcing（因果学生）: 性能低19.3% Dynamic Degree
@@ -173,44 +184,50 @@ Self Forcing（因果学生）: 性能低19.3% Dynamic Degree
 
 > [!important] 帧级注入性定义
 > 对于映射 ϕ_AR: (xᵢᵗ, t) → xᵢ⁰，帧级注入性成立的条件是：
-> 
+>
 > ∀t ∈ (0,1], ∀{xⱼᵗ}ᴺⱼ₌₁, {yⱼᵗ}ᴺⱼ₌₁:
 > 如果 xᵢᵗ = yᵢᵗ，则 ϕ_AR(xᵢᵗ, t) = ϕ_AR(yᵢᵗ, t)
 
 **直觉解释**：
+
 - 在因果模型中，每个噪声帧必须映射到唯一的干净帧
 - 如果同一个噪声帧对应多个可能的干净帧，模型无法学习正确的映射
 - 这会导致模型预测条件期望，生成模糊结果
 
 **违反帧级注入性的后果**：
+
 ```python
 # 最优解变成条件期望
 G*_θ(xᵢᵗ, x<ᵢᵗ, t) = E[xᵢ⁰ | xᵢᵗ, x<ᵢᵗ, t]
 # 而不是真实的干净帧
 ```
 
+> [!tip] 为什么坍缩到条件期望
+> 完整推导见 [[causal-forcing]] 的"为什么违反注入性会坍缩到条件期望"：MSE 回归最优解即条件期望；注入性被违反 = 同一学生输入对应多个干净目标，最优解只能是多目标平均 → 高频抵消 → 模糊残影。
+
 ### 3. 标准蒸馏流程（两阶段）
 
-> [!abstract] Self Forcing的蒸馏流程
-> **阶段1：ODE蒸馏**
-> 1. 使用双向教师模型采样PF-ODE轨迹
+> [!abstract] Self Forcing 的蒸馏流程
+> **阶段 1：ODE 蒸馏**
+> 1. 使用双向教师模型采样 PF-ODE 轨迹
 > 2. 训练因果学生模型学习流映射
 > 3. 目标：最小化 MSE(G_θ(xᵢᵗ), xᵢ⁰)
 >
-> **阶段2：DMD蒸馏**
-> 1. 使用ODE蒸馏初始化的学生模型
+> **阶段 2：DMD 蒸馏**
+> 1. 使用 ODE 蒸馏初始化的学生模型
 > 2. 应用分布匹配蒸馏（DMD）
 > 3. 进一步提升生成质量
 
 **问题**：
-- 阶段1中，双向教师的PF-ODE在帧级是非注入的
-- 同一个噪声帧xᵢᵗ可能对应多个不同的干净帧xᵢ⁰
+
+- 阶段 1 中，双向教师的 PF-ODE 在帧级是非注入的
+- 同一个噪声帧 xᵢᵗ可能对应多个不同的干净帧 xᵢ⁰
 - 这违反了帧级注入性，导致性能下降
 
-### 4. Causal Forcing的解决方案
+### 4. Causal Forcing 的解决方案
 
-> [!tip] Causal Forcing的三阶段方法
-> **阶段1：教师强制训练AR扩散模型**
+> [!tip] Causal Forcing 的三阶段方法
+> **阶段 1：教师强制训练 AR 扩散模型**
 > ```python
 > # 使用Teacher Forcing训练因果扩散模型
 > for i in range(num_frames):
@@ -219,7 +236,7 @@ G*_θ(xᵢᵗ, x<ᵢᵗ, t) = E[xᵢ⁰ | xᵢᵗ, x<ᵢᵗ, t]
 >     ar_teacher = train_with_teacher_forcing(x_real)
 > ```
 >
-> **阶段2：因果ODE蒸馏**
+> **阶段 2：因果 ODE 蒸馏**
 > ```python
 > # 使用AR教师进行ODE蒸馏
 > for trajectory in ar_teacher.sample_trajectories():
@@ -228,56 +245,59 @@ G*_θ(xᵢᵗ, x<ᵢᵗ, t) = E[xᵢ⁰ | xᵢᵗ, x<ᵢᵗ, t]
 >     student_loss = MSE(student(xᵢᵗ), xᵢ⁰)
 > ```
 >
-> **阶段3：非对称DMD**
+> **阶段 3：非对称 DMD**
 > ```python
 > # 应用DMD进一步提升质量
 > student = apply_dmd(student, bidirectional_teacher)
 > ```
 
-> [!success] 为什么Causal Forcing有效？
-> - **AR教师**：因果架构，PF-ODE满足帧级注入性
+> [!success] 为什么 Causal Forcing 有效？
+> - **AR 教师**：因果架构，PF-ODE 满足帧级注入性
 > - **帧级注入性**：每个噪声帧唯一对应一个干净帧
 > - **正确流映射**：学生可以准确学习教师的流映射
-> - **性能提升**：超越Self Forcing 19.3% Dynamic Degree
+> - **性能提升**：超越 Self Forcing 19.3% Dynamic Degree
 
 ## 📊 蒸馏流程详细对比
 
-### 方法1：标准DMD（双向学生）
+### 方法 1：标准 DMD（双向学生）
 
 ```
 双向教师 → 标准DMD → 双向学生（少步）
 ```
+
 - ✅ 满足视频级注入性
 - ✅ 性能高
 - ❌ 仍然是双向架构，无法实时生成
 
-### 方法2：Self Forcing（因果学生）
+### 方法 2：Self Forcing（因果学生）
 
 ```
 双向教师 → ODE蒸馏（违反帧级注入性）→ 因果学生 → DMD → 少步因果学生
 ```
+
 - ❌ 违反帧级注入性
-- ❌ 性能下降19.3%
+- ❌ 性能下降 19.3%
 - ✅ 因果架构，支持实时生成
 
-### 方法3：Causal Forcing（因果学生）
+### 方法 3：Causal Forcing（因果学生）
 
 ```
 AR教师（Teacher Forcing训练）→ 因果ODE蒸馏（满足帧级注入性）→ 因果学生 → DMD → 少步因果学生
 ```
+
 - ✅ 满足帧级注入性
-- ✅ 性能超越Self Forcing
+- ✅ 性能超越 Self Forcing
 - ✅ 因果架构，支持实时生成
 
 ## 🧭 Forcing 家族全景对比
 
 > [!note] 一句话脉络
-> **Teacher Forcing → Diffusion Forcing → Self Forcing** 解决的是"训练时条件历史用什么"（暴露偏差问题）；**Rolling Forcing / Causal Forcing / Omni Forcing** 解决的是因果化之后的工程与理论问题（长程漂移、架构差距、跨模态不稳定）。六个方法共享同一条主线：把双向扩散模型变成**少步、因果、可实时流式**的生成器。
+> **Teacher Forcing → Diffusion Forcing → Self Forcing** 解决的是 " 训练时条件历史用什么 "（暴露偏差问题）；**Rolling Forcing / Causal Forcing / Omni Forcing** 解决的是因果化之后的工程与理论问题（长程漂移、架构差距、跨模态不稳定）。六个方法共享同一条主线：把双向扩散模型变成**少步、因果、可实时流式**的生成器。
 
 ### 核心矛盾：暴露偏差
 
 > [!warning] 贯穿始终的问题
-> AR 模型训练时条件于 ground-truth 历史，推理时条件于自身不完美的输出 → 条件分布不匹配 → 误差逐帧累积。由于去噪损失需要"模型预测 + 对应 ground-truth 条件"的配对，暴露偏差难以直接优化消除。
+> AR 模型训练时条件于 ground-truth 历史，推理时条件于自身不完美的输出 → 条件分布不匹配 → 误差逐帧累积。由于去噪损失需要 " 模型预测 + 对应 ground-truth 条件 " 的配对，暴露偏差难以直接优化消除。
 
 ### 1. Teacher Forcing (TF) — 一切的基础
 
@@ -285,7 +305,7 @@ AR教师（Teacher Forcing训练）→ 因果ODE蒸馏（满足帧级注入性�
 > 最经典的 AR 训练范式：训练时永远用**真实干净历史**作条件，学习 p(xᵢ | x₀^{<i})。
 
 - **训练范式**：当前帧 xᵢ 在噪声级别 tⱼ 的条件分布为 p(x_{tⱼ}ᵢ | x₀^{<i})，历史帧全部是数据集的干净帧，逐帧去噪损失
-- **解决的问题**：让 AR 扩散模型学会"给定干净历史、预测下一帧"这一基础条件分布
+- **解决的问题**：让 AR 扩散模型学会 " 给定干净历史、预测下一帧 " 这一基础条件分布
 - **优点**：实现简单、监督信号强、训练稳定收敛快
 - **缺点**：**暴露偏差**——训练条件（真实历史）与推理条件（自生成历史）不同分布，长序列误差累积
 - **补充发现**：Causal Forcing 证明，对 AR 扩散模型来说 TF 反而比 DF 更适合训练教师（干净前缀才能定义良好的流映射）
@@ -293,17 +313,17 @@ AR教师（Teacher Forcing训练）→ 因果ODE蒸馏（满足帧级注入性�
 ### 2. Diffusion Forcing (DF) — 噪声即掩码
 
 > [!abstract] 一句话定位
-> 把噪声级别当作"部分掩码"，每个 token 有独立噪声级别，统一 next-token 预测与全序列扩散。
+> 把噪声级别当作 " 部分掩码 "，每个 token 有独立噪声级别，统一 next-token 预测与全序列扩散。
 
 - **训练范式**：历史帧也以**独立噪声级别**加噪，条件分布为 p(x_{tⱼ}ᵢ | x_{t≥0}^{<i})，模型一次性去噪整个序列；TF 是 DF 的特例（历史全干净、当前帧全噪声）
 - **解决的问题**：(1) 可变长度生成（1 到数千 token）；(2) 引导采样与规划（MCG 蒙特卡洛引导）；(3) 部分观测/混合噪声序列建模
 - **优点**：统一了时间轴掩码（TF）与噪声轴掩码（全序列扩散），灵活性与长程规划能力最强
-- **缺点**：训练仍基于 ground-truth 加噪历史，推理基于自生成历史 → **暴露偏差依然存在**（SkyReels-V2 用 DF 做长视频，ΔDrift 达 5.59）；严格逐帧因果在音视频双流上会因 25:3 频率不对称崩溃（Omni Forcing 挑战1）
+- **缺点**：训练仍基于 ground-truth 加噪历史，推理基于自生成历史 → **暴露偏差依然存在**（SkyReels-V2 用 DF 做长视频，ΔDrift 达 5.59）；严格逐帧因果在音视频双流上会因 25:3 频率不对称崩溃（Omni Forcing 挑战 1）
 
 ### 3. Self Forcing (SF) — 训练=推理
 
 > [!abstract] 一句话定位
-> 第一个"训练与推理同分布"的 AR 视频扩散范式：训练时用**自生成历史**自回归展开，配合视频级 DMD 分布匹配损失。
+> 第一个 " 训练与推理同分布 " 的 AR 视频扩散范式：训练时用**自生成历史**自回归展开，配合视频级 DMD 分布匹配损失。
 
 - **训练范式**：训练中自回归展开（带 KV 缓存），每帧条件于先前**自生成输出**；随机采样去噪步 + 梯度截断（只回传到最终去噪步）；DMD（或 SiD/GAN）匹配加噪后的分布
 - **解决的问题**：**暴露偏差**——训练输出与推理输出同分布，模型在训练中学会从自身错误中纠正
@@ -329,7 +349,7 @@ AR教师（Teacher Forcing训练）→ 因果ODE蒸馏（满足帧级注入性�
 ### 5. Causal Forcing (CF) — 理论正确的蒸馏
 
 > [!abstract] 一句话定位
-> 从理论上解决"双向教师 → 因果学生"的**架构差距**：用 AR 教师做 ODE 蒸馏，满足帧级注入性。
+> 从理论上解决 " 双向教师 → 因果学生 " 的**架构差距**：用 AR 教师做 ODE 蒸馏，满足帧级注入性。
 
 - **训练范式**：三阶段 (1) AR 教师 TF 训练（干净视频 + 噪声副本拼接，因果掩码）；(2) 因果 ODE 蒸馏（AR 教师的 PF-ODE 天然满足帧级注入性）；(3) 非对称 DMD（以双向基础模型为教师）
 - **解决的问题**：(1) 双向教师 ODE 蒸馏违反帧级注入性 → 学生只能学条件期望 → 模糊；(2) 证明 SF 的 ODE 蒸馏存在分布不匹配 G*(xᵢᵗ) = E[xᵢ⁰ | xᵢᵗ] ≁ p_data；(3) 理论 + 经验证明 TF 优于 DF 训练 AR 教师
@@ -369,9 +389,9 @@ AR教师（Teacher Forcing训练）→ 因果ODE蒸馏（满足帧级注入性�
 > - **蒸馏/架构轴（因果化之后）**：CausVid（首个 DMD 因果蒸馏）→ SF（暴露偏差）→ CF（帧级注入性/架构差距）→ RF（长程漂移）→ OF（跨模态双流）
 > - **共同技术栈**：少步化（DMD/ODE 蒸馏）+ 因果化（注意力掩码）+ 分布对齐（视频级 DMD 损失）+ 长程稳定（KV 缓存 / attention sink 锚点 / 滚动窗口）
 
-## 🔬 技术细节：ODE蒸馏
+## 🔬 技术细节：ODE 蒸馏
 
-### 标准ODE蒸馏
+### 标准 ODE 蒸馏
 
 ```python
 # 双向教师 → 双向学生
@@ -386,10 +406,11 @@ def standard_ode_distillation(teacher, student):
 ```
 
 **满足视频级注入性**：
-- 对于任意噪声视频xₜ，存在唯一的干净视频x₀
+
+- 对于任意噪声视频 xₜ，存在唯一的干净视频 x₀
 - 学生可以准确学习流映射
 
-### 因果ODE蒸馏
+### 因果 ODE 蒸馏
 
 ```python
 # AR教师 → 因果学生
@@ -405,8 +426,9 @@ def causal_ode_distillation(ar_teacher, student):
 ```
 
 **满足帧级注入性**：
-- AR教师是因果的，每帧独立去噪
-- 对于任意噪声帧xᵢᵗ，存在唯一的干净帧xᵢ⁰
+
+- AR 教师是因果的，每帧独立去噪
+- 对于任意噪声帧 xᵢᵗ，存在唯一的干净帧 xᵢ⁰
 - 学生可以准确学习帧级流映射
 
 ## 🎯 关键洞察
@@ -415,25 +437,25 @@ def causal_ode_distillation(ar_teacher, student):
 > 1. **架构匹配**：教师和学生应具有相似的架构（都是因果或都是双向）
 > 2. **注入性保证**：配对数据必须满足注入性条件
 > 3. **流映射学习**：学生必须能准确学习教师的流映射
-> 4. **分布匹配**：通过DMD进一步对齐生成分布
+> 4. **分布匹配**：通过 DMD 进一步对齐生成分布
 
 > [!warning] 常见陷阱
 > 1. **直接蒸馏**：从双向教师直接蒸馏因果学生，违反帧级注入性
-> 2. **忽略架构差距**：认为DMD阶段可以弥补架构差距
+> 2. **忽略架构差距**：认为 DMD 阶段可以弥补架构差距
 > 3. **噪声级别不当**：使用统一噪声级别而非独立噪声级别
-> 4. **缓存管理不当**：KV缓存更新策略不合适
+> 4. **缓存管理不当**：KV 缓存更新策略不合适
 
 ## 📈 性能对比
 
-**基于Causal Forcing论文的实验结果**：
+**基于 Causal Forcing 论文的实验结果**：
 
 | 方法 | Dynamic Degree | VisionReward | Instruction Following |
 |------|---------------|--------------|----------------------|
-| 标准DMD（双向学生） | 基准 | 基准 | 基准 |
+| 标准 DMD（双向学生） | 基准 | 基准 | 基准 |
 | Self Forcing（因果学生） | -19.3% | -8.7% | -16.7% |
 | Causal Forcing（因果学生） | 超越基准 | 超越基准 | 超越基准 |
 
-> [!success] Causal Forcing的突破
+> [!success] Causal Forcing 的突破
 > - 首次实现因果学生超越双向学生
 > - 证明了帧级注入性的重要性
 > - 为实时交互式视频生成开辟新道路
@@ -474,17 +496,17 @@ def realtime_video_generation(model, user_input):
 > 2. **世界建模**：交互式世界模拟
 > 3. **机器人学习**：实时生成机器人视角
 > 4. **直播内容**：实时视频内容生成
-> 5. **虚拟现实**：沉浸式VR体验
+> 5. **虚拟现实**：沉浸式 VR 体验
 
 ## 📚 总结
 
 > [!quote] 核心要点
 > 1. **因果视频模型**通过自回归分解和因果注意力实现逐步生成
-> 2. **帧级注入性**是从Full Sequence蒸馏到因果模型的关键原则
-> 3. **Causal Forcing**通过使用AR教师解决帧级注入性问题
-> 4. **KV缓存**是因果模型高效推理的关键技术
-> 5. **实时交互**是因果模型相比Full Sequence模型的核心优势
-> 6. **Forcing 家族**沿"训练条件（暴露偏差）"与"因果化蒸馏（架构差距/漂移）"两条轴演进，详见"🧭 Forcing 家族全景对比"
+> 2. **帧级注入性**是从 Full Sequence 蒸馏到因果模型的关键原则
+> 3. **Causal Forcing**通过使用 AR 教师解决帧级注入性问题
+> 4. **KV 缓存**是因果模型高效推理的关键技术
+> 5. **实时交互**是因果模型相比 Full Sequence 模型的核心优势
+> 6. **Forcing 家族**沿 " 训练条件（暴露偏差）" 与 " 因果化蒸馏（架构差距/漂移）" 两条轴演进，详见 "🧭 Forcing 家族全景对比 "
 
 > [!quote] 引用
 > - **Teacher Forcing**: 经典序列模型训练范式
@@ -493,3 +515,4 @@ def realtime_video_generation(model, user_input):
 > - **Rolling Forcing**: Autoregressive Long Video Diffusion in Real Time（arXiv 2509.25161）
 > - **Causal Forcing**: Autoregressive Diffusion Distillation Done Right（arXiv 2602.02214）
 > - **Omni Forcing**: Unleashing Real-time Joint Audio-Visual Generation（arXiv 2603.11647）
+

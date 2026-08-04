@@ -91,7 +91,7 @@ $$\log p_\theta(x) = \text{ELBO} + D_{\text{KL}}(q_\phi(z|x) \| p_\theta(z|x))$$
 
 ### 3.6 损失函数最终形式
 
-$$\mathcal{L}_{\text{VAE}} = -\mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)] + D_{\text{KL}}(q_\phi(z|x) \| p(z))$$
+$$\mathcal{L}_{\text{VAE}} = -\mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)] + D_{\text{KL}}(q_\phi(z|x) \| p(z))=-ELBO$$
 
 > [!example] 损失项含义
 >
