@@ -33,6 +33,8 @@ status: Active
 
 ## 硬件与通信基础
 
+> 集合通信是所有并行的底层地基，原语语义、算法与 NCCL 调优单独成册：[[collective-communication-index|集合通信与 NCCL 调优]]（`Notes/CollectiveCommunication/`）。
+
 ### 常见互联带宽（量级）
 
 | 互联 | 典型带宽 | 说明 |

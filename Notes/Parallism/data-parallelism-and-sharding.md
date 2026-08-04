@@ -1,6 +1,6 @@
 ---
 type: Note
-related_to: "[[README]]"
+related_to: "[[Parallel tech]]"
 status: Active
 ---
 
