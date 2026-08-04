@@ -30,6 +30,8 @@ $$k_t^{C} = W^{UK} c_t^{KV},\qquad v_t^{C} = W^{UV} c_t^{KV}$$
 
 其中 $W^{DKV} \in \mathbb{R}^{d \times d_c}$,$W^{UK}, W^{UV} \in \mathbb{R}^{d_c \times n_h d_h}$。注意 $k_t^C, v_t^C$ 是所有头**共享**的(推理时是单份 KV,即 MQA 形态)。
 
+![[mla-fig2.png|DeepSeek-V2 论文 Figure 2:MLA 架构(低秩 KV 压缩 + 解耦 RoPE,推理只缓存 c^KV 与 k^R)]]
+
 ### 2.2 query 低秩
 
 $$c_t^Q = W^{DQ} h_t \in \mathbb{R}^{d_c},\qquad q_t^C = W^{UQ} c_t^Q$$
@@ -165,7 +167,9 @@ print("absorption equivalence: OK")
 ## 4. 要点与对比
 
 - **MLA vs GQA**:GQA 缓存的是 KV 头投影后的原始向量($2 n_{kv} d_h$);MLA 缓存的是低维潜变量($d_c + d_h^R$),且 $d_c$ 可以做到比 $n_{kv} d_h$ 更小。
-- **MLA 的 MQA 形态**:压缩后的 $k^C, v^C$ 是所有 query 头共享的单份,这与 [[nsa-dsa]] 中 DSA 的核心注意力模式一致(DeepSeek-V3.2 说明 MLA 有 MHA/MQA 两种模式,DSA 使用 MQA 模式)。
+- **MLA 的 MQA 形态**:压缩后的 $k^C, v^C$ 是所有 query 头共享的单份,这与 [[nsa-dsa]] 中 DSA 的核心注意力模式一致(DeepSeek-V3.2 说明 MLA 有 MHA/MQA 两种模式,DSA 使用 MQA 模式):
+
+![[dsa-fig7.png|DeepSeek-V3.2 论文 Figure 7:MLA 的 MHA 与 MQA 两种模式]]
 - **解耦 RoPE 的必要性**:若把 RoPE 施加在低秩向量上,旋转维数被压缩,位置分辨率丢失;独立 $d_h^R$ 维让位置编码保持完整旋转结构。
 - **训练激活内存**:query 低秩意味着注意力打分可以先用低维潜变量算(配合吸收技巧),训练时不必展开每头的完整 K/V 激活。
 - **局限**:MLA 仍是 $O(n^2)$ 的精确注意力,计算量没有下降;长上下文的计算瓶颈由 [[nsa-dsa]] 的稀疏化和 [[csa-hca]] 的压缩来解决。

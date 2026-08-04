@@ -17,6 +17,8 @@ DeepSeek-V4 系列(arXiv:2606.19348)把两条思路合流:**先压缩 KV,再做�
 - CSA/HCA 的想法:先把每 $m$ 个 token 的 KV 压缩成 1 个条目($1/m$ 压缩率),再在压缩条目上做稀疏选择(CSA)或全量注意力(HCA)。KV cache 与注意力 FLOPs 同时下降。
 - CSA 用**双流重叠压缩**弥补纯分块压缩的信息损失:HCA 用更大的压缩率 $m' \gg m$ 换取极致压缩,放弃稀疏。
 
+![[v4-fig2.png|DeepSeek-V4 论文 Figure 2:整体架构(层间混合 CSA 与 HCA)]]
+
 ## 2. 数学原理
 
 记号:输入 $H \in \mathbb{R}^{n \times d}$,$c$ 为头维度,$m$ 为 CSA 压缩块大小,$m' \gg m$ 为 HCA 压缩块大小。
@@ -37,6 +39,8 @@ $$C^{\mathrm{Comp}}_i = \sum_{j=mi}^{m(i+1)-1} S^a_j \odot C^a_j
 + \sum_{j=m(i-1)}^{mi-1} S^b_j \odot C^b_j \in \mathbb{R}^{c}$$
 
 当 $i=0$ 时,b 流的 $Z$ 以 $-\infty$ 填充、$C$ 以 0 填充。由于 $C_i^{Comp}$ 的 b 流与 $C_{i-1}^{Comp}$ 的 a 流索引重叠(都是 $[m(i{-}1), mi)$),整体实际压缩率是 $1/m$(不是 $1/2m$)。
+
+![[v4-fig3-csa.png|DeepSeek-V4 论文 Figure 3:CSA 核心架构(双流重叠压缩 + 稀疏选择 + 滑动窗口)]]
 
 ### 2.2 CSA 索引器(论文公式 13-17)
 
@@ -76,6 +80,8 @@ S_{m'i:m'(i+1)-1} = \mathrm{Softmax}_{row}\!\left(Z_{m'i:m'(i+1)-1} + B\right)$$
 $$C^{\mathrm{Comp}}_i = \sum_{j=m'i}^{m'(i+1)-1} S_j \odot C_j$$
 
 其余与 CSA 相同:低秩 query($c_t^Q = h_t W^{DQ}$)、MQA 核心注意力($o_{t,i} = \mathrm{CoreAttn}(q_{t,i}, C^{Comp}, C^{Comp})$)、分组输出。没有索引器与 top-k。
+
+![[v4-fig4-hca.png|DeepSeek-V4 论文 Figure 4:HCA 核心架构(重度压缩,无稀疏)]]
 
 ### 2.5 通用细节(论文 2.3.3)
 

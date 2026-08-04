@@ -51,6 +51,8 @@ g_t = \mathrm{Softmax}\big(x_t W^g\big) \in \mathbb{R}^3$$
 
 复杂度:选择打分只发生在 query 与 $\approx n/m$ 个块之间,核心注意力只看 $n \cdot m + w$ 个 token,总成本从 $O(n^2)$ 降到约 $O(n \cdot n/m)$(块数 × query 数)。
 
+![[nsa-fig2.png|DeepSeek-NSA 论文 Figure 2:NSA 架构总览(压缩 / 选择 / 滑动窗口三路)]]
+
 ### 1.3 PyTorch 教学实现
 
 ```python
@@ -187,6 +189,8 @@ $$I_{t,s} = \sum_{j=1}^{H^I} w_{t,j}^{I} \cdot \mathrm{ReLU}\!\left(q_{t,j}^{I\t
 $$u_t = \mathrm{Attn}\!\left(h_t,\; \big\{c_s \;\big|\; I_{t,s} \in \mathrm{Top}\text{-}k(I_{t,:})\big\}\right)$$
 
 $c_s$ 是 MLA 低秩压缩后的 KV 条目(DeepSeek-V3.2 中 MLA 以 MQA 模式运行,所有头共享同一份 KV),因此核心注意力是"稀疏化的 MLA-MQA"。
+
+![[dsa-fig2.png|DeepSeek-V3.2 论文 Figure 2:MLA 实例化下的 DSA 注意力架构(Lightning Indexer + top-k 选择)]]
 
 **两阶段训练**:
 

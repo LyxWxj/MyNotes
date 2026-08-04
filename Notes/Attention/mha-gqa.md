@@ -38,6 +38,8 @@ $\sqrt{d_h}$ 缩放防止点积进入 softmax 饱和区。RoPE(旋转位置编�
 $$\theta_i = 10000^{-2i/d_h},\qquad
 \mathrm{RoPE}(q, t) = \left[ q_{2i}\cos(t\theta_i) - q_{2i+1}\sin(t\theta_i),\; q_{2i}\sin(t\theta_i) + q_{2i+1}\cos(t\theta_i) \right]_{i=0}^{d_h/2-1}$$
 
+![[transformer-fig2.png|Transformer 论文 Figure 2:缩放点积注意力(左)与多头注意力(右)]]
+
 ### 2.2 MQA
 
 MQA 只有 1 个 KV 头(记 $k_j, v_j \in \mathbb{R}^{d_h}$),所有 query 头共享:
@@ -49,6 +51,8 @@ $$o_{t,i} = \sum_{j=1}^{t} \mathrm{Softmax}_j\!\left(\frac{q_{t,i}^\top k_j}{\sq
 GQA 有 $n_{kv}$ 个 KV 头,第 $i$ 个 query 头使用第 $\lfloor i \cdot n_{kv} / n_h \rfloor$ 个 KV 头:
 
 $$o_{t,i} = \sum_{j=1}^{t} \mathrm{Softmax}_j\!\left(\frac{q_{t,i}^\top k_{j, \lfloor i \cdot n_{kv} / n_h \rfloor}}{\sqrt{d_h}}\right) v_{j, \lfloor i \cdot n_{kv} / n_h \rfloor}$$
+
+![[gqa-fig2.png|GQA 论文 Figure 2:分组查询方法总览(MHA → GQA → MQA 的头共享关系)]]
 
 ### 2.4 KV cache 对比(每层、每 token)
 

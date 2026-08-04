@@ -33,6 +33,8 @@ o_t = S_t^\top q_t$$
 2. **擦除**:$-\beta_t k_t k_t^\top (\mathrm{Diag}(\alpha_t) S_{t-1})$ —— 把状态中"沿 $k_t$ 方向"的分量删掉,为新写入腾空间;
 3. **写入**:$+\beta_t k_t v_t^\top$ —— 存入当前关联;$\beta_t \in [0,1]$ 是标量写入/擦除门控。
 
+![[kimi-fig3.png|Kimi Linear 论文 Figure 3:Kimi Linear 模型架构(KDA 层 + 周期性 MLA 层的 3:1 混合)]]
+
 ### 2.2 神经参数化(论文公式 5-8)
 
 $$q_t = \mathrm{L2Norm}\big(\mathrm{Swish}(\mathrm{ShortConv}(W_q x_t))\big),\qquad

@@ -47,6 +47,10 @@ b_t = b_{t-1} \odot e^{-w} + e^{k_t + u},\qquad
 
 > 注:闭式里 $u$ 只加在当前 token;而递推形式把 $u$ 也带进历史项。两者只差一个逐通道常数偏移,等价于对 key 做重参数化 $k'_i = k_i + u$。官方 CUDA kernel 采用的就是下面的递推形式,教学代码与其一致。
 
+![[rwkv-fig2.png|RWKV 论文 Figure 2:RWKV block 内的时间混合 / 通道混合元素]]
+
+![[rwkv-fig8.png|RWKV 论文 Figure 8:time-mixing block 的 RNN 视角(逐 token 递推)]]
+
 RWKV-4 的 Time Mixing 还会对输入做"时间移位"混合(time shift:$\tilde{x}_t = \mu x_t + (1-\mu) x_{t-1}$),并给 WKV 输出套一个 $\sigma(r_t)$ 门控:
 
 $$r_t = W_r(\mu x_t + (1-\mu) x_{t-1}),\qquad
@@ -152,6 +156,8 @@ $$y_t = \sum_{i \le t} C_t \bar{A}_t \cdots \bar{A}_{i+1} \bar{B}_i x_i
 \sum_{i \le t} \mathrm{Softmax}_i\big(q_t^\top k_i\big) v_i$$
 
 对应关系:$\bar{A}$ 是"衰减/遗忘",$\bar{B}$ 是"写入",$C$ 是"读取"。Mamba-2(SSD)进一步证明,当 $\bar{A}$ 取特殊结构时,SSM 等价于一种带掩码的线性注意力,从而可以直接套用注意力矩阵的分解技巧。
+
+![[mamba-fig3.png|Mamba 论文 Figure 3:简化块设计(H3 + Gated MLP 组合成 Mamba 块)]]
 
 ### 3.2 PyTorch 教学实现
 

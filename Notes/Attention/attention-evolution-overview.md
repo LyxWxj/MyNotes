@@ -92,6 +92,10 @@ KV cache 大小(每层、每 token,K 和 V 各占 $d_h$):
 | GQA | $n_{kv}$ | $2 n_{kv} d_h = 2d \cdot n_{kv}/n_h$ | $n_{kv}/n_h$ |
 | MQA | 1 | $2 d_h$ | $1/n_h$ |
 
+DeepSeek-V2 论文用一张图直观对比了四种架构的差异(MHA / GQA / MQA / MLA):
+
+![[mla-fig3.png|DeepSeek-V2 Figure 3:MHA / GQA / MQA / MLA 对比|640]]
+
 完整的推导与可运行实现见 [[mha-gqa]]。
 
 ### 路线 2:可训练稀疏注意力
