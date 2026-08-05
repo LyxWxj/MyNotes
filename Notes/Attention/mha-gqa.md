@@ -25,6 +25,8 @@ related_to:
 
 $$q_{t,i} = x_t W^Q_i,\quad k_{t,i} = x_t W^K_i,\quad v_{t,i} = x_t W^V_i,\qquad W^Q_i, W^K_i, W^V_i \in \mathbb{R}^{d \times d_h}$$
 
+这里的 $W^Q_i$ 是同一个 $d \times d$ 投影矩阵按列切出的块($W^Q = [W^Q_1 \cdots W^Q_{n_h}]$):一次投影得到 $q_t = x_t W^Q \in \mathbb{R}^d$,再按 $(n_h, d_h)$ 重排即得到各头,与 §3 代码中"先 `qkv_proj` 一次投影、再 `split` + `view`"是同一回事。
+
 第 $i$ 个头对位置 $t$ 的输出是因果 softmax 注意力:
 
 $$o_{t,i} = \sum_{j=1}^{t} \mathrm{Softmax}_j\!\left(\frac{q_{t,i}^\top k_{j,i}}{\sqrt{d_h}}\right) v_{j,i}$$

@@ -83,7 +83,8 @@ def rotate_half(x: torch.Tensor) -> torch.Tensor:
 
 class MultiHeadLatentAttention(nn.Module):
     """MLA 教学简化:低秩 KV 联合压缩 + query 低秩 + 解耦 RoPE。
-    真实实现会做权重吸收(见 2.5),这里为清晰起见直接展开计算。"""
+    真实实现会做权重吸收(见 2.5):吸收是精确恒等变形,训练与推理均可用
+    (训练省激活内存,推理免恢复完整 key);这里为清晰起见直接展开计算。"""
 
     def __init__(self, d_model, n_heads, d_comp=64, d_rope=16, head_dim=32):
         super().__init__()
@@ -116,11 +117,11 @@ class MultiHeadLatentAttention(nn.Module):
         c_kv, k_r = self.project_kv(x, cos, sin)
 
         # key/value:由共享潜变量生成,天然是 MQA 形态
-        k_c = self.w_uk(c_kv)                                    # (B, L, d_h)
-        v_c = self.w_uv(c_kv)                                    # (B, L, d_h)
+        k_c = self.w_uk(c_kv)   # (B, L, d_h)
+        v_c = self.w_uv(c_kv)   # (B, L, d_h)
 
         # query:低秩 + 解耦 RoPE
-        c_q = self.w_dq(x)                                       # (B, L, d_comp)
+        c_q = self.w_dq(x)      # (B, L, d_comp)
         q_c = self.w_uq(c_q).view(B, L, self.n_heads, self.head_dim)
         q_r = self.w_qr(c_q).view(B, L, self.n_heads, self.d_rope)
         if cos is not None:
@@ -171,7 +172,7 @@ print("absorption equivalence: OK")
 
 ![[dsa-fig7.png|DeepSeek-V3.2 论文 Figure 7:MLA 的 MHA 与 MQA 两种模式]]
 - **解耦 RoPE 的必要性**:若把 RoPE 施加在低秩向量上,旋转维数被压缩,位置分辨率丢失;独立 $d_h^R$ 维让位置编码保持完整旋转结构。
-- **训练激活内存**:query 低秩意味着注意力打分可以先用低维潜变量算(配合吸收技巧),训练时不必展开每头的完整 K/V 激活。
+- **训练激活内存**:query 低秩意味着注意力打分可以先用低维潜变量算(配合吸收技巧),训练时不必展开每头的完整 K/V 激活。吸收在训练时同样成立(前向、反向都是恒等变形),并非推理专属;代码里不写吸收只是为了对照 §2 公式、便于理解。
 - **局限**:MLA 仍是 $O(n^2)$ 的精确注意力,计算量没有下降;长上下文的计算瓶颈由 [[nsa-dsa]] 的稀疏化和 [[csa-hca]] 的压缩来解决。
 
 ## 5. 参考
