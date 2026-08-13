@@ -7,6 +7,9 @@ url: http://arxiv.org/abs/2407.01392
 
 # Diffusion Forcing: Next-token Prediction Meets Full-Sequence Diffusion
 
+> [!note] 专题导航
+> 本目录入口：[[X2Video]]。`i`（帧索引）与 `t`（扩散时间）的区别见 [[video-diffusion-time-axes]]。
+
 > [!info] 论文信息
 > - **作者**: Boyuan Chen, Diego Marti Monso, Yilun Du, Max Simchowitz, Russ Tedrake, Vincent Sitzmann
 > - **日期**: 2024-12-10

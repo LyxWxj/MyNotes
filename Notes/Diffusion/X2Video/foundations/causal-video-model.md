@@ -12,6 +12,9 @@ status: Active
 
 # 因果视频模型：基本流程与蒸馏方法
 
+> [!note] 专题导航
+> 本目录入口：[[X2Video]]。如果刚开始接触视频扩散中的两个时间概念，请先阅读 [[video-diffusion-time-axes]]。
+
 > [!info] 概念定位
 > 因果视频模型是一种**自回归序列生成**框架，通过因果分解和因果注意力机制，实现可变长度、逐步生成的视频生成。从 Full Sequence Diffusion 模型蒸馏为因果模型，需要解决架构差距和帧级注入性问题。
 
@@ -515,4 +518,3 @@ def realtime_video_generation(model, user_input):
 > - **Rolling Forcing**: Autoregressive Long Video Diffusion in Real Time（arXiv 2509.25161）
 > - **Causal Forcing**: Autoregressive Diffusion Distillation Done Right（arXiv 2602.02214）
 > - **Omni Forcing**: Unleashing Real-time Joint Audio-Visual Generation（arXiv 2603.11647）
-

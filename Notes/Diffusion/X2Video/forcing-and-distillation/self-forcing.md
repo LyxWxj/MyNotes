@@ -7,6 +7,9 @@ url: http://arxiv.org/abs/2506.08009
 
 # Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion
 
+> [!note] 专题导航
+> 本目录入口：[[X2Video]]。理解 student self-rollout 前，可先阅读 [[video-diffusion-time-axes]]。
+
 > [!info] 论文信息
 > - **作者**: Xun Huang, Zhengqi Li, Guande He, Mingyuan Zhou, Eli Shechtman
 > - **机构**: Adobe Research, The University of Texas at Austin
