@@ -1,0 +1,6 @@
+[mcp_servers.drawio]
+command = "npx"
+args = ["@next-ai-drawio/mcp-server@latest"]
+
+[mcp_servers.zotero-mcp]
+url = "http://127.0.0.1:23120/mcp"
