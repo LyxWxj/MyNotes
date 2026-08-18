@@ -5,7 +5,7 @@ _organized: true
 
 # AGENTS.md — Tolaria Vault
 
-This is a [Tolaria](https://github.com/refactoringhq/tolaria) vault, a folder of Markdown files with YAML frontmatter forming a personal knowledge graph.
+This is a [Tolaria](https://github.com/refactoringhq/tolaria) and Obsidian vault, a folder of Markdown files with YAML frontmatter forming a personal knowledge graph.
 
 Keep edits compatible with this starter vault's current conventions. Prefer small, human-readable changes over heavy restructuring.
 
@@ -90,6 +90,7 @@ filters:
 ```
 
 View rules that matter when creating or editing files:
+
 - `name` is required. `icon`, `color`, and `sort` are optional.
 - `sort` uses `option:direction`. Built-in options are `modified`, `created`, `title`, and `status`. Custom-property sorts use `property:<Property Name>`, for example `property:onboarding:asc`.
 - `filters` must be a tree whose root is exactly one `all:` group or one `any:` group.
