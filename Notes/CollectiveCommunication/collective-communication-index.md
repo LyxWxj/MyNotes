@@ -12,6 +12,7 @@ status: Active
 
 - [[collective-communication-basics|集合通信基础]] — 原语语义与通信量 / Ring / Tree / CollNet / NVLS / PAT / 带宽延迟模型 / 拓扑感知
 - [[nccl-tuning-and-debugging|NCCL 调优与排查]] — 环境变量详解 / 调优方法论 / nccl-tests / profiling / 常见问题
+- [[tp-sp-and-overlap|PyTorch NCCL：4 卡 TP=2、SP=2 与计算通信重叠]] — 二维 TP x SP 拓扑 / vLLM 的 TP 内 SP / CUDA stream 与 Event 流水
 
 ## 与并行笔记的关系
 

@@ -36,7 +36,7 @@ $$k_t^{C} = W^{UK} c_t^{KV},\qquad v_t^{C} = W^{UV} c_t^{KV}$$
 
 $$c_t^Q = W^{DQ} h_t \in \mathbb{R}^{d_c},\qquad q_t^C = W^{UQ} c_t^Q$$
 
-其中 $W^{UQ} \in \mathbb{R}^{d_c \times n_h d_h}$,$q_t^C$ 按头拆成 $\{q_{t,1}^C, \dots, q_{t,n_h}^C\}$,每头 $d_h$ 维。
+其中 $W^{UQ} \in \mathbb{R}^{d_c \times n_h d_h}$,$q_t^C$ 按头拆成  $\{q_{t,1}^C, \dots, q_{t,n_h}^C\}$,每头 $d_h$ 维。
 
 ### 2.3 解耦 RoPE
 
