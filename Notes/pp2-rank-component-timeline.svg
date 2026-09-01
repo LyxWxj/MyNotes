@@ -1,0 +1,174 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1760" height="800" viewBox="0 0 1760 800" role="img" aria-labelledby="title desc">
+<title id="title">A100 PP2 rank component timelines</title>
+<desc id="desc">Static timelines for interleaved PP and original main, with one shared rail per rank and request-colored R0/R1 events.</desc>
+<rect width="1760" height="800" fill="#ffffff"/>
+<text x="30.00" y="34.00" text-anchor="start" font-size="28" font_weight="500" fill="#172238">A100 Wan2.2 PP=2: rank-local component timeline</text>
+<text x="30.00" y="59.00" text-anchor="start" font-size="14" fill="#526178">Two concurrent TI2V requests, 4 steps, eager PyTorch profiler. Bars use host spans for interleaved DiT and profiler annotations for Text/VAE.</text>
+<rect x="930" y="78" width="14" height="14" fill="#1976d2" rx="2"/>
+<text x="950.00" y="90.00" text-anchor="start" font-size="12" fill="#172238">R0</text>
+<rect x="1035" y="78" width="14" height="14" fill="#d95f02" rx="2"/>
+<text x="1055.00" y="90.00" text-anchor="start" font-size="12" fill="#172238">R1</text>
+<text x="1130.00" y="90.00" text-anchor="start" font-size="12" fill="#526178">outline = component:</text>
+<rect x="1255" y="78" width="14" height="14" fill="#ffffff" stroke="#148a87" stroke-width="2" rx="2"/>
+<text x="1275.00" y="90.00" text-anchor="start" font-size="12" fill="#172238">TextEncoder</text>
+<rect x="1390" y="78" width="14" height="14" fill="#ffffff" stroke="#c46a20" stroke-width="2" rx="2"/>
+<text x="1410.00" y="90.00" text-anchor="start" font-size="12" fill="#172238">VAEEncoder</text>
+<rect x="1525" y="78" width="14" height="14" fill="#ffffff" stroke="#2e72b8" stroke-width="2" rx="2"/>
+<text x="1545.00" y="90.00" text-anchor="start" font-size="12" fill="#172238">DiT</text>
+<rect x="1660" y="78" width="14" height="14" fill="#ffffff" stroke="#7655a8" stroke-width="2" rx="2"/>
+<text x="1680.00" y="90.00" text-anchor="start" font-size="12" fill="#172238">VAEDecoder</text>
+<text x="30.00" y="111.00" text-anchor="start" font-size="12" fill="#526178">Solid = CFG positive or non-CFG. White diagonal overlay = CFG negative / branch-enclosing only.</text>
+<text x="30.00" y="130.00" text-anchor="start" font-size="12" fill="#526178">Shared rank rails: R0 = pp2-trace-0 (seed 42) and R1 = pp2-trace-1 (seed 43) use distinct request colors; component type is shown by outline.</text>
+<text x="30.00" y="155.00" text-anchor="start" font-size="22" font_weight="500" fill="#172238">Interleaved runtime  c9db3810</text>
+<text x="30.00" y="177.00" text-anchor="start" font-size="13" fill="#526178">R0/R1 share the same Rank row. Solid/diagonal fill distinguishes CFG positive/negative; outlines identify component.</text>
+<rect x="218.0" y="227.0" width="1502.0" height="160.0" fill="#f7f9fc" stroke="#c7d0dd" stroke-width="1"/>
+<line x1="218.00" y1="227.0" x2="218.00" y2="351.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="218.00" y="375.00" text-anchor="middle" font-size="11" fill="#526178">0</text>
+<line x1="317.04" y1="227.0" x2="317.04" y2="351.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="317.04" y="375.00" text-anchor="middle" font-size="11" fill="#526178">500</text>
+<line x1="416.07" y1="227.0" x2="416.07" y2="351.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="416.07" y="375.00" text-anchor="middle" font-size="11" fill="#526178">1000</text>
+<line x1="515.11" y1="227.0" x2="515.11" y2="351.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="515.11" y="375.00" text-anchor="middle" font-size="11" fill="#526178">1500</text>
+<line x1="614.14" y1="227.0" x2="614.14" y2="351.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="614.14" y="375.00" text-anchor="middle" font-size="11" fill="#526178">2000</text>
+<line x1="713.18" y1="227.0" x2="713.18" y2="351.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="713.18" y="375.00" text-anchor="middle" font-size="11" fill="#526178">2500</text>
+<line x1="812.21" y1="227.0" x2="812.21" y2="351.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="812.21" y="375.00" text-anchor="middle" font-size="11" fill="#526178">3000</text>
+<line x1="911.25" y1="227.0" x2="911.25" y2="351.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="911.25" y="375.00" text-anchor="middle" font-size="11" fill="#526178">3500</text>
+<line x1="1010.28" y1="227.0" x2="1010.28" y2="351.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="1010.28" y="375.00" text-anchor="middle" font-size="11" fill="#526178">4000</text>
+<line x1="1109.32" y1="227.0" x2="1109.32" y2="351.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="1109.32" y="375.00" text-anchor="middle" font-size="11" fill="#526178">4500</text>
+<line x1="1208.35" y1="227.0" x2="1208.35" y2="351.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="1208.35" y="375.00" text-anchor="middle" font-size="11" fill="#526178">5000</text>
+<line x1="1307.39" y1="227.0" x2="1307.39" y2="351.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="1307.39" y="375.00" text-anchor="middle" font-size="11" fill="#526178">5500</text>
+<line x1="1406.42" y1="227.0" x2="1406.42" y2="351.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="1406.42" y="375.00" text-anchor="middle" font-size="11" fill="#526178">6000</text>
+<line x1="1505.46" y1="227.0" x2="1505.46" y2="351.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="1505.46" y="375.00" text-anchor="middle" font-size="11" fill="#526178">6500</text>
+<line x1="1604.49" y1="227.0" x2="1604.49" y2="351.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="1604.49" y="375.00" text-anchor="middle" font-size="11" fill="#526178">7000</text>
+<line x1="1703.53" y1="227.0" x2="1703.53" y2="351.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="1703.53" y="375.00" text-anchor="middle" font-size="11" fill="#526178">7500</text>
+<text x="969.00" y="398.00" text-anchor="middle" font-size="13" fill="#526178">relative time (ms)</text>
+<text x="30.00" y="258.00" text-anchor="start" font-size="14" font_weight="500" fill="#172238">Rank 0</text>
+<text x="138.00" y="258.00" text-anchor="start" font-size="11" fill="#1976d2" font_weight="600">R0</text>
+<text x="166.00" y="258.00" text-anchor="start" font-size="11" fill="#d95f02" font_weight="600">R1</text>
+<line x1="218.0" y1="291.00" x2="1720.0" y2="291.00" stroke="#e4e8ee" stroke-width="1"/>
+<rect x="218.18" y="235.00" width="8.70" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#2e72b8" stroke-width="1.4" rx="2"/>
+<rect x="218.56" y="235.00" width="9.25" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#148a87" stroke-width="1.4" rx="2"/>
+<rect x="230.24" y="235.00" width="9.14" height="32.00" fill="#1976d2" fill-opacity="0.58" stroke="#148a87" stroke-width="1.4" rx="2"/><path d="M230.24,267.00 l32.00,-32.00 M262.24,267.00 l32.00,-32.00 M294.24,267.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="244.51" y="235.00" width="7.61" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#c46a20" stroke-width="1.4" rx="2"/>
+<rect x="275.88" y="235.00" width="7.94" height="32.00" fill="#1976d2" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M275.88,267.00 l32.00,-32.00 M307.88,267.00 l32.00,-32.00 M339.88,267.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="401.34" y="235.00" width="9.07" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#2e72b8" stroke-width="1.4" rx="2"/>
+<rect x="425.27" y="235.00" width="8.09" height="32.00" fill="#1976d2" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M425.27,267.00 l32.00,-32.00 M457.27,267.00 l32.00,-32.00 M489.27,267.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="551.90" y="235.00" width="8.52" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#2e72b8" stroke-width="1.4" rx="2"/>
+<rect x="575.91" y="235.00" width="7.80" height="32.00" fill="#1976d2" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M575.91,267.00 l32.00,-32.00 M607.91,267.00 l32.00,-32.00 M639.91,267.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="707.16" y="235.00" width="9.83" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#2e72b8" stroke-width="1.4" rx="2"/>
+<rect x="731.58" y="235.00" width="7.97" height="32.00" fill="#1976d2" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M731.58,267.00 l32.00,-32.00 M763.58,267.00 l32.00,-32.00 M795.58,267.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="893.75" y="235.00" width="300.94" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#7655a8" stroke-width="1.4" rx="2"/><text x="897.75" y="256.76" text-anchor="start" font-size="11" fill="#ffffff">VAE dec</text>
+<rect x="326.28" y="235.00" width="8.73" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#2e72b8" stroke-width="1.4" rx="2"/>
+<rect x="330.39" y="235.00" width="9.38" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#148a87" stroke-width="1.4" rx="2"/>
+<rect x="342.51" y="235.00" width="9.21" height="32.00" fill="#d95f02" fill-opacity="0.58" stroke="#148a87" stroke-width="1.4" rx="2"/><path d="M342.51,267.00 l32.00,-32.00 M374.51,267.00 l32.00,-32.00 M406.51,267.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="350.45" y="235.00" width="7.77" height="32.00" fill="#d95f02" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M350.45,267.00 l32.00,-32.00 M382.45,267.00 l32.00,-32.00 M414.45,267.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="357.02" y="235.00" width="2.72" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#c46a20" stroke-width="1.4" rx="2"/>
+<rect x="476.51" y="235.00" width="8.55" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#2e72b8" stroke-width="1.4" rx="2"/>
+<rect x="500.61" y="235.00" width="8.11" height="32.00" fill="#d95f02" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M500.61,267.00 l32.00,-32.00 M532.61,267.00 l32.00,-32.00 M564.61,267.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="631.46" y="235.00" width="8.54" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#2e72b8" stroke-width="1.4" rx="2"/>
+<rect x="655.59" y="235.00" width="7.77" height="32.00" fill="#d95f02" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M655.59,267.00 l32.00,-32.00 M687.59,267.00 l32.00,-32.00 M719.59,267.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="783.13" y="235.00" width="8.89" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#2e72b8" stroke-width="1.4" rx="2"/>
+<rect x="1257.95" y="235.00" width="10.47" height="32.00" fill="#d95f02" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M1257.95,267.00 l32.00,-32.00 M1289.95,267.00 l32.00,-32.00 M1321.95,267.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="1397.22" y="235.00" width="299.01" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#7655a8" stroke-width="1.4" rx="2"/><text x="1401.22" y="256.76" text-anchor="start" font-size="11" fill="#ffffff">VAE dec</text>
+<text x="30.00" y="334.00" text-anchor="start" font-size="14" font_weight="500" fill="#172238">Rank 1</text>
+<text x="138.00" y="334.00" text-anchor="start" font-size="11" fill="#1976d2" font_weight="600">R0</text>
+<text x="166.00" y="334.00" text-anchor="start" font-size="11" fill="#d95f02" font_weight="600">R1</text>
+<line x1="218.0" y1="367.00" x2="1720.0" y2="367.00" stroke="#e4e8ee" stroke-width="1"/>
+<rect x="218.58" y="311.00" width="9.82" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#148a87" stroke-width="1.4" rx="2"/>
+<rect x="230.20" y="311.00" width="8.77" height="32.00" fill="#1976d2" fill-opacity="0.58" stroke="#148a87" stroke-width="1.4" rx="2"/><path d="M230.20,343.00 l32.00,-32.00 M262.20,343.00 l32.00,-32.00 M294.20,343.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="244.43" y="311.00" width="25.63" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#c46a20" stroke-width="1.4" rx="2"/>
+<rect x="275.72" y="311.00" width="8.32" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#2e72b8" stroke-width="1.4" rx="2"/>
+<rect x="300.64" y="311.00" width="8.56" height="32.00" fill="#1976d2" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M300.64,343.00 l32.00,-32.00 M332.64,343.00 l32.00,-32.00 M364.64,343.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="426.06" y="311.00" width="8.80" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#2e72b8" stroke-width="1.4" rx="2"/>
+<rect x="450.59" y="311.00" width="8.28" height="32.00" fill="#1976d2" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M450.59,343.00 l32.00,-32.00 M482.59,343.00 l32.00,-32.00 M514.59,343.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="576.84" y="311.00" width="9.07" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#2e72b8" stroke-width="1.4" rx="2"/>
+<rect x="601.23" y="311.00" width="8.96" height="32.00" fill="#1976d2" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M601.23,343.00 l32.00,-32.00 M633.23,343.00 l32.00,-32.00 M665.23,343.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="732.39" y="311.00" width="8.95" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#2e72b8" stroke-width="1.4" rx="2"/>
+<rect x="757.03" y="311.00" width="8.61" height="32.00" fill="#1976d2" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M757.03,343.00 l32.00,-32.00 M789.03,343.00 l32.00,-32.00 M821.03,343.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="330.63" y="311.00" width="9.80" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#148a87" stroke-width="1.4" rx="2"/>
+<rect x="342.53" y="311.00" width="9.36" height="32.00" fill="#d95f02" fill-opacity="0.58" stroke="#148a87" stroke-width="1.4" rx="2"/><path d="M342.53,343.00 l32.00,-32.00 M374.53,343.00 l32.00,-32.00 M406.53,343.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="351.31" y="311.00" width="8.50" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#2e72b8" stroke-width="1.4" rx="2"/>
+<rect x="356.60" y="311.00" width="2.78" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#c46a20" stroke-width="1.4" rx="2"/>
+<rect x="375.55" y="311.00" width="9.06" height="32.00" fill="#d95f02" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M375.55,343.00 l32.00,-32.00 M407.55,343.00 l32.00,-32.00 M439.55,343.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="501.47" y="311.00" width="8.90" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#2e72b8" stroke-width="1.4" rx="2"/>
+<rect x="525.91" y="311.00" width="8.64" height="32.00" fill="#d95f02" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M525.91,343.00 l32.00,-32.00 M557.91,343.00 l32.00,-32.00 M589.91,343.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="656.49" y="311.00" width="8.95" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#2e72b8" stroke-width="1.4" rx="2"/>
+<rect x="680.57" y="311.00" width="9.43" height="32.00" fill="#d95f02" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M680.57,343.00 l32.00,-32.00 M712.57,343.00 l32.00,-32.00 M744.57,343.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="1257.97" y="311.00" width="9.14" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#2e72b8" stroke-width="1.4" rx="2"/>
+<rect x="1283.62" y="311.00" width="8.79" height="32.00" fill="#d95f02" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M1283.62,343.00 l32.00,-32.00 M1315.62,343.00 l32.00,-32.00 M1347.62,343.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<text x="30.00" y="420.00" text-anchor="start" font-size="22" font_weight="500" fill="#172238">Original main  48e4f6a3</text>
+<text x="30.00" y="442.00" text-anchor="start" font-size="13" fill="#526178">R0/R1 share the same Rank row; profiler spans are request-ordered and the DiT bar encloses both CFG branches.</text>
+<rect x="218.0" y="492.0" width="1502.0" height="160.0" fill="#f7f9fc" stroke="#c7d0dd" stroke-width="1"/>
+<line x1="218.00" y1="492.0" x2="218.00" y2="616.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="218.00" y="640.00" text-anchor="middle" font-size="11" fill="#526178">0</text>
+<line x1="323.26" y1="492.0" x2="323.26" y2="616.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="323.26" y="640.00" text-anchor="middle" font-size="11" fill="#526178">500</text>
+<line x1="428.52" y1="492.0" x2="428.52" y2="616.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="428.52" y="640.00" text-anchor="middle" font-size="11" fill="#526178">1000</text>
+<line x1="533.79" y1="492.0" x2="533.79" y2="616.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="533.79" y="640.00" text-anchor="middle" font-size="11" fill="#526178">1500</text>
+<line x1="639.05" y1="492.0" x2="639.05" y2="616.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="639.05" y="640.00" text-anchor="middle" font-size="11" fill="#526178">2000</text>
+<line x1="744.31" y1="492.0" x2="744.31" y2="616.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="744.31" y="640.00" text-anchor="middle" font-size="11" fill="#526178">2500</text>
+<line x1="849.57" y1="492.0" x2="849.57" y2="616.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="849.57" y="640.00" text-anchor="middle" font-size="11" fill="#526178">3000</text>
+<line x1="954.84" y1="492.0" x2="954.84" y2="616.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="954.84" y="640.00" text-anchor="middle" font-size="11" fill="#526178">3500</text>
+<line x1="1060.10" y1="492.0" x2="1060.10" y2="616.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="1060.10" y="640.00" text-anchor="middle" font-size="11" fill="#526178">4000</text>
+<line x1="1165.36" y1="492.0" x2="1165.36" y2="616.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="1165.36" y="640.00" text-anchor="middle" font-size="11" fill="#526178">4500</text>
+<line x1="1270.62" y1="492.0" x2="1270.62" y2="616.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="1270.62" y="640.00" text-anchor="middle" font-size="11" fill="#526178">5000</text>
+<line x1="1375.88" y1="492.0" x2="1375.88" y2="616.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="1375.88" y="640.00" text-anchor="middle" font-size="11" fill="#526178">5500</text>
+<line x1="1481.15" y1="492.0" x2="1481.15" y2="616.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="1481.15" y="640.00" text-anchor="middle" font-size="11" fill="#526178">6000</text>
+<line x1="1586.41" y1="492.0" x2="1586.41" y2="616.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="1586.41" y="640.00" text-anchor="middle" font-size="11" fill="#526178">6500</text>
+<line x1="1691.67" y1="492.0" x2="1691.67" y2="616.00" stroke="#dce2ea" stroke-width="1"/>
+<text x="1691.67" y="640.00" text-anchor="middle" font-size="11" fill="#526178">7000</text>
+<text x="969.00" y="663.00" text-anchor="middle" font-size="13" fill="#526178">relative time (ms)</text>
+<text x="30.00" y="523.00" text-anchor="start" font-size="14" font_weight="500" fill="#172238">Rank 0</text>
+<text x="138.00" y="523.00" text-anchor="start" font-size="11" fill="#1976d2" font_weight="600">R0</text>
+<text x="166.00" y="523.00" text-anchor="start" font-size="11" fill="#d95f02" font_weight="600">R1</text>
+<line x1="218.0" y1="556.00" x2="1720.0" y2="556.00" stroke="#e4e8ee" stroke-width="1"/>
+<rect x="218.42" y="500.00" width="10.83" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#148a87" stroke-width="1.4" rx="2"/>
+<rect x="230.98" y="500.00" width="10.23" height="32.00" fill="#1976d2" fill-opacity="0.58" stroke="#148a87" stroke-width="1.4" rx="2"/><path d="M230.98,532.00 l32.00,-32.00 M262.98,532.00 l32.00,-32.00 M294.98,532.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="246.88" y="500.00" width="8.43" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#c46a20" stroke-width="1.4" rx="2"/>
+<rect x="255.31" y="500.00" width="346.07" height="32.00" fill="#1976d2" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M255.31,532.00 l32.00,-32.00 M287.31,532.00 l32.00,-32.00 M319.31,532.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/><text x="259.31" y="521.76" text-anchor="start" font-size="11" fill="#ffffff">DiT: CFG +/- enclosed</text>
+<rect x="601.38" y="500.00" width="320.06" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#7655a8" stroke-width="1.4" rx="2"/><text x="605.38" y="521.76" text-anchor="start" font-size="11" fill="#ffffff">VAE dec</text>
+<rect x="1018.38" y="500.00" width="11.35" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#148a87" stroke-width="1.4" rx="2"/>
+<rect x="1031.63" y="500.00" width="10.64" height="32.00" fill="#d95f02" fill-opacity="0.58" stroke="#148a87" stroke-width="1.4" rx="2"/><path d="M1031.63,532.00 l32.00,-32.00 M1063.63,532.00 l32.00,-32.00 M1095.63,532.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="1047.17" y="500.00" width="2.96" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#c46a20" stroke-width="1.4" rx="2"/>
+<rect x="1050.13" y="500.00" width="326.03" height="32.00" fill="#d95f02" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M1050.13,532.00 l32.00,-32.00 M1082.13,532.00 l32.00,-32.00 M1114.13,532.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/><text x="1054.13" y="521.76" text-anchor="start" font-size="11" fill="#ffffff">DiT: CFG +/- enclosed</text>
+<rect x="1376.16" y="500.00" width="318.57" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#7655a8" stroke-width="1.4" rx="2"/><text x="1380.16" y="521.76" text-anchor="start" font-size="11" fill="#ffffff">VAE dec</text>
+<text x="30.00" y="599.00" text-anchor="start" font-size="14" font_weight="500" fill="#172238">Rank 1</text>
+<text x="138.00" y="599.00" text-anchor="start" font-size="11" fill="#1976d2" font_weight="600">R0</text>
+<text x="166.00" y="599.00" text-anchor="start" font-size="11" fill="#d95f02" font_weight="600">R1</text>
+<line x1="218.0" y1="632.00" x2="1720.0" y2="632.00" stroke="#e4e8ee" stroke-width="1"/>
+<rect x="218.33" y="576.00" width="9.82" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#148a87" stroke-width="1.4" rx="2"/>
+<rect x="230.77" y="576.00" width="9.31" height="32.00" fill="#1976d2" fill-opacity="0.58" stroke="#148a87" stroke-width="1.4" rx="2"/><path d="M230.77,608.00 l32.00,-32.00 M262.77,608.00 l32.00,-32.00 M294.77,608.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="246.55" y="576.00" width="26.79" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#c46a20" stroke-width="1.4" rx="2"/>
+<rect x="273.34" y="576.00" width="326.57" height="32.00" fill="#1976d2" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M273.34,608.00 l32.00,-32.00 M305.34,608.00 l32.00,-32.00 M337.34,608.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/><text x="277.34" y="597.76" text-anchor="start" font-size="11" fill="#ffffff">DiT: CFG +/- enclosed</text>
+<rect x="599.92" y="576.00" width="1.00" height="32.00" fill="#1976d2" fill-opacity="0.88" stroke="#7655a8" stroke-width="1.4" rx="2"/>
+<rect x="924.90" y="576.00" width="10.33" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#148a87" stroke-width="1.4" rx="2"/>
+<rect x="938.12" y="576.00" width="9.18" height="32.00" fill="#d95f02" fill-opacity="0.58" stroke="#148a87" stroke-width="1.4" rx="2"/><path d="M938.12,608.00 l32.00,-32.00 M970.12,608.00 l32.00,-32.00 M1002.12,608.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/>
+<rect x="953.13" y="576.00" width="2.82" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#c46a20" stroke-width="1.4" rx="2"/>
+<rect x="955.95" y="576.00" width="417.47" height="32.00" fill="#d95f02" fill-opacity="0.58" stroke="#2e72b8" stroke-width="1.4" rx="2"/><path d="M955.95,608.00 l32.00,-32.00 M987.95,608.00 l32.00,-32.00 M1019.95,608.00 l32.00,-32.00" stroke="#ffffff" stroke-opacity="0.72" stroke-width="1" fill="none"/><text x="959.95" y="597.76" text-anchor="start" font-size="11" fill="#ffffff">DiT: CFG +/- enclosed</text>
+<rect x="1373.41" y="576.00" width="1.00" height="32.00" fill="#d95f02" fill-opacity="0.88" stroke="#7655a8" stroke-width="1.4" rx="2"/>
+</svg>
