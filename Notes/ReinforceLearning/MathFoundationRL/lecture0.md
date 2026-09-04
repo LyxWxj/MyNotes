@@ -1,6 +1,6 @@
 ---
 type: Note
-related_to: "[[MathFoundationRL]]"
+related_to: "[[lecture1]]"
 status: Active
 ---
 

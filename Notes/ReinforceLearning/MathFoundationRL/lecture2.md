@@ -1,3 +1,9 @@
+---
+type: Note
+related_to: "[[lecture3]]"
+status: Active
+---
+
 # Bellman Equations
 
 ## Why return is important
