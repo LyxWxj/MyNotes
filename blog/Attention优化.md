@@ -174,7 +174,7 @@ $$
 这样我们就可以将$o_i$的计算合并到第一个循环中去，最终的流程如下：
 $$
 \begin{aligned}
-for \ i=1,\ldots,d_k:& \\
+for \ i=1,\ldots,s:& \\
  & x_i \leftarrow \frac{q_k K^T[:, i]}{\sqrt{d_k}} \\
  & m_i \leftarrow \max(m_{i-1}, x_i)\\
  & l_i \leftarrow l_{i-1}\times e^{m_{i-1} - m_i} + e^{x_i - m_i} \\

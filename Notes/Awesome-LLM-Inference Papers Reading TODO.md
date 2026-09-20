@@ -108,6 +108,9 @@
 - [ ] [Auto Engine Tuning] Towards SLO-Optimized LLM Serving via Automatic Inference Engine Tuning — [Paper](https://arxiv.org/abs/2408.04323) | Code: N/A
 - [ ] [SJF Scheduling] Efficient LLM Scheduling by Learning to Rank — [Paper](https://arxiv.org/abs/2408.15792) | Code: N/A
 - [ ] [BatchLLM] BatchLLM: Optimizing Large Batched LLM Inference with Global Prefix Sharing and Throughput-oriented Token Batching — [Paper](https://arxiv.org/abs/2412.03594) | Code: N/A
+- [ ] [CDB / Looped LM] Depth-adaptive Inference of Looped Language Models via Continuous Depth Batching — [Paper](https://arxiv.org/abs/2608.09444) | Code: N/A | 笔记：[[looped-transformer-serving-研究方向]]
+- [ ] [MELT] Memory-Efficient Looped Transformer: Decoupling Compute from Memory in Looped Language Models — [Paper](https://icml.cc/virtual/2026/70330) | Code: N/A
+- [ ] [Diffusion Continuous Batching] vLLM-Omni: Step-wise Continuous Batching for Diffusion Models — [Paper](https://docs.vllm.ai/projects/vllm-omni/en/latest/design/feature/diffusion_continuous_batching/) | Code: N/A | 笔记：[[07a-continuous-vs-step-level-batching/README|continuous-vs-step-level-batching]]
 
 ## 📖 Weight/Activation Quantize/Compress
 
