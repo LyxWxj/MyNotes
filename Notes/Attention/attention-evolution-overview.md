@@ -5,7 +5,7 @@ related_to:
   - "[[mha-gqa]]"
   - "[[mla]]"
   - "[[nsa-dsa]]"
-  - "[[csa-hca]]"
+  - "[[Notes/Attention/sparse/csa-hca]]"
   - "[[kda]]"
   - "[[linear-attention-rwkv-mamba]]"
 ---
@@ -150,7 +150,7 @@ DeepSeek-V2 论文用一张图直观对比了四种架构的差异(MHA / GQA / M
 1. [[mha-gqa]] — 基础与 KV 共享
 2. [[mla]] — 低秩压缩,理解"KV cache 可以多小"
 3. [[nsa-dsa]] — 稀疏检索,理解"注意力可以不看全部"
-4. [[csa-hca]] — 压缩 + 稀疏的集大成(DeepSeek-V4)
+4. [[Notes/Attention/sparse/csa-hca]] — 压缩 + 稀疏的集大成(DeepSeek-V4)
 5. [[linear-attention-rwkv-mamba]] — 线性注意力与状态机视角
 6. [[kda]] — 最强线性注意力之一(Kimi Linear)
 

@@ -6,9 +6,9 @@ related_to:
   - "[[kda]]"
 ---
 
-# 线性注意力:从 RWKV 到 Mamba 的常值状态化之路
+# 线性注意力: 从 RWKV 到 Mamba 的常值状态化之路
 
-softmax 注意力的问题在于 $O(n^2)$。线性注意力家族换个角度:**把"注意力权重"变成"固定大小的循环状态"**,训练时复杂度 $O(n)$、推理时状态 $O(1)$,从根本上摆脱 KV cache 随上下文增长的问题。本文覆盖三个代表性架构:RWKV(指数衰减 WKV)、Mamba(选择性 SSM)、Gated DeltaNet(作为 [[kda]] 的前身)。
+softmax 注意力的问题在于 $O(n^2)$。线性注意力家族换个角度:**把 " 注意力权重 " 变成 " 固定大小的循环状态 "**,训练时复杂度 $O(n)$、推理时状态 $O(1)$,从根本上摆脱 KV cache 随上下文增长的问题。本文覆盖三个代表性架构:RWKV(指数衰减 WKV)、Mamba(选择性 SSM)、Gated DeltaNet(作为 [[kda]] 的前身)。
 
 ## 1. 线性注意力的统一视角
 
@@ -118,17 +118,6 @@ class RWKVChannelMix(nn.Module):
         r = torch.sigmoid(self.w_r(xm))
         k = self.w_k(xm)
         return r * self.w_v(torch.square(F.relu(k)))
-
-
-if __name__ == "__main__":
-    torch.manual_seed(0)
-    x = torch.randn(2, 16, 32)
-    tm = RWKVTimeMix(32)
-    y = tm(x)
-    cm = RWKVChannelMix(32, 64)
-    z = cm(x)
-    assert y.shape == x.shape and z.shape == x.shape
-    print("RWKV TimeMix OK:", y.shape, "| ChannelMix OK:", z.shape)
 ```
 
 ## 3. Mamba:选择性状态空间模型
@@ -204,15 +193,6 @@ class SelectiveSSM(nn.Module):
             outs.append(torch.einsum("bdn,bn->bd", h, C_s[:, t]))
         y = torch.stack(outs, dim=1)
         return self.out_proj(y * F.silu(z))
-
-
-if __name__ == "__main__":
-    torch.manual_seed(0)
-    m = SelectiveSSM(32, d_state=8, d_inner=32)
-    x = torch.randn(2, 16, 32)
-    y = m(x)
-    assert y.shape == x.shape
-    print("SelectiveSSM OK:", y.shape)
 ```
 
 ## 4. Gated DeltaNet:向联想记忆过渡

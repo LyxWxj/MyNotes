@@ -6,14 +6,14 @@ related_to:
   - "[[mla]]"
 ---
 
-# MHA 与 GQA:多头注意力与分组查询注意力
+# MHA 与 GQA: 多头注意力与分组查询注意力
 
-多头注意力(Multi-Head Attention, MHA)是 Transformer 的注意力基础形态;多查询注意力(Multi-Query Attention, MQA)与分组查询注意力(Grouped-Query Attention, GQA)则沿着"共享 KV 头"的方向压缩推理时的 KV cache。三者共享同一套 softmax 注意力数学,区别只在于 **KV 头的数量**。
+多头注意力 (Multi-Head Attention, MHA) 是 Transformer 的注意力基础形态; 多查询注意力 (Multi-Query Attention, MQA) 与分组查询注意力 (Grouped-Query Attention, GQA) 则沿着 " 共享 KV 头 " 的方向压缩推理时的 KV cache。三者共享同一套 softmax 注意力数学,区别只在于 **KV 头的数量**。
 
 ## 1. 背景与动机
 
 - MHA 每个注意力头独立投影 Q/K/V,表达能力最强,但 KV cache 与头数成正比。
-- 解码阶段是 **memory-bound**:每生成一个 token 都要重读全部 KV cache,因此 KV cache 大小直接决定解码吞吐。
+- 解码阶段是 **memory-bound**: 每生成一个 token 都要重读全部 KV cache,因此 KV cache 大小直接决定解码吞吐。
 - MQA 让所有 query 头共享一份 K/V(单 KV 头),KV cache 缩到 $1/n_h$,但质量损失明显。
 - GQA 在两者之间取折中:$n_{kv}$ 个 KV 头,每个被连续的 $n_h/n_{kv}$ 个 query 头共享。当 $n_{kv}=1$ 时退化为 MQA,当 $n_{kv}=n_h$ 时退化为 MHA。
 
@@ -25,7 +25,7 @@ related_to:
 
 $$q_{t,i} = x_t W^Q_i,\quad k_{t,i} = x_t W^K_i,\quad v_{t,i} = x_t W^V_i,\qquad W^Q_i, W^K_i, W^V_i \in \mathbb{R}^{d \times d_h}$$
 
-这里的 $W^Q_i$ 是同一个 $d \times d$ 投影矩阵按列切出的块($W^Q = [W^Q_1 \cdots W^Q_{n_h}]$):一次投影得到 $q_t = x_t W^Q \in \mathbb{R}^d$,再按 $(n_h, d_h)$ 重排即得到各头,与 §3 代码中"先 `qkv_proj` 一次投影、再 `split` + `view`"是同一回事。
+这里的 $W^Q_i$ 是同一个 $d \times d$ 投影矩阵按列切出的块 ($W^Q = [W^Q_1 \cdots W^Q_{n_h}]$): 一次投影得到 $q_t = x_t W^Q \in \mathbb{R}^d$,再按 $(n_h, d_h)$ 重排即得到各头,与 §3 代码中 " 先 `qkv_proj` 一次投影、再 `split` + `view`" 是同一回事。
 
 第 $i$ 个头对位置 $t$ 的输出是因果 softmax 注意力:
 
@@ -35,7 +35,7 @@ $$o_{t,i} = \sum_{j=1}^{t} \mathrm{Softmax}_j\!\left(\frac{q_{t,i}^\top k_{j,i}}
 
 $$O_t = \mathrm{Concat}(o_{t,1}, o_{t,2}, \dots, o_{t,n_h})\, W^O,\qquad W^O \in \mathbb{R}^{d \times d}$$
 
-$\sqrt{d_h}$ 缩放防止点积进入 softmax 饱和区。RoPE(旋转位置编码)在 $q,k$ 上按位置施加:
+$\sqrt{d_h}$ 缩放防止点积进入 softmax 饱和区。RoPE(旋转位置编码) 在 $q,k$ 上按位置施加:
 
 $$\theta_i = 10000^{-2i/d_h},\qquad
 \mathrm{RoPE}(q, t) = \left[ q_{2i}\cos(t\theta_i) - q_{2i+1}\sin(t\theta_i),\; q_{2i}\sin(t\theta_i) + q_{2i+1}\cos(t\theta_i) \right]_{i=0}^{d_h/2-1}$$
@@ -137,16 +137,6 @@ class GroupedQueryAttention(nn.Module):
             q, k, v, is_causal=True, dropout_p=self.dropout)   # (B, H, L, D)
         out = attn.transpose(1, 2).reshape(B, L, -1)
         return self.o_proj(out)
-
-
-if __name__ == "__main__":
-    torch.manual_seed(0)
-    x = torch.randn(2, 16, 128)
-    for n_kv in (1, 2, 8):                       # MQA / GQA / MHA
-        m = GroupedQueryAttention(128, n_heads=8, n_kv_heads=n_kv, head_dim=16)
-        y = m(x, rope=True)
-        assert y.shape == x.shape
-        print(f"n_kv={n_kv}: {y.shape} OK")
 ```
 
 ## 4. 要点与对比

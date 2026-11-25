@@ -8,21 +8,21 @@ related_to:
 
 # KDA:Kimi Delta Attention(Kimi Linear)
 
-KDA 是 Kimi Linear(月之暗面,arXiv:2510.26692)提出的线性注意力架构,属于"delta rule 联想记忆"家族:它用一个固定大小的关联记忆矩阵 $S_t$ 递推地记录历史,训练复杂度 $O(n)$、推理状态 $O(1)$。相比前作 Gated DeltaNet,KDA 的关键升级是把**标量遗忘门换成逐通道对角衰减**,让记忆的每个通道独立决定遗忘速率。
+KDA 是 Kimi Linear(月之暗面,arXiv:2510.26692) 提出的线性注意力架构,属于 "delta rule 联想记忆 " 家族: 它用一个固定大小的关联记忆矩阵 $S_t$ 递推地记录历史,训练复杂度 $O(n)$、推理状态 $O(1)$。相比前作 Gated DeltaNet,KDA 的关键升级是把**标量遗忘门换成逐通道对角衰减**,让记忆的每个通道独立决定遗忘速率。
 
 ## 1. 背景与动机
 
-- 线性注意力(如 [[linear-attention-rwkv-mamba]])用 $\phi(k_t) v_t^\top$ 的外积累加记忆,但简单累加会被无关信息污染,无法"覆盖"已学到的关联。
-- Delta rule 记忆:写入新关联 $k_t v_t^\top$ 前,先沿 $k_t$ 方向擦除旧状态 $(I - k_t k_t^\top) S_{t-1}$,实现联想记忆(Hecht-Nielsen 的 Oja/Delta rule,Linear Transformer 的 fast weight 视角)。
-- Gated DeltaNet(GDN)给 delta rule 加上标量遗忘门 $\alpha_t$:
+- 线性注意力 (如 [[linear-attention-rwkv-mamba]]) 用 $\phi(k_t) v_t^\top$ 的外积累加记忆,但简单累加会被无关信息污染,无法 " 覆盖 " 已学到的关联。
+- Delta rule 记忆: 写入新关联 $k_t v_t^\top$ 前,先沿 $k_t$ 方向擦除旧状态 $(I - k_t k_t^\top) S_{t-1}$,实现联想记忆 (Hecht-Nielsen 的 Oja/Delta rule,Linear Transformer 的 fast weight 视角)。
+- Gated DeltaNet(GDN) 给 delta rule 加上标量遗忘门 $\alpha_t$:
 
 $$S_t = \alpha_t \big(I - \beta_t k_t k_t^\top\big) S_{t-1} + \beta_t k_t v_t^\top$$
 
-- KDA 的洞察:标量 $\alpha_t$ 让所有通道以相同速率遗忘,太粗糙。改为**对角矩阵** $\mathrm{Diag}(\alpha_t)$,$\alpha_t \in [0,1]^{d_k}$ 逐通道可学习,记忆的"选择性遗忘"能力大幅提升。
+- KDA 的洞察: 标量 $\alpha_t$ 让所有通道以相同速率遗忘,太粗糙。改为**对角矩阵** $\mathrm{Diag}(\alpha_t)$,$\alpha_t \in [0,1]^{d_k}$ 逐通道可学习,记忆的 " 选择性遗忘 " 能力大幅提升。
 
 ## 2. 数学原理
 
-### 2.1 核心递推(论文公式 1)
+### 2.1 核心递推 (论文公式 1)
 
 $$S_t = \big(I - \beta_t k_t k_t^\top\big)\, \mathrm{Diag}(\alpha_t)\, S_{t-1} + \beta_t k_t v_t^\top \in \mathbb{R}^{d_k \times d_v},\qquad
 o_t = S_t^\top q_t$$
@@ -146,18 +146,6 @@ class KDAAttention(nn.Module):
         o = o * torch.rsqrt(o.pow(2).mean(-1, keepdim=True) + 1e-6)  # RMSNorm
         g = torch.sigmoid(self.w_g_up(F.silu(self.w_g_down(x))))
         return self.w_o(o * g)
-
-
-if __name__ == "__main__":
-    torch.manual_seed(0)
-    x = torch.randn(2, 16, 64)
-    head = KDAHead(64, d_k=32, d_v=32)
-    out = head(x)
-    assert out.shape == (2, 16, 32), out.shape
-    attn = KDAAttention(64, n_heads=4, d_k=32, d_v=32)
-    y = attn(x)
-    assert y.shape == x.shape, y.shape
-    print("KDAHead OK:", out.shape, "| KDAAttention OK:", y.shape)
 ```
 
 ### 与 Gated DeltaNet 的退化关系

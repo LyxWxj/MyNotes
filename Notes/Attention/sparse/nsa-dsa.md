@@ -4,7 +4,7 @@ status: Active
 related_to:
   - "[[attention-evolution-overview]]"
   - "[[mla]]"
-  - "[[csa-hca]]"
+  - "[[Notes/Attention/sparse/csa-hca]]"
 ---
 
 # NSA 与 DSA:从块级稀疏到令牌级稀疏
@@ -525,34 +525,6 @@ def indexer_kl_loss(I: torch.Tensor, p_dense_heads: torch.Tensor,
 #   I = indexer(c_q.detach(), x.detach(), ...)               # 索引器输入 detach
 #   loss = lm_loss + indexer_kl_loss(I, p_sparse, top_k)     # 式 4,LR 7.3e-6,15000 步
 # 主模型梯度只来自 lm_loss;索引器梯度只来自 KL 损失。
-
-
-if __name__ == "__main__":
-    torch.manual_seed(0)
-
-    # NSA(缩放参数;论文配置 l=32, d=16, l'=64, n=16, w=512)
-    nsa = NativeSparseAttention(64, n_heads=4, d_k=16, d_v=16, group_size=2,
-                                block_len=4, stride=2, sel_block_len=8,
-                                n_sel_blocks=2, n_window=8)
-    x = torch.randn(2, 24, 64)
-    y = nsa(x)
-    assert y.shape == x.shape
-    print("NSA forward OK:", y.shape)
-
-    # DSA(缩放参数;论文配置 H^I=64, d^I=128, k=2048)
-    indexer = LightningIndexer(64, c_q_dim=16, n_heads=4, head_dim=16, d_rope=8)
-    m = DSAAttention(64, n_heads=4, d_nope=8, d_rope=8, d_v=16, kv_rank=16,
-                     indexer=indexer, top_k=6)
-    L = 20
-    cos, sin = torch.randn(L, 8), torch.randn(L, 8)
-    x = torch.randn(2, L, 64)
-    y = m(x, cos, sin)
-    assert y.shape == x.shape
-    I = torch.randn(2, L, L)
-    p = torch.softmax(torch.randn(2, 4, L, L), dim=-1)
-    print("DSA forward OK:", y.shape,
-          "| KL:", indexer_kl_loss(I, p).item(),
-          indexer_kl_loss(I, p, top_k=6).item())
 ```
 
 ## 3. NSA vs DSA 对比
@@ -568,7 +540,7 @@ if __name__ == "__main__":
 | 训练 | 端到端预训练,门控可学习(MLP+sigmoid) | 密集 KL 预热(2.1B tokens)→ 稀疏 KL + LM 分离优化(943.7B tokens) |
 | 代表模型 | DeepSeek-NSA 27B(原型) | DeepSeek-V3.2-Exp / V3.2 |
 
-DSA 之后,DeepSeek-V4 的 [[csa-hca]] 进一步在稀疏选择**之前**增加 KV 压缩,把"索引器检索的条目"从原始 token 换成压缩块。
+DSA 之后,DeepSeek-V4 的 [[Notes/Attention/sparse/csa-hca]] 进一步在稀疏选择**之前**增加 KV 压缩,把"索引器检索的条目"从原始 token 换成压缩块。
 
 ## 4. 参考
 

@@ -7,18 +7,18 @@ related_to:
   - "[[nsa-dsa]]"
 ---
 
-# MLA:多头潜在注意力(Multi-head Latent Attention)
+# MLA: 多头潜在注意力 (Multi-head Latent Attention)
 
 MLA 是 DeepSeek-V2 提出的注意力架构,核心思想:**把 key 和 value 联合压缩进一个低秩潜在向量**,让推理 KV cache 与训练激活内存同时大幅缩小。DeepSeek-V2/V3、Kimi K2 等模型都采用了 MLA。
 
 ## 1. 背景与动机
 
-- GQA 把 KV 头数从 $n_h$ 降到 $n_{kv}$,但仍是"每 token 缓存 $2 n_{kv} d_h$ 个原始值"。
-- MLA 更进一步:假设 KV 信息集中在低维子空间,先用 $W^{DKV} \in \mathbb{R}^{d \times d_c}$ 把 $h_t \in \mathbb{R}^d$ 压成 $c_t^{KV} \in \mathbb{R}^{d_c}$($d_c \ll n_h d_h$),推理时**只缓存 $c_t^{KV}$**。
-- 训练时还有第二个红利:query 也走低秩($c_t^Q = h_t W^{DQ}$),注意力的中间激活(每个头一份的 $q, k, v$)由每 token 一份的低维潜变量生成,激活内存显著下降。
-- 位置信息单独处理:解耦 RoPE 维度 $d_h^R$,避免低秩压缩破坏 RoPE 的相对位置性质。
+- GQA 把 KV 头数从 $n_h$ 降到 $n_{kv}$,但仍是 " 每 token 缓存 $2 n_{kv} d_h$ 个原始值 "。
+- MLA 更进一步: 假设 KV 信息集中在低维子空间,先用 $W^{DKV} \in \mathbb{R}^{d \times d_c}$ 把 $h_t \in \mathbb{R}^d$ 压成 $c_t^{KV} \in \mathbb{R}^{d_c}$($d_c \ll n_h d_h$),推理时**只缓存 $c_t^{KV}$**。
+- 训练时还有第二个红利:query 也走低秩 ($c_t^Q = h_t W^{DQ}$),注意力的中间激活 (每个头一份的 $q, k, v$) 由每 token 一份的低维潜变量生成,激活内存显著下降。
+- 位置信息单独处理: 解耦 RoPE 维度 $d_h^R$,避免低秩压缩破坏 RoPE 的相对位置性质。
 
-## 2. 数学原理(DeepSeek-V2,公式 9-15)
+## 2. 数学原理 (DeepSeek-V2,公式 9-15)
 
 ### 2.1 KV 低秩联合压缩
 
@@ -28,7 +28,7 @@ $$c_t^{KV} = W^{DKV} h_t \in \mathbb{R}^{d_c}$$
 
 $$k_t^{C} = W^{UK} c_t^{KV},\qquad v_t^{C} = W^{UV} c_t^{KV}$$
 
-其中 $W^{DKV} \in \mathbb{R}^{d \times d_c}$,$W^{UK}, W^{UV} \in \mathbb{R}^{d_c \times n_h d_h}$。注意 $k_t^C, v_t^C$ 是所有头**共享**的(推理时是单份 KV,即 MQA 形态)。
+其中 $W^{DKV} \in \mathbb{R}^{d \times d_c}$,$W^{UK}, W^{UV} \in \mathbb{R}^{d_c \times n_h d_h}$。注意 $k_t^C, v_t^C$ 是所有头**共享**的 (推理时是单份 KV,即 MQA 形态)。
 
 ![[mla-fig2.png|DeepSeek-V2 论文 Figure 2:MLA 架构(低秩 KV 压缩 + 解耦 RoPE,推理只缓存 c^KV 与 k^R)]]
 
@@ -40,7 +40,7 @@ $$c_t^Q = W^{DQ} h_t \in \mathbb{R}^{d_c},\qquad q_t^C = W^{UQ} c_t^Q$$
 
 ### 2.3 解耦 RoPE
 
-低秩压缩会破坏 RoPE 的旋转结构,因此 MLA 额外准备一份低维的解耦 RoPE 分量(每头 $d_h^R$ 维,DeepSeek-V2 中 $d_h^R = 64$):
+低秩压缩会破坏 RoPE 的旋转结构,因此 MLA 额外准备一份低维的解耦 RoPE 分量 (每头 $d_h^R$ 维,DeepSeek-V2 中 $d_h^R = 64$):
 
 $$\big[q_{t,1}^{R}; \dots; q_{t,n_h}^{R}\big] = \mathrm{RoPE}\big(W^{QR} c_t^Q\big),\qquad
 k_t^{R} = \mathrm{RoPE}\big(W^{KR} h_t\big) \in \mathbb{R}^{d_h^R}$$
@@ -137,18 +137,6 @@ class MultiHeadLatentAttention(nn.Module):
         o = F.scaled_dot_product_attention(q, k, v, is_causal=True)
         o = o.transpose(1, 2).reshape(B, L, -1)
         return self.w_o(o)
-
-
-if __name__ == "__main__":
-    torch.manual_seed(0)
-    L, d_model, n_heads = 32, 128, 8
-    mla = MultiHeadLatentAttention(d_model, n_heads, d_comp=64, d_rope=16, head_dim=32)
-    x = torch.randn(2, L, d_model)
-    y = mla(x)                                          # 不启用 RoPE 也能跑
-    assert y.shape == (2, L, d_model)
-    c_kv, k_r = mla.project_kv(x)
-    print("output:", y.shape)
-    print("KV cache per token per layer:", c_kv.shape[-1] + k_r.shape[-1])
 ```
 
 ### 权重吸收的等价性验证
@@ -173,7 +161,7 @@ print("absorption equivalence: OK")
 ![[dsa-fig7.png|DeepSeek-V3.2 论文 Figure 7:MLA 的 MHA 与 MQA 两种模式]]
 - **解耦 RoPE 的必要性**:若把 RoPE 施加在低秩向量上,旋转维数被压缩,位置分辨率丢失;独立 $d_h^R$ 维让位置编码保持完整旋转结构。
 - **训练激活内存**:query 低秩意味着注意力打分可以先用低维潜变量算(配合吸收技巧),训练时不必展开每头的完整 K/V 激活。吸收在训练时同样成立(前向、反向都是恒等变形),并非推理专属;代码里不写吸收只是为了对照 §2 公式、便于理解。
-- **局限**:MLA 仍是 $O(n^2)$ 的精确注意力,计算量没有下降;长上下文的计算瓶颈由 [[nsa-dsa]] 的稀疏化和 [[csa-hca]] 的压缩来解决。
+- **局限**:MLA 仍是 $O(n^2)$ 的精确注意力,计算量没有下降;长上下文的计算瓶颈由 [[nsa-dsa]] 的稀疏化和 [[Notes/Attention/sparse/csa-hca]] 的压缩来解决。
 
 ## 5. 参考
 
