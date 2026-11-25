@@ -426,6 +426,37 @@ prefix cache、transfer lease 和 snapshot/restore。`MetadataBuilder` 只构造
 
 `KVMetadata`/`DeviceKVMetadata`，不接管 KV ownership。
 
+
+##### KV 页分配、增长与回收
+
+```text
+lookup_prefix(tokens):
+	-> poll_prefixes() 先发布 event 已完成的候选
+	-> 逐页计算链式 token hash，遇到第一处 miss 停止
+	-> 命中的 key 移到 LRU 末尾，返回每个逻辑页跨 plane 的物理 block
+
+allocate(request_id, max_tokens, initial_tokens, prefix):
+	-> 先给共享的 prefix blocks 加引用，避免后续 _claim() 将它们当成可回收页
+	-> _claim() 为每个 plane 分配剩余物理页，失败时撤销刚加的引用
+	-> 各 plane 的 block table = 命中的页 + 新页，written.prefix 从已命中长度开始
+
+ensure_capacity(request_id, tokens):
+	-> 校验 tokens 在逻辑上限内，计算还缺几页
+	-> 为所有 plane 补页，追加到原 block tables
+	-> 新页的有效范围由后续 KV 写入推进
+
+free(request_id):
+	-> 有 transfer lease 时设置 release_requested，保留当前 allocation
+	-> 没有 lease 时移除 allocation，逐 block 减引用，引用归零才回到空闲池
+	-> unpin_transfer() 移除最后一个 lease 时处理延期的 free()
+```
+
+`_claim()` 先用空闲页，短缺时才检查可淘汰的 prefix 页。若加上可淘汰页仍不够，直接返回失败。否则从 LRU 最旧的条目开始减引用，直到凑够页数。prefix 索引自己也持有引用，因此一次请求结束后，其完整 prompt 页仍可服务后续命中。命中和发布都为最后一个 prompt token 留出重算空间，CODA 需要它的 hidden。
+
+`truncate_suffix()` 用于同步推测在拒绝后缩回逻辑有效范围。它保留物理页，只移除 frontier 之后的 written coverage。调用前需要确保设备访问已结束，且待裁剪范围没有共享页或传输 lease。
+
+代码：`vllm_rlt/core/kv_cache_manager.py`。
+
 #### Scheduler
 
 In `vllm_rlt/core/scheduler.py`
@@ -552,6 +583,36 @@ speculative_capture_sizes(execution, scheduler, config)
 
 允许 bucketed graph，而不是强制关闭 graph；显式过小的 row limit 只影响覆盖范围。
 
+
+##### SpeculativeRunner 的 round 执行
+
+```text
+同步 block:
+	-> _prepare_inputs() 按每个 span 的 token_count 准备 draft steps 和 target metadata
+	-> _submit_round(): 每个候选先跑 PRELUDE + draft_loops
+		-> 用 draft CODA logits 提出下一 token，保持在设备上供下一 draft step 使用
+		-> 按请求整理 draft hidden，续跑到 target_loops，再用 CODA 产出 target logits
+	-> _collect_round(): 读回 draft IDs，按请求处理接受、修正或 bonus
+	-> 返回 SpeculativeResult，由 Scheduler 提交 token，继续生成时按 frontier 裁剪未提交的 KV
+
+AsyncSpeculativeRunner.submit():
+	-> _prepare_round() 租用一个 round buffer，准备本轮 page tables
+	-> _state() 首轮以已交付的 token/position 初始化设备状态，后续直接复用
+	-> block: _draft() -> _verify() -> _accept_and_update_state()
+		-> draft/verify 的实际位置来自设备 state，CPU token_start 只用于上界规划
+		-> greedy 在 GPU 找首个不匹配的位置，随机行做 batched rejection sampling
+		-> 把下一 token 和实际 position 写回设备状态，同时产出 compact result
+	-> pipeline: _pipeline_step() 推进设备上的 token、depth、hidden、candidate 和 active 状态
+	-> 记录 compute_done，copy stream 等待后读回 compact result，再记录 copy_done
+	-> 返回 SpeculativeRoundTicket，CPU 按提交顺序 collect、校验、更新并 retire
+```
+
+Block 模式最多提出 `K` 个 draft，对应最多 `K + 1` 个验证行。Greedy 从头匹配 target argmax，首次不匹配时返回修正 token，全匹配时返回 bonus。随机采样用 draft 分布 `q` 提出候选，再用 target 分布 `p` 验证。候选以 `min(1, p(x) / q(x))` 的概率接受。首次拒绝时从归一化的 `max(p - q, 0)` 采样修正 token，全部接受时从最后一个 target 分布采样。异步实现批量处理不同 draft 长度，只考虑连续的接受前缀，并将实际停止位置的非法分布标记带回 Engine。
+
+Pipeline 每个 step 推进 `draft_loops`。到达 draft 深度的行提供后继候选，到达 target 深度的队首行最多提交一个 token。接受后保留仍有效的后继 hidden/depth，拒绝后丢弃依赖错误候选的后继，从 target token 重新开始。同步模式在 collect 中处理这些决策，异步模式在同一 compute stream 上更新设备状态。后一轮可以在前一轮 CPU 交付前提交，计算仍按 stream 顺序读取前一轮更新后的状态。
+
+代码：`vllm_rlt/worker/{speculative,async_speculative,speculative_sampling}.py`。
+
 #### ModelRunner
 
 In `vllm_rlt/worker/model_runner.py`
@@ -621,6 +682,36 @@ workspace、staged tensor、readback slot 或 request-owned allocation 前，必
 完成其 GPU reader。`ModelRunnerOutput` 统一承载 gate scores、token IDs、depths、
 
 completion、speculative results 和 frontiers。
+
+
+##### Runner metadata 与缓冲区复用
+
+```text
+MetadataBuilder.build(request_ids, depth_sets, positions):
+	-> 校验每行的 allocation、depth 和 token position
+	-> 按 plane 取 block table，算物理 block 和页内 offset，拒绝重复写地址
+	-> plan_attention_metadata() 生成可见上下文、页表以及 packed query 边界
+	-> 返回每组 depth 的 KVLayout，并保留 allocation 身份
+
+stage_metadata(layouts) -> StagedInputTensor.upload() -> MetadataBuilder.bind():
+	-> int64 保存 positions 和写入地址，int32 保存页表和长度信息
+	-> CPU 准备先 append，再把每种 dtype 已用的区间整体快照和上传
+	-> bind() 在设备缓冲上按原 shape、stride、offset 重建 KVMetadata 视图
+```
+
+`StagedInputTensor.append()` 返回描述本轮布局的 CPU slice。扩容会保留原数据和逻辑偏移。`upload()` 轮转取 pinned snapshot 和设备目标 buffer，通过 `copy_tensor()` 选择适用的 UVA 路径或普通拷贝。CPU 可以开始准备下一轮，而设备继续读上一轮的 snapshot。
+
+|路径|准备内容|复用条件|
+|---|---|---|
+|普通 staging / `Workspace`|准备位置、写入地址、context lengths 与页表，Workspace 可复用固定布局的输入和 hidden|`SubmissionQueue.begin()` 在输入池轮转前确认旧计算结束，Workspace 也有自己的完成 event|
+|packed prefill / `PackedMetadataBuffer`|按 sequence 存 token、position、sequence ID、长度、累计 query 边界和页表，上传后在设备上展开逐 token 写地址|整套 compact storage 归一个 submission slot 所有|
+|async routing / `AsyncState`|按请求保存设备侧 hidden/token 和页表，copy stream 生成本批 slot 和 KV metadata，执行 stream 等 ready event，按 slot gather/scatter|routing buffer 独立用 done event 控制轮转，请求 slot 在最后一次使用结束后释放|
+|split/mixed prefill / `BatchInputBuffers`|描述各 span 在 batch 与 chunk 槽中的行范围，`TensorTransfer` 把分散的 token/hidden 汇入 batch，并把需要保留的 hidden 写回|临时 buffer 随提交轮转，hidden ring 槽等连续 chunk 到达最终 depth 后才能接收新 chunk|
+|readback slot|读回采样 token 或 gate score 到固定 host buffer|上次 DMA 完成且租约已释放，通常由 `collect()` 解除租约|
+
+`KVMetadata` 保存 host 已知行和对应 allocation。`DeviceKVMetadata` 用在位置、block table 等由设备侧状态决定的路径，如异步 speculative。它仍携带 allocation 身份供校验，CPU 无需先读回每轮的位置。metadata 描述地址和视图，KV 页的分配和引用计数仍由 `KVCacheManager` 管理。
+
+代码：`vllm_rlt/worker/{metadata,buffers,tensors,async_state,submission_queue}.py`。
 
 #### PreemptionManager
 
@@ -755,6 +846,43 @@ StageEngine / KVCacheManager
 
 控制通道不承载 KV tensor。目标侧先 reserve 本地 Request/KV，此时处于 `RECEIVING`；收到 commit **且**所有预期 chunk 到达后才能 `accept_import()`，再经过共享 admission 进入 `CODA` 生成首 token。源侧的 compute 完成、目标确认和远端访问结束共同决定何时安全释放，commit 单独不足以释放源 KV。PDEngine 负责跨 stage 顺序，单个 StageEngine 仍负责本地调度和执行。
 
+
+#### PDEngine 的准入与消息推进
+
+```text
+PDEngine.step():
+	-> _poll() 遍历各 peer 的 StageClient，_message() 按 transfer ID 更新状态
+	-> 检查 request/transfer deadline，随后 _admit() 尝试为等待请求配对
+		-> P 预留 prompt blocks，D 预留 prompt + 输出上限 - 1 对应的 blocks
+		-> 检查各 peer 的 transfer slots、reserved blocks 和 watermark
+		-> 优先选 block 占比最低的 peer，同占比时看 slot 占比
+		-> 短时受阻的请求可被后续请求绕过，等待超过一半 request_timeout 的受阻请求会挡住后续准入
+	-> 返回本轮由 D 返回的 outputs
+```
+
+```text
+waiting -> reserving:
+	-> coordinator 记账 P/D 双方额度，先向 D 发送 reserve
+	-> D 分配 prompt KV 与 hidden slot，返回 reserved(tables, slot, cached_tokens)
+	-> coordinator 用这些目标地址向 P 发 prefill，P 分配本地 prompt KV 并开始执行
+prefill -> received -> decode:
+	-> P 按完成的 prompt 范围排入传输，最后一段带最终 hidden
+	-> P 的 chunk 全部提交后发 commit(count)，由 coordinator 转给 D
+	-> D 拿齐 commit 和所有 sequence 后调用 accept_import()，再通知 received
+	-> coordinator 向 P 发 ack
+	-> D 经本地 admission 进入 CODA，connector 通知 activated
+finished -> released:
+	-> D 的最后一个 output 结束外部请求
+	-> P/D 各自上报 released 后，coordinator 分别归还其额度
+	-> 两端都释放后，记录 timings 并删除 transfer
+```
+
+Coordinator 的额度用于配对和预留，实际 KV 页由各 stage 的 Scheduler/KVCacheManager 管。D 先返回命中的 prefix 长度，P 跳过 D 已有的 KV。若 P 本地命中的范围更长，`reserve()` 会把这段差额先排进传输队列。`accept_import()` 将传入范围标成有效 KV、绑定最终 hidden，再把仍处于 `RECEIVING` 的请求加入本地 WAITING 队列。
+
+取消时，尚未分配 peer 的请求可直接移除。已有传输时向 D 发 `cancel`，再通知 P 停止后续提交。P 清空未发队列，并等待本地 staging event 和已提交的远端写入结束。D 若尚未确认完整接收，需等 coordinator 在 P 释放后发 `cancel_safe` 才能回收。deadline 或 transport 错误进入失败处理并终止相关 worker，避免继续复用状态不明的注册内存。
+
+代码：`vllm_rlt/pd/{engine,connector,transport}.py` 与 `StageEngine.accept_import()`。
+
 ## Runtime
 
 ### 请求如何被加入
@@ -838,11 +966,15 @@ In `vllm_rlt/pd/connector.py`:
 
 ```text
 PDStageConnector.progress()：
-	-> self.cache.poll_prefixes():
-	-> for output in self.engine.step():
-		-> self.output(output)
-			-> self.output_finished(output.request_id)
+	-> cache.poll_prefixes() 推进本地 prefix 发布
+	-> transport.poll() 回收已完成的 WRITE handle 和字节额度，接收对端的 sequence 通知
+	-> 轮转遍历 transfer，尝试发送 ready event 已完成且额度允许的 chunk
+		-> 源端全部 chunk 已提交后通知 commit(count)
+		-> 目标端收到 commit 且拿齐全部 sequence 后 accept_import()，通知 received
+	-> 源端完整 prompt 的 staging event 完成后释放计算状态，已 commit、收到 ack 且无在途 WRITE 后释放传输资源
 ```
+
+随后由 `StageWorker.run()` 驱动 `engine.step()`。`StageWorker.output()` 发送结果，若结果标记请求结束，再通知 `connector.output_finished()`。
 
 In `vllm_rlt/core/kv_cache_manager.py`:
 
@@ -851,13 +983,14 @@ KVCacheManager.poll_prefixes():
 	轮询处理KV已经写入GPU,但Prefix Cache索引还不能立即建立的情况。
 	-> pending = self._pending_prefixes and clear the pending_prefixes
 	-> for request_id, allocation, tokens, length, event in pending:
-		-> 若event,event.query非空则将(request_i,allocation,tokens, length, event)压入_pending_prefixes, continue
+		-> 若 request 当前的 allocation 已不是记录中的对象，跳过这条记录
+		-> 若 event 存在且 event.query() 为 False，放回 _pending_prefixes 等下一轮
 		-> self.publish_prefix(request_id, tokens, length) # 发布前缀
 ```
 
 (此处可以优化对于列表的重复读写修改)
 
-`PDStageConnector._pending_prefixes` 记录了若干五元组 `(request_id, allocation, tokens, length, event)`
+`KVCacheManager._pending_prefixes` 记录了若干五元组 `(request_id, allocation, tokens, length, event)`
 
 - `allocation` 是一个 `_Allocation` 对象：
 
@@ -904,7 +1037,8 @@ KVCacheManager.publish_prefix(): # 仅在开启prefix_caching时有作用
 	-> 否则
 	-> 遍历self._prefix_keys(tokens[:publishable_tokens]): (index, key)
 		-> end = (index + 1) * block_size
-		-> 遍历每个平面的第index层的blocks然后添加引用计数并在self._prefixes[key] = blocks添加索引
+		-> 若有 plane/layer 的连续写入前缀不足 end，到此停止发布
+		-> 取每个 plane 在逻辑页 index 对应的物理 block，加引用并登记 self._prefixes[key] = blocks
 ```
 
 ### StageEngine.step()
@@ -1067,6 +1201,64 @@ StageEngine._schedule(prefer_recurrent=False):
 - `SpeculativePolicy`：先处理 `CODA`，再根据 `decode_due`、准入和 prefill 的情况选择 `SPECULATIVE`。
 - `PromptOnlyPolicy`：准入后只从 prefill 队列选取请求。
 
+
+##### `Scheduler._admit()`
+
+```text
+_admit():
+	-> 从 WAITING 取候选，按 FIFO 或 priority 数值从小到大排列
+	-> 按 admission_scan_limit 扫描，先检查 active slot
+		-> RECEIVING 和已释放计算状态的请求不占 active slot
+		-> priority 模式且允许挂起时，slot 不足可尝试抢占较低优先级请求
+	-> 已收到完整导入的 RECEIVING 请求: 解除导入 lease，进入 CODA
+	-> 已有 KV allocation 和 transfer lease 的源端请求: 直接进入 prefill
+	-> 其余请求先 _try_resume()，有 snapshot 则尝试恢复到原 phase
+	-> 首次准入: _plan_admission() -> _commit_admission()
+		-> 预算不够时可回收仍驻留 KV 的 WAITING victim，再重算计划
+		-> 分配成功后，将 prefill 进度和各 depth 边界初始化到 prefix 命中位置
+		-> _enter_prefill(): 进入 PREFILL 或 PREFILLING_PRELUDE
+	-> 暂时无法恢复或分配的请求放入 deferred
+		-> 后续请求每成功准入一次，前面 deferred 的 bypass 计数加一
+		-> 达到 max_admission_bypasses 后结束扫描，让在跑的请求有机会释放资源
+	-> 按原扫描顺序把 deferred 放回 WAITING 队首
+```
+
+`_plan_admission()` 把逻辑上限、当前分配量和准入预算分开。逻辑上限是 `prompt 长度 + max_tokens - 1`。增量分配先映射命中前缀和首个 prefill chunk，其余页按需增长。关闭增量分配时一开始就分配到逻辑上限。
+
+```text
+AdmissionPlan.total_budget_blocks:
+	-> 本请求预算内的页数 - 已命中的 prefix 页数（都乘 storage_depths）
+	-> 加上现有请求尚未兑现的增长预算
+	-> 加上 active_count 非零时的 watermark
+	-> 加上本次命中后将失去可淘汰资格的 prefix-only block
+	-> 总数不超过 cache.num_free_blocks 才实际 allocate()
+```
+
+开启增量分配时，无挂起回调会把输出增长也算进预算。有挂起回调时先覆盖 prompt，decode 增长不足再走抢占。prefix-only 页在命中前计入可释放容量，命中后多了请求引用，所以必须把这部分补回预算。`reserve_transfer()` 使用同一套预算，提前映射整个 prompt 并 pin transfer，之后仍要参与计算准入。
+
+##### `Scheduler.take_phases()`
+
+```text
+take_phases(phases):
+	-> 在 policy 给出的 phase 顺序里扫描队列，共用 token budget 和 max_num_seqs
+	-> 检查 execution_ready（含 connector 背压）、prefill 窗口、speculative round/输出上限
+	-> _make_scheduled_request(): 按 phase 快照 token_start、token_count 和 depth
+		-> 普通 prefill 从 num_prefilled_tokens 开始，受 chunk size 和剩余预算限制
+		-> split recurrent 只取当前 depth 边界内已完成 PRELUDE 的连续范围
+		-> 普通 decode 执行单个位置，speculative 受 K + 1、剩余输出和 token budget 限制
+	-> 对需要 KV 容量的 phase，_ensure_execution_capacity() 检查本轮的 token frontier
+		-> 不够时尝试抢占，已选入本 batch 的请求受 selected 集合保护
+	-> 选中后扣 token budget，记录 phase；条件暂不满足的请求留给后续轮次
+	-> 按实际选中的工作更新公平性计数，再用 _planned_loop_count() 决定执行边界
+	-> 返回 SchedulerOutput，mixed batch 用每个 ScheduledRequest 自带的 phase
+```
+
+`_take_wavefront_phase()` 先收集可运行的候选请求，再按 depth 轮询这些请求，让一个请求在有余量时贡献多个 span。PRELUDE 使用本轮临时 cursor 和窗口上界。RECURRENT 从各 depth 的 frontier 出发，范围受该 depth 的上界、`num_preluded_tokens` 和 chunk 边界共同限制。`_make_wavefront_task()` 以 `prefill_window_origin` 为基准算 chunk 编号，按 depth 数量取模得到 hidden ring slot。token budget 按行扣减，sequence budget 按请求计数。选完后按候选顺序和 token 位置整理 span，随后由提交更新推进实际 frontier。
+
+`_planned_loop_count()` 决定这次提交能连跑几轮。普通 PREFILL 跑完整深度，独立 PRELUDE/CODA 为 0，普通 RECURRENT 为 1。wavefront 会在每个 recurrent depth 后交回调度。非 wavefront 的 split prefill 可以连跑同一段已满足依赖的深度，取全 batch 的共同上限。mixed 模式有可合批的 decode recurrent 时按轮交回调度，独立的 staged PRELUDE 也可先产出 hidden，等下一批合并执行。
+
+代码：`vllm_rlt/core/scheduler.py` 中的 admission、selection 与 loop planning。
+
 #### `Executor.submit()`
 
 ```text
@@ -1185,6 +1377,24 @@ _execute(scheduled_batch, prepared):
 ```
 
 SPECULATIVE 分支走独立的 round runner。异步模式在 compute stream 上做 draft/verify 或 pipeline step，推进设备侧请求状态，再由 copy stream 读回 compact result 并返回 `SpeculativeRoundTicket`。提交和回收顺序见上面的 `StageEngine._step_async_speculative()`。
+
+
+##### 普通采样与 `RngRegistry`
+
+```text
+CODA logits -> Sampler.sample(logits, params, generator):
+	-> temperature == 0: 直接 argmax
+	-> 否则要求该请求的 generator，调用 probabilities()
+		-> logits 转 FP32，再除以 temperature
+		-> top-k 按索引保留最多 k 项，其余设为 -inf
+		-> top-p 按分数排序，保留累积概率跨过阈值的那一项，裁掉后续项
+		-> 对保留项重新 softmax
+	-> multinomial 抽一个 token，返回设备上的标量 tensor
+```
+
+`RngRegistry.acquire()` 首次按请求的 `seed` 和采样设备创建 generator。普通和 speculative runner 共用 StageEngine 持有的 registry，因此 CODA bootstrap 之后的随机推测会延续该请求的 RNG 状态。抢占挂起时保留 generator，结束或取消释放时才移除。greedy 采样不消耗 RNG，模型自身的随机状态初始化仍可借用同一个 registry。
+
+代码：`vllm_rlt/worker/sampler.py`。
 
 #### `StageEngine._update()`
 
@@ -1418,6 +1628,36 @@ Scheduler.update_from_output(batch, result, request_events=..., delivered=False)
 `ModelRunnerOutput` 的 token IDs、depth 和结束信息经 Scheduler 转成 `RequestOutput`。worker 输出携带内部 generation，`StageClient` 映射回外部 ID；HTTP worker 只增量解码新 token，再通过 `RequestChannel` 交付 text、usage 和 finish reason。一次 speculative round 可以产生多个已提交 token，不能假设一次事件恰好一个 token。
 
 结束、取消或失败会停止后续调度并清理 runner/RNG 和 request/KV。逻辑结束不等于物理内存立即可复用：异步 round、readback、GPU reader 和 PD transfer lease 仍可能持有资源，必须等相关 event / transport 安全后才能退休。客户端过慢导致 channel 缓冲满时，HTTP 层会报错并安排取消。
+
+
+### 精度回归与性能验证
+
+```text
+benchmarks.gsm8k prepare:
+	-> 固定 checkpoint/revision、题目、3-shot CoT prompt、输入 token IDs 和生成控制
+	-> 写出 protocol，并校验默认 fixture 的基准指纹
+benchmarks.gsm8k run:
+	-> 以同一 protocol 跑 native 或 transformers，保存逐题输出、token IDs、答案和停止原因
+	-> 默认 Ouro-1.4B BF16、四轮固定深度、greedy、单请求，最多 1024 个新 token / 2048 总上下文
+	-> 默认用 59/87 作为回归门槛，先用两道 train 题单独跑通流程
+benchmarks.gsm8k compare:
+	-> 用同一 protocol 的完整逐题记录做配对比较，报告准确率差、paired loss/gain 和答案差异
+	-> 改 checkpoint、生成 recipe 或题集时，重新跑 HF 和 native 两端
+```
+
+遇到异常或非有限 logits 时保留已有记录并让运行失败，固定题集的分母不变。基准分数用于这组固定题的回归判断。运行入口和参数见 `docs/accuracy.md`。
+
+|验证入口|看什么|
+|---|---|
+|`tests/test_scheduler_selection.py`、`tests/test_prefix_growth.py`、`tests/test_kv_cache.py`|组批选择、prefix 命中复用、KV 容量和页生命周期|
+|`tests/test_sampler.py`、`tests/test_speculative_sampling.py`、`tests/test_async_speculative_lifecycle.py`|采样分布、推测验收、异步取消和资源回收|
+|`tests/test_tensor_transfer.py`、`tests/test_submission_queue.py`、`tests/test_pd.py`|搬运与缓冲复用、PD 握手和传输生命周期|
+|`benchmarks.cdb_runtime`|固定 toy workload 和 exit-depth trace，对照不同调度与设备提交配置，检查 token/depth 一致性|
+|`benchmarks.preemption`|冻结到达序列和 KV 预算，配对比较抢占开关，检查 token/depth 一致性，并按优先级与长度看 TTFT/E2E|
+
+吞吐验证沿用仓库固定版本的 benchmark 客户端，warm-up 后分别记录串行、并发和有限到达率的结果。报告失败数、request/token throughput 和 TTFT、TPOT、ITL、E2E 分位数。端到端计时与离线 engine step 分开记录。入口见 `docs/serving.md` 的 benchmark 小节。
+
+为每次运行留存命令、commit、模型 revision、设备、亲和性、配置和原始结果。
 
 ### 阅读与验证入口
 
