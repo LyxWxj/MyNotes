@@ -8,11 +8,20 @@ related_to:
   - "[[Notes/Attention/sparse/csa-hca]]"
   - "[[kda]]"
   - "[[linear-attention-rwkv-mamba]]"
+  - "[[sparse-attention-architectures]]"
+  - "[[linear-attention-hybrids]]"
+  - "[[compressed-attention-architectures]]"
 ---
 
 # Attention 架构演进综述
 
 Transformer 的注意力机制在 2017 年提出后,一路演进的驱动力非常集中:**训练/推理复杂度与 KV cache 规模**。原生 softmax 注意力对序列长度 $n$ 是 $O(n^2)$ 的计算复杂度,而推理时 KV cache 随上下文线性增长,长上下文场景下内存带宽逐渐成为瓶颈。本文按四条路线整理主流架构的演进。
+
+## 2026-11-26 调研补充
+
+- **稀疏注意力**见 [[sparse-attention-architectures]]。固定模式看 Gemma 4、MiMo-V2.5-Pro，内容路由看 MiniMax-M3 的 MSA、Qwen3.8-Flash-Next 的 QSA、MoBA 和 InfLLM-V2。比较时分别看主注意力读多少 token、索引器扫多少候选，以及有多少 KV 需要常驻。
+- **线性注意力**见 [[linear-attention-hybrids]]。Gated DeltaNet 已用于 Qwen 系列，MiniMax-01/M1 采用 Lightning Attention，Nemotron 3 将 Mamba-2 与全局注意力混合。固定大小的循环状态按层成立，混合主干还需计算全局层的 KV 与检索开销。
+- **压缩注意力**见 [[compressed-attention-architectures]]。DeepSeek-V4.1-Flash 的 CSA2 把序列压缩、跨层 KV 共享和索引复用组合起来。YOCO 和 Gemma 4 提供跨层复用对照，DMC 与 Activation Beacon 展示可学习的序列压缩。
 
 ## 演进驱动力
 
@@ -116,7 +125,7 @@ DeepSeek-V2 论文用一张图直观对比了四种架构的差异(MHA / GQA / M
 
 1. **RWKV**:token 级指数衰减的 WKV 注意力,衰减向量逐通道可学习。
 2. **Mamba / SSM**:连续系统离散化,选择性 SSM(Mamba-2 的 SSD 已被证明与一种特殊的线性注意力等价)。
-3. **Gated DeltaNet**:线性注意力 + delta rule 联想记忆 + 标量遗忘门。
+3. **Gated DeltaNet**:线性注意力 + delta rule 联想记忆 + 标量遗忘门，应用见 [[linear-attention-hybrids]]。
 4. **KDA**(Kimi Linear):把 Gated DeltaNet 的标量衰减升级为**逐通道对角衰减**,表达能力更强。
 
 ## 总览对比
@@ -154,4 +163,4 @@ DeepSeek-V2 论文用一张图直观对比了四种架构的差异(MHA / GQA / M
 5. [[linear-attention-rwkv-mamba]] — 线性注意力与状态机视角
 6. [[kda]] — 最强线性注意力之一(Kimi Linear)
 
-每条路线的笔记都包含:背景动机 → 数学原理 → 可运行的 PyTorch 教学实现 → 对比总结。
+以上机制笔记包含数学推导和 PyTorch 教学实现。近期模型配置、架构变体和部署开销可从本页的调研补充进入。

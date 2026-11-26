@@ -212,7 +212,7 @@ $$S_t = \alpha_t\big(I - \beta_t k_t k_t^\top\big) S_{t-1} + \beta_t k_t v_t^\to
 | 写入 | $k v^\top$(不可擦除) | $\bar{B}_t x_t$ | $\beta k v^\top$(先擦除) |
 | 读取 | $q_t$(除法归一) | $C_t$ | $S_t^\top q_t$ |
 | 位置信息 | time shift + 指数衰减 | 隐式(选择性) | 无(需配合 RoPE 变体) |
-| 代表模型 | RWKV-4/5/6、Eagle | Mamba-1/2、Jamba | ——(被 KDA 取代) |
+| 代表模型 | RWKV-4/5/6、Eagle | Mamba-1/2、Jamba | Qwen3-Next、Qwen3.5、Qwen3.8-Flash-Next，见 [[linear-attention-hybrids]] |
 
 共同点:训练 $O(n)$、推理状态 $O(1)$、适合无限上下文;代价是**精确的"指哪打哪"检索能力弱于 softmax 注意力**,因此实践中常用混合架构(如 Jamba = Mamba + attention,Kimi Linear = KDA + MLA)。
 
